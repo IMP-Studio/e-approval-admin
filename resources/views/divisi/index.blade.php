@@ -85,7 +85,7 @@
                                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                         <div class="col-span-12">
                                             <label for="modal-form-2" class="form-label">Nama Divisi</label>
-                                            <input id="modal-form-2" value="{{ $item->division }}" name="divisi" type="text" class="form-control" placeholder="nama divisi">
+                                            <input id="modal-form-2" value="{{ $item->name }}" name="divisi" type="text" class="form-control" placeholder="nama divisi">
                                         </div>
                                     </div>
                                     <div class="modal-footer">
@@ -107,7 +107,7 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->division }}?
+                                                Do you really want to delete {{ $item->name }}?
                                                 <br>
                                                 This process cannot be undone.
                                             </div>

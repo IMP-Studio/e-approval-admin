@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Presence;
 use Illuminate\Http\Request;
 
-class AbsensiController extends Controller
+class PresenceController extends Controller
 {
     /**
      * Display a listing of the resource.

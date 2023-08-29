@@ -18,11 +18,11 @@ return new class extends Migration
             $table->unsignedBigInteger('presence_id');
             $table->foreign('presence_id')->references('id')->on('presences');
             $table->string('file');
-            $table->string('description');
             $table->date('start_date');
             $table->date('end_date');
             $table->mediumText('face_point');
             $table->enum('status',['pending','allowed','rejected']);
+            $table->string('description');
             $table->timestamps();
             $table->datetime('deleted_at')->nullable();
         });

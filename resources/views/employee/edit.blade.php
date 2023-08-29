@@ -46,15 +46,15 @@
                         <div class="col-span-12 xl:col-span-6">
                             <div>
                                 <label for="crud-form-1" class="form-label">Firstname</label>
-                                <input value="{{ $employee->firstname }}" name="firstname" id="crud-form-1" type="text" class="form-control w-full" placeholder="Firstname">
+                                <input value="{{ $employee->first_name }}" name="first_name" id="crud-form-1" type="text" class="form-control w-full" placeholder="Firstname">
                             </div>
                             <div class="mt-3">
                                 <label for="crud-form-2" class="form-label">Lastname</label>
-                                <input value="{{ $employee->lastname }}" name="lastname" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname">
+                                <input value="{{ $employee->last_name }}" name="last_name" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname">
                             </div>
                             <div class="mt-3">
                                 <label for="crud-form-3" class="form-label">Staff Id</label>
-                                <input value="{{ $employee->staff_id }}" name="staff_id" id="crud-form-3" type="number" class="form-control" placeholder="Staff Id">
+                                <input value="{{ $employee->id_number }}" name="id_number" id="crud-form-3" type="number" class="form-control" placeholder="Staff Id">
                             </div>
                             <div class="mt-3">
                                 <label class="form-label">Upload Image :</label>
@@ -62,7 +62,7 @@
                                     <div class="flex flex-wrap">
                                         <div class="w-16 h-16 relative image-fit mb-5 mr-5 cursor-pointer zoom-in"
                                             id="previewContainer" style="">
-                                            <img class="rounded-md" id="preview" src="{{ asset('images/'.$employee->img_profile) }}" style=""
+                                            <img class="rounded-md" id="preview" src="{{ asset('images/'.$employee->avatar) }}" style=""
                                                 data-action="zoom">
                                             <div title="Remove this image?"
                                                 class="tooltip w-5 h-5 flex items-center justify-center absolute rounded-full text-white bg-danger right-0 top-0 -mr-2 -mt-2"
@@ -74,7 +74,7 @@
                                         <i data-lucide="image" class="w-8 h-8 mr-2 text-success"></i> <span
                                             class="text-success text-bold font-medium mr-1">Upload a file</span>
                                         <input class="w-full h-full top-0 left-0 absolute opacity-0" type="file"
-                                            name="img_profile" id="logoInput" onchange="previewImage(event)">
+                                            name="avatar" id="logoInput" onchange="previewImage(event)">
                                     </div>
                                 </div>
                             </div>
@@ -83,7 +83,7 @@
                             <div>
                                 <label for="crud-form-6" class="form-label">Gender :</label>
                                 <div class="flex flex-col sm:flex-row mt-1">
-                                    <div class="form-check mr-2"> 
+                                    <div class="form-check mr-2">
                                         <input name="gender" id="radio-switch-4" class="form-check-input w-4 h-4" type="radio" name="horizontal_radio_button" value="male" {{ $employee->gender === 'male' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="radio-switch-4">Male</label>
                                     </div>
@@ -92,28 +92,25 @@
                                         <label class="form-check-label" for="radio-switch-5">Female</label>
                                     </div>
                                 </div>
-                            </div>                            
+                            </div>
                             <div class="mt-3">
                                 <label for="crud-form-5" class="form-label">Divisi :</label>
-                                <select name="division" data-placeholder="Select your favorite actors" class="tom-select w-full capitalize" id="crud-form-5">
-                                    @foreach ($divisi as $item)
-                                        <option value="{{ $employee->division->id }}" selected>{{ $employee->division->division }}</option>
-                                        <option value="{{ $item->id }}">{{ $item->division }}</option>
+                                <select name="position" data-placeholder="Select your favorite actors" class="tom-select w-full capitalize" id="crud-form-5">
+                                    @foreach ($position as $item)
+                                        <option value="{{ $employee->position_id }}" selected>{{ $employee->position->name }}</option>
+                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <label for="" class="form-label">Date of Birth</label>
-                            <div class="relative w-56">
-                                <div class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400"> 
-                                    <i data-lucide="calendar" class="w-4 h-4"></i> 
-                                </div> 
-                                <input name="date_of_birth" value="{{ $employee->date_of_birth }}" type="text" class="datepicker form-control pl-12" data-single-mode="true">
+                            <div class="mt-3">
+                                <label for="" class="form-label">Date of Birth</label>
+                                <input class="form-control" type="date" name="birth_date" id="" value="{{ $employee->birth_date }}">
                             </div>
                             <div class="mt-3">
                                 <label for="crud-form-7" class="form-label">Address :</label>
                                 <textarea class="form-control" name="address" id="" rows="4">{{ $employee->address }}</textarea>
-                            </div>    
-                                                             
+                            </div>
+
                         </div>
                 </div>
                 <div class="text-right mt-5">
@@ -127,7 +124,7 @@
 
 @push('js')
     <script>
-    
+
     function previewImage(event) {
         var input = event.target;
         var reader = new FileReader();
@@ -141,7 +138,7 @@
             document.getElementById('desc-img').classList.add('close-img');
             file.value = "{{ asset('images/'.$employee->img_profile) }}";
         };
-        
+
         if (input.files && input.files[0]) {
             reader.readAsDataURL(input.files[0]);
         } else {

@@ -38,9 +38,10 @@ class employeeController extends Controller
 
     public function create()
     {
-        $divisi = division::all();
-       
-        return view('employee.create',compact('divisi'));
+        $division = division::all();
+        $position = Position::all();
+
+        return view('employee.create',compact('division','position'));
     }
 
     /**
@@ -51,30 +52,30 @@ class employeeController extends Controller
         try {
             $input = $request->all();
 
-            if ($image = $request->file('img_profile')) {
+            if ($image = $request->file('avatar')) {
                 $destinationPath = 'images/';
                 $profileImage = $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
-                $input['img_profile'] = $profileImage;
+                $input['avatar'] = $profileImage;
             }
             $user = User::create([
                 'name' => $request->username,
                 'email' => $request->email,
                 'password' => $request->password,
-                'role' => 'employees'
             ]);
 
             employee::create([
-                'firstname' => $input['firstname'],
-                'lastname' => $input['lastname'],
                 'user_id' => $user->id,
-                'staff_id' => $input['staff_id'],
-                'img_profile' => $input['img_profile'],
+                'first_name' => $input['first_name'],
+                'last_name' => $input['last_name'],
+                'avatar' => $input['avatar'],
+                'id_number' => $input['id_number'],
                 'division_id' => $input['division'],
+                'position_id' => $input['position'],
                 'gender' => $input['gender'],
                 'address' => $input['address'],
-                'date_of_birth' => $input['date_of_birth'],
-                'status' => 'inActive'
+                'birth_date' => $input['birth_date'],
+                'is_active' => true
             ]);
 
             $user_name = $user->firstname;
@@ -102,43 +103,43 @@ class employeeController extends Controller
     public function edit(string $id)
     {
         $employee = employee::findOrFail($id);
-        $divisi = division::all();
-        return view('employee.edit',compact('employee','divisi'));
+        $position = Position::all();
+        return view('employee.edit',compact('employee','position'));
     }
 
     public function update(Request $request, $id)
     {
         try {
             $employee = employee::findOrFail($id);
-            $old_image = $employee->img_profile;
+            $old_image = $employee->avatar;
 
             $input = $request->all();
 
-            if ($image = $request->file('img_profile')) {
+            if ($image = $request->file('avatar')) {
                 $destinationPath = 'images/';
                 $profileImage = $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
-                $input['img_profile'] = $profileImage;
+                $input['avatar'] = $profileImage;
 
                 if ($old_image) {
                     Storage::delete('images/' . $old_image);
                 }
             } else {
-                $input['img_profile'] = $old_image;
+                $input['avatar'] = $old_image;
             }
 
             $employee->update([
-                'firstname' => $input['firstname'],
-                'lastname' => $input['lastname'],
-                'staff_id' => $input['staff_id'],
-                'img_profile' => $input['img_profile'],
-                'division_id' => $input['division'],
+                'first_name' => $input['first_name'],
+                'last_name' => $input['last_name'],
+                'id_number' => $input['id_number'],
+                'avatar' => $input['avatar'],
+                'position_id' => $input['position'],
                 'gender' => $input['gender'],
                 'address' => $input['address'],
-                'date_of_birth' => $input['date_of_birth']
+                'birth_date' => $input['birth_date']
             ]);
 
-            $employee_name = $employee->firstname;
+            $employee_name = $employee->first_name;
 
             return redirect()->route('employee')->with(['updated' => "$employee_name added successfully"]);
         } catch (\Throwable $th) {
@@ -150,8 +151,8 @@ class employeeController extends Controller
     {
         try {
             $employee = employee::findOrFail($id);
-            if ($employee->img_profile) {
-                $imagePath = public_path('images/') . $employee->img_profile;
+            if ($employee->avatar) {
+                $imagePath = public_path('images/') . $employee->avatar;
                 if (file_exists($imagePath)) {
                     unlink($imagePath);
                 }

@@ -88,13 +88,14 @@
                                             <select name="division_id" class="tom-select w-full" id="modal-form-1">
                                                 @foreach ($divisi as $itemDivisi)
                                                 <option value="{{ $itemDivisi->id }}" {{ $itemDivisi->id == $item->division_id ? 'selected' : '' }}>
-                                                    {{ $itemDivisi->division }}
-                                                </option>                                                @endforeach
+                                                    {{ $itemDivisi->name }}
+                                                </option>
+                                               @endforeach
                                             </select>
                                         </div>
                                         <div class="col-span-12">
                                             <label for="modal-form-2" class="form-label">Nama Posisi</label>
-                                            <input id="modal-form-2" value="{{ $item->posisi }}" name="posisi" type="text" class="form-control" placeholder="nama divisi">
+                                            <input id="modal-form-2" value="{{ $item->name }}" name="name" type="text" class="form-control" placeholder="nama divisi">
                                         </div>
                                     </div>
                                     <div class="modal-footer">
@@ -116,7 +117,7 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->posisi }}?
+                                                Do you really want to delete {{ $item->name }}?
                                                 <br>
                                                 This process cannot be undone.
                                             </div>
@@ -159,13 +160,13 @@
                             <select name="division_id" class="tom-select w-full" id="">
                                 @foreach ($divisi as $item)
                                     <option value="0" selected disabled>Choose Division</option>
-                                    <option value="{{ $item->id }}">{{ $item->division }}</option>
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-span-12">
                             <label for="modal-form-2" class="form-label">Nama Posisi</label>
-                            <input id="modal-form-2" name="posisi" type="text" class="form-control capitalize" placeholder="nama divisi" autocomplete="off">
+                            <input id="modal-form-2" name="name" type="text" class="form-control capitalize" placeholder="nama divisi" autocomplete="off">
                         </div>
                     </div>
                     <div class="modal-footer">

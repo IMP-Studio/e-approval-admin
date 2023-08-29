@@ -1,11 +1,10 @@
 <?php
 
-use App\Http\Controllers\AbsensiController;
-use App\Http\Controllers\divisiController;
+use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\divisionController;
 use App\Http\Controllers\employeeController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PosisiController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\roleController;
 use App\Http\Controllers\superAdminController;
 use App\Models\employee;
@@ -36,24 +35,24 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cuti', [HomeController::class, 'cuti'])->name('cuti');
     Route::get('/standup', [HomeController::class, 'standup'])->name('standup');
 
-    Route::get('/attendance', [AbsensiController::class, 'index'])->name('kehadiran');
+    Route::get('/attendance', [PresenceController::class, 'index'])->name('kehadiran');
 
     Route::prefix('divisi')->group(function () {
-        Route::get('/', [divisiController::class, 'index'])->name('divisi');
-        Route::get('/create', [divisiController::class, 'create'])->name('divisi.create');
-        Route::post('/store', [divisiController::class, 'store'])->name('divisi.store');
-        Route::get('/edit/{id}', [divisiController::class, 'edit'])->name('divisi.edit');
-        Route::put('/update/{id}', [divisiController::class, 'update'])->name('divisi.update');
-        Route::delete('/destroy/{id}', [divisiController::class, 'destroy'])->name('divisi.destroy');
-        Route::get('/export_excel', [divisiController::class,'export_excel'])->name('division.excel');
-        Route::post('/import', [divisiController::class,'import_excel'])->name('division.import');
+        Route::get('/', [divisionController::class, 'index'])->name('divisi');
+        Route::get('/create', [divisionController::class, 'create'])->name('divisi.create');
+        Route::post('/store', [divisionController::class, 'store'])->name('divisi.store');
+        Route::get('/edit/{id}', [divisionController::class, 'edit'])->name('divisi.edit');
+        Route::put('/update/{id}', [divisionController::class, 'update'])->name('divisi.update');
+        Route::delete('/destroy/{id}', [divisionController::class, 'destroy'])->name('divisi.destroy');
+        Route::get('/export_excel', [divisionController::class,'export_excel'])->name('division.excel');
+        Route::post('/import', [divisionController::class,'import_excel'])->name('division.import');
     });
 
     Route::prefix('position')->group(function () {
-        Route::get('/', [PosisiController::class, 'index'])->name('position');
-        Route::post('/store', [PosisiController::class, 'store'])->name('position.store');
-        Route::put('/update/{id}', [PosisiController::class, 'update'])->name('position.update');
-        Route::delete('/destroy/{id}', [PosisiController::class, 'destroy'])->name('position.destroy');
+        Route::get('/', [PositionController::class, 'index'])->name('position');
+        Route::post('/store', [PositionController::class, 'store'])->name('position.store');
+        Route::put('/update/{id}', [PositionController::class, 'update'])->name('position.update');
+        Route::delete('/destroy/{id}', [PositionController::class, 'destroy'])->name('position.destroy');
     });
 
     Route::prefix('employee')->group(function () {

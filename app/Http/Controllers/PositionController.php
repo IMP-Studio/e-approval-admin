@@ -8,7 +8,7 @@ use App\Models\employee;
 use App\Models\Position;
 use Illuminate\Http\Request;
 
-class PosisiController extends Controller
+class PositionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -40,7 +40,7 @@ class PosisiController extends Controller
         try {
             Position::create([
                 'division_id' => $request->division_id,
-                'posisi' => $request->name,
+                'name' => $request->name,
                 'created_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             ]);
@@ -76,7 +76,7 @@ class PosisiController extends Controller
             $posisi = Position::findOrFail($id);
             $posisi->update([
                 'division_id' => $request->division_id,
-                'posisi' => $request->name,
+                'name' => $request->name,
             ]);
             $nama_posisi = $request->name;
             return redirect()->back()->with(['success' => "$nama_posisi updated successfully"]);

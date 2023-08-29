@@ -46,15 +46,15 @@
                     <div class="col-span-12 xl:col-span-6">
                         <div>
                             <label for="crud-form-1" class="form-label">Firstname</label>
-                            <input name="firstname" id="crud-form-1" type="text" class="form-control w-full" placeholder="Firstname" required>
+                            <input name="first_name" id="crud-form-1" type="text" class="form-control w-full" placeholder="Firstname" required>
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-2" class="form-label">Lastname</label>
-                            <input name="lastname" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname" required>
+                            <input name="last_name" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname" required>
                         </div>
                         <div class="mt-3">
-                            <label for="crud-form-3" class="form-label">Staff Id</label>
-                            <input name="staff_id" id="crud-form-3" type="number" class="form-control" placeholder="Staff Id" required>
+                            <label for="crud-form-3" class="form-label">ID Number</label>
+                            <input name="id_number" id="crud-form-3" type="number" class="form-control" placeholder="ID Number" required>
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-6" class="form-label">Gender :</label>
@@ -70,11 +70,20 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <label for="crud-form-5" class="form-label">Divisi :</label>
+                            <label for="crud-form-5" class="form-label">Division :</label>
                             <select name="division" class="tom-select w-full capitalize" id="crud-form-5" required>
-                                @foreach ($divisi as $item)
+                                @foreach ($division as $item)
                                     <option value="0" selected disabled>Choose Division</option>
-                                    <option value="{{ $item->id }}">{{ $item->division }}</option>
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <label for="crud-form-5" class="form-label">Position :</label>
+                            <select name="position" class="tom-select w-full capitalize" id="crud-form-5" required>
+                                @foreach ($position as $item)
+                                    <option value="0" selected disabled>Choose Position</option>
+                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -96,7 +105,7 @@
                                     <i data-lucide="image" class="w-8 h-8 mr-2 text-success"></i> <span
                                         class="text-success text-bold font-medium mr-1">Upload a file</span>
                                     <input class="w-full h-full top-0 left-0 absolute opacity-0" type="file"
-                                        name="img_profile" id="logoInput" onchange="previewImage(event)" required>
+                                        name="avatar" id="logoInput" onchange="previewImage(event)" required>
                                 </div>
                             </div>
                         </div>
@@ -106,12 +115,9 @@
                             <label class="form-label">Date Of Birth</label>
                             <input name="date_of_birth" type="date" class="date-picker form-control">
                         </div> --}}
-                        <label for="" class="form-label">Date of Birth</label>
-                        <div class="relative w-56">
-                            <div class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
-                                <i data-lucide="calendar" class="w-4 h-4"></i>
-                            </div>
-                            <input name="date_of_birth" type="text" class="datepicker form-control pl-12" data-single-mode="true" required>
+                        <div class="mt-3">
+                            <label for="" class="form-label">Birth Date</label>
+                            <input class="form-control" type="date" name="birth_date" id="">
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-7" class="form-label">Address :</label>

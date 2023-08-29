@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Contracts\Session\Session;
 
-class divisiController extends Controller
+class divisionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -42,11 +42,11 @@ class divisiController extends Controller
     {
         try {
             division::create([
-                'division' => $request->divisi
+                'name' => $request->divisi
             ]);
             $nama_divisi = $request->divisi;
             // return redirect()->back()->with(['success' => 'Divisi Baru telah ditambahkan']);
-            return redirect()->back()->with(['delete' => "$nama_divisi added successfully"]);
+            return redirect()->back()->with(['success' => "$nama_divisi added successfully"]);
         } catch (\Throwable $th) {
             return redirect()->back()->with(['error' => "Failed to add division"]);
         }
@@ -76,7 +76,7 @@ class divisiController extends Controller
         try {
             $division = division::findOrFail($id);
             $division->update([
-                'division' => $request->divisi
+                'name' => $request->divisi
             ]);
             $name_division = $request->divisi;
 
@@ -93,7 +93,7 @@ class divisiController extends Controller
     {
         try {
             $divisi = Division::findOrFail($id);
-            $posisi = Posisi::where('division_id', $divisi->id)->get();
+            $posisi = Position::where('division_id', $divisi->id)->get();
 
             foreach ($posisi as $posisiItem) {
                 if ($posisiItem->employee->count() > 0) {

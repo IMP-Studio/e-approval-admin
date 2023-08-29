@@ -47,7 +47,7 @@
                         <th class="text-center whitespace-nowrap">Image-Profile</th>
                         <th class="text-center whitespace-nowrap">Username</th>
                         <th class="text-center whitespace-nowrap">Staff Id</th>
-                        <th class="text-center whitespace-nowrap">Divisi</th>
+                        <th class="text-center whitespace-nowrap">Position</th>
                         <th class="text-center whitespace-nowrap">Gender</th>
                         <th class="text-center whitespace-nowrap">Actions</th>
                     </tr>
@@ -60,7 +60,7 @@
                         </td>
                         <td class="flex justify-center align-center">
                             <div class="w-12 h-12 image-fit zoom-in">
-                                <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/'.$item->img_profile) }}" title="Uploaded at {{ $item->updated_at->format('j F Y') }}">
+                                <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/'.$item->avatar) }}" title="Uploaded at {{ $item->updated_at->format('j F Y') }}">
                             </div>
                         </td>
                         <td class="w-50 text-center">
@@ -70,7 +70,7 @@
                             {{ $item->id_number }}
                         </td>
                         <td class="text-center capitalize">
-                            {{ $item->division ? $item->division->name : '-' }}
+                            {{ $item->position ? $item->position->name : '-' }}
                         </td>
                         <td class="w-40">
                             <div class="flex items-center justify-center">
@@ -110,7 +110,7 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->firstname }}?
+                                                Do you really want to delete {{ $item->first_name }}?
                                                 <br>
                                                 This process cannot be undone.
                                             </div>
@@ -134,7 +134,7 @@
                                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                     <div class="col-span-12 mx-auto">
                                         <div class="w-24 h-24 image-fit zoom-in">
-                                            <img class="tooltip rounded-full" src="{{ asset('images/'.$item->img_profile) }}">
+                                            <img class="tooltip rounded-full" src="{{ asset('images/'.$item->avatar) }}">
                                         </div>
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
