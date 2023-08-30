@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\division;
-use App\Models\employee;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use App\Exports\DivisionExport;
 use App\Imports\DivisionImport;
+use App\Models\Division;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Contracts\Session\Session;
 
-class divisionController extends Controller
+class DivisionController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $divisi = division::paginate(5);
+        $divisi = Division::paginate(5);
         foreach ($divisi as $item) {
             $jumlah_posisi = Position::where('division_id', $item->id)->count();
             $item->jumlah_posisi = $jumlah_posisi;
@@ -41,7 +40,7 @@ class divisionController extends Controller
     public function store(Request $request)
     {
         try {
-            division::create([
+            Division::create([
                 'name' => $request->divisi
             ]);
             $nama_divisi = $request->divisi;
@@ -74,7 +73,7 @@ class divisionController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            $division = division::findOrFail($id);
+            $division = Division::findOrFail($id);
             $division->update([
                 'name' => $request->divisi
             ]);

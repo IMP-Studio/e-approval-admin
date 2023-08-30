@@ -57,23 +57,10 @@
                             <input name="id_number" id="crud-form-3" type="number" class="form-control" placeholder="ID Number" required>
                         </div>
                         <div class="mt-3">
-                            <label for="crud-form-6" class="form-label">Gender :</label>
-                            <div class="flex flex-col sm:flex-row mt-1">
-                                <div class="form-check mr-2">
-                                    <input name="gender" id="radio-switch-4" class="form-check-input w-4 h-4" type="radio" name="horizontal_radio_button" value="male">
-                                    <label class="form-check-label" for="radio-switch-4">Male</label>
-                                </div>
-                                <div class="form-check mr-2 mt-2 sm:mt-0">
-                                    <input name="gender" id="radio-switch-5" class="form-check-input w-4 h-4" type="radio" name="horizontal_radio_button" value="female">
-                                    <label class="form-check-label" for="radio-switch-5">Female</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mt-3">
                             <label for="crud-form-5" class="form-label">Division :</label>
                             <select name="division" class="tom-select w-full capitalize" id="crud-form-5" required>
+                                <option value="0" selected disabled>Choose Division</option>
                                 @foreach ($division as $item)
-                                    <option value="0" selected disabled>Choose Division</option>
                                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                                 @endforeach
                             </select>
@@ -81,10 +68,7 @@
                         <div class="mt-3">
                             <label for="crud-form-5" class="form-label">Position :</label>
                             <select name="position" class="tom-select w-full capitalize" id="crud-form-5" required>
-                                @foreach ($position as $item)
-                                    <option value="0" selected disabled>Choose Position</option>
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                @endforeach
+                                <option value="0" selected disabled>Choose Position</option>
                             </select>
                         </div>
                         <div class="mt-3">
@@ -111,10 +95,19 @@
                         </div>
                     </div>
                     <div class="col-span-12 xl:col-span-6">
-                        {{-- <div>
-                            <label class="form-label">Date Of Birth</label>
-                            <input name="date_of_birth" type="date" class="date-picker form-control">
-                        </div> --}}
+                        <div class="mt-3">
+                            <label for="crud-form-6" class="form-label">Gender :</label>
+                            <div class="flex flex-col sm:flex-row mt-1">
+                                <div class="form-check mr-2">
+                                    <input name="gender" id="radio-switch-4" class="form-check-input w-4 h-4" type="radio" name="horizontal_radio_button" value="male">
+                                    <label class="form-check-label" for="radio-switch-4">Male</label>
+                                </div>
+                                <div class="form-check mr-2 mt-2 sm:mt-0">
+                                    <input name="gender" id="radio-switch-5" class="form-check-input w-4 h-4" type="radio" name="horizontal_radio_button" value="female">
+                                    <label class="form-check-label" for="radio-switch-5">Female</label>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mt-3">
                             <label for="" class="form-label">Birth Date</label>
                             <input class="form-control" type="date" name="birth_date" id="">
@@ -150,6 +143,28 @@
 
 @push('js')
 <script>
+    $(document).ready(function() {
+        $('#crud-form-5').change(function() {
+            const selectedDivisionId = $(this).val();
+            const positionSelect = $('#crud-form-6');
+
+            positionSelect.empty().append('<option value="" selected disabled>Choose Position</option>');
+
+            if (selectedDivisionId) {
+                $.ajax({
+                    url: '/get-positions/' + selectedDivisionId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        response.forEach(pos => {
+                            const option = $('<option></option>').val(pos.id).text(pos.name);
+                            positionSelect.append(option);
+                        });
+                    }
+                });
+            }
+        });
+    });
     function previewImage(event) {
             var input = event.target;
             var reader = new FileReader();

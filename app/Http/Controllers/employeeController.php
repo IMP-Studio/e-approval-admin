@@ -6,8 +6,6 @@ use App\Exports\DivisionExport;
 use App\Exports\EmployeeExport;
 use App\Http\Requests\profileRequest;
 use App\Models\Position;
-use App\Models\division;
-use App\Models\employee;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,28 +18,34 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\Controller;
 use App\Imports\DivisionImport;
 use App\Imports\EmployeeImport;
+use App\Models\Division;
+use App\Models\Employee;
 use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Illuminate\Contracts\Session\Session;
 use PDF;
 use Psy\Readline\Hoa\Console;
 
-class employeeController extends Controller
+class EmployeeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $employee = employee::paginate(5);
+        $employee = Employee::paginate(5);
         return view('employee.index',compact('employee'));
     }
 
     public function create()
     {
-        $division = division::all();
-        $position = Position::all();
+        $division = Division::all();
 
-        return view('employee.create',compact('division','position'));
+        return view('employee.create',compact('division'));
+    }
+    public function getPositions($division)
+    {
+        $positions = Position::where('division_id', $division)->get();
+        return response()->json($positions);
     }
 
     /**
@@ -64,7 +68,7 @@ class employeeController extends Controller
                 'password' => $request->password,
             ]);
 
-            employee::create([
+            Employee::create([
                 'user_id' => $user->id,
                 'first_name' => $input['first_name'],
                 'last_name' => $input['last_name'],
@@ -92,8 +96,6 @@ class employeeController extends Controller
      */
     public function show(string $id)
     {
-        // $employee = employee::findOrFail($id);
-        // $divisi = division::all();
 
     }
 
@@ -102,7 +104,7 @@ class employeeController extends Controller
      */
     public function edit(string $id)
     {
-        $employee = employee::findOrFail($id);
+        $employee = Employee::findOrFail($id);
         $position = Position::all();
         return view('employee.edit',compact('employee','position'));
     }
@@ -110,7 +112,7 @@ class employeeController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $employee = employee::findOrFail($id);
+            $employee = Employee::findOrFail($id);
             $old_image = $employee->avatar;
 
             $input = $request->all();
@@ -150,7 +152,7 @@ class employeeController extends Controller
     public function destroy(string $id)
     {
         try {
-            $employee = employee::findOrFail($id);
+            $employee = Employee::findOrFail($id);
             if ($employee->avatar) {
                 $imagePath = public_path('images/') . $employee->avatar;
                 if (file_exists($imagePath)) {
@@ -175,7 +177,7 @@ class employeeController extends Controller
     }
     public function trash()
     {
-        $employee = employee::withTrashed()->onlyTrashed()->get();
+        $employee = Employee::withTrashed()->onlyTrashed()->get();
         $user = User::withTrashed()->onlyTrashed()->get();
         return view('employee.trash',compact('employee','user'));
     }
@@ -187,8 +189,8 @@ class employeeController extends Controller
 
     public function export_pdf()
     {
-        $employee = employee::all();
-        $division = division::all();
+        $employee = Employee::all();
+        $division = Division::all();
 
     	$pdf = PDF::loadview('employee.export-pdf',compact('employee','division'));
     	return $pdf->download('Data-Employee.pdf');

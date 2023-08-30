@@ -1,13 +1,12 @@
 <?php
 
+use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\PresenceController;
-use App\Http\Controllers\divisionController;
-use App\Http\Controllers\employeeController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\roleController;
 use App\Http\Controllers\superAdminController;
-use App\Models\employee;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -38,14 +37,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attendance', [PresenceController::class, 'index'])->name('kehadiran');
 
     Route::prefix('divisi')->group(function () {
-        Route::get('/', [divisionController::class, 'index'])->name('divisi');
-        Route::get('/create', [divisionController::class, 'create'])->name('divisi.create');
-        Route::post('/store', [divisionController::class, 'store'])->name('divisi.store');
-        Route::get('/edit/{id}', [divisionController::class, 'edit'])->name('divisi.edit');
-        Route::put('/update/{id}', [divisionController::class, 'update'])->name('divisi.update');
-        Route::delete('/destroy/{id}', [divisionController::class, 'destroy'])->name('divisi.destroy');
-        Route::get('/export_excel', [divisionController::class,'export_excel'])->name('division.excel');
-        Route::post('/import', [divisionController::class,'import_excel'])->name('division.import');
+        Route::get('/', [DivisionController::class, 'index'])->name('divisi');
+        Route::get('/create', [DivisionController::class, 'create'])->name('divisi.create');
+        Route::post('/store', [DivisionController::class, 'store'])->name('divisi.store');
+        Route::get('/edit/{id}', [DivisionController::class, 'edit'])->name('divisi.edit');
+        Route::put('/update/{id}', [DivisionController::class, 'update'])->name('divisi.update');
+        Route::delete('/destroy/{id}', [DivisionController::class, 'destroy'])->name('divisi.destroy');
+        Route::get('/export_excel', [DivisionController::class,'export_excel'])->name('division.excel');
+        Route::post('/import', [DivisionController::class,'import_excel'])->name('division.import');
     });
 
     Route::prefix('position')->group(function () {
@@ -56,16 +55,17 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('employee')->group(function () {
-        Route::get('/', [employeeController::class,'index'])->name('employee');
-        Route::get('/create', [employeeController::class,'create'])->name('employee.create');
-        Route::post('/store', [employeeController::class,'store'])->name('employee.store');
-        Route::get('/edit/{id}', [employeeController::class,'edit'])->name('employee.edit');
-        Route::put('/update/{id}', [employeeController::class,'update'])->name('employee.update');
-        Route::delete('/destroy/{id}', [employeeController::class,'destroy'])->name('employee.destroy');
-        Route::get('/trash', [employeeController::class,'trash'])->name('employee.trash');
-        Route::get('/export_excel', [employeeController::class,'export_excel'])->name('employee.excel');
-        Route::get('/export_pdf', [employeeController::class,'export_pdf'])->name('employee.pdf');
-        Route::post('/import_excel', [employeeController::class,'import_excel'])->name('employee.import');
+        Route::get('/', [EmployeeController::class,'index'])->name('employee');
+        Route::get('/create', [EmployeeController::class,'create'])->name('employee.create');
+        Route::post('/store', [EmployeeController::class,'store'])->name('employee.store');
+        Route::get('/edit/{id}', [EmployeeController::class,'edit'])->name('employee.edit');
+        Route::put('/update/{id}', [EmployeeController::class,'update'])->name('employee.update');
+        Route::delete('/destroy/{id}', [EmployeeController::class,'destroy'])->name('employee.destroy');
+        Route::get('/trash', [EmployeeController::class,'trash'])->name('employee.trash');
+        Route::get('/export_excel', [EmployeeController::class,'export_excel'])->name('employee.excel');
+        Route::get('/export_pdf', [EmployeeController::class,'export_pdf'])->name('employee.pdf');
+        Route::post('/import_excel', [EmployeeController::class,'import_excel'])->name('employee.import');
+        Route::get('/get-positions/{division}', [EmployeeController::class, 'getPositions'])->name('employee.getPositions');
     });
 });
 

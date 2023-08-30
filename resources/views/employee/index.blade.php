@@ -134,7 +134,11 @@
                                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                     <div class="col-span-12 mx-auto">
                                         <div class="w-24 h-24 image-fit zoom-in">
+                                        @if ($item->avatar)
                                             <img class="tooltip rounded-full" src="{{ asset('images/'.$item->avatar) }}">
+                                        @else
+                                            <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                        @endif
                                         </div>
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">

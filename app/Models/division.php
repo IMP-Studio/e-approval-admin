@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class division extends Model
+class Division extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -14,6 +14,6 @@ class division extends Model
 
     public function employee()
     {
-        return $this->hasMany(employee::class);
+        return $this->hasMany(Employee::class);
     }
 }

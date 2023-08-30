@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('file');
             $table->date('start_date');
             $table->date('end_date');
+            $table->date('entry_date');
             $table->mediumText('face_point');
             $table->enum('status',['pending','allowed','rejected']);
             $table->string('description');

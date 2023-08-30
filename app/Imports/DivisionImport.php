@@ -2,13 +2,13 @@
 
 namespace App\Imports;
 
-use App\Models\division;
+use App\Models\Division;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class DivisionImport implements ToModel, WithHeadingRow
 {
-    private $skipRows = 1; 
+    private $skipRows = 1;
     /**
     * @param array $row
     *
@@ -18,9 +18,9 @@ class DivisionImport implements ToModel, WithHeadingRow
     {
         if ($this->skipRows > 0) {
             $this->skipRows--;
-            return null; 
+            return null;
         }
-        return new division([
+        return new Division([
             'division' => $row[1]
         ]);
     }

@@ -5,18 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Models\User;
 use App\Models\Leave;
 use App\Models\StandUp;
-use App\Models\employee;
 use App\Models\Presence;
 use App\Models\Telework;
 use App\Models\WorkTrip;
 use App\Models\LeaveStatus;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\PersonalAccessToken;
-
 
 class ApiController extends Controller
 {
@@ -29,7 +28,7 @@ class ApiController extends Controller
 
         $user = User::with('employee')->where('email', $request->email)->first();
         $nama_lengkap = $user->employee->first_name .' '. $user->employee->last_name;
-    
+
         $userData = [
             'id' => $user->id,
             'user_id' => $user->employee->user_id,
@@ -83,22 +82,22 @@ class ApiController extends Controller
 
         if ($user && $user->employee) {
             $nama_lengkap = $user->employee->first_name .' '. $user->employee->last_name;
-    
+
             $response = [
                 'name' => $nama_lengkap,
                 'facePoint' => json_decode($user->facePoint, true)
             ];
-    
+
             return response()->json($response);
         } else {
             return response()->json(['message' => 'Face point employee not found'], 404);
         }
     }
 
-    
-    
-    
-    //---- PRESENCE FUNCTION ----\\ 
+
+
+
+    //---- PRESENCE FUNCTION ----\\
 
     //FUNCTION PRESENCE TODAY STATUS //BISA
     public function presenceToday($id)
@@ -109,7 +108,7 @@ class ApiController extends Controller
                               ->where('user_id', $id)
                               ->whereDate('date', $currentDate)
                               ->first();
-    
+
             if (!$attendance) {
                 return response()->json(['status' => 'notAttended', 'system_date' => $systemDate, 'carbon_date' => $currentDate]);
             } elseif ($attendance->telework && $attendance->telework->status == 'rejected' || $attendance->worktrip && $attendance->worktrip->status == 'rejected') {
@@ -122,16 +121,16 @@ class ApiController extends Controller
             }
 
     }
-    
+
 
     //FUNCTION GET PRESENCE TODAY //BISAA
     public function getPresenceToday($id) {
         $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
-    
+
         $attendanceToday = Presence::where('user_id', $id)
                                   ->whereDate('date', $currentDate)
                                   ->first();
-    
+
         if ($attendanceToday) {
             return response()->json([
                 'status' => 'attended',
@@ -151,7 +150,7 @@ class ApiController extends Controller
         }
     }
 
-    //FUNCTION GET PRESENCE //BISA 
+    //FUNCTION GET PRESENCE //BISA
     public function getPresence(Request $request){
         $userId = $request->query('user_id');
         $user = User::with('employee','standups')->where('id', $request->id)->first();
@@ -165,7 +164,7 @@ class ApiController extends Controller
         if ($presence->user) {
             $nama_lengkap = $presence->user->employee->first_name .' '. $presence->user->employee->last_name;
         }
-        
+
         $data = [
             'id' => $presence->id,
             'user_id' => $presence->user_id,
@@ -195,7 +194,7 @@ class ApiController extends Controller
                 ->where('start_date', '<=', $presence->date)
                 ->where('end_date', '>=', $presence->date)
                 ->first();
-        
+
             if ($relevantLeave) {
                 $data['type'] = $relevantLeave->type;
                 $data['submission_date'] = $relevantLeave->submission_date;
@@ -207,9 +206,9 @@ class ApiController extends Controller
                 $data['description'] = $relevantLeave->description;
             }
         }
-        
 
-        if ($presence->standup) {  
+
+        if ($presence->standup) {
             $data['standup_id'] = $presence->standup->id;
             $data['done'] = $presence->standup->done;
             $data['doing'] = $presence->standup->doing;
@@ -231,7 +230,7 @@ class ApiController extends Controller
             ];
             return response()->json($response);
         }
-        
+
         if ($presence->isEmpty()) {
             return response()->json(['message' => 'Belum presence atau status presence belum diterima']);
         } else {
@@ -243,12 +242,12 @@ class ApiController extends Controller
 
     public function storePresence(Request $request) {
         $gambarBinary = base64_encode($request->input('face_point'));
-        
-        $temporaryEntryTime = null;  
-    
-    
+
+        $temporaryEntryTime = null;
+
+
         if (in_array($request->input('category'), ['work_trip', 'telework'])) {
-            $temporaryEntryTime = '7:30:00'; 
+            $temporaryEntryTime = '7:30:00';
         }
 
         if ($user->hasRole('employee')){
@@ -256,14 +255,14 @@ class ApiController extends Controller
             $presence = Presence::create([
                 'user_id' => $request->input('user_id'),
                 'category' => $request->input('category'),
-                'entry_time' => $temporaryEntryTime,  
-                'exit_time' => null, 
+                'entry_time' => $temporaryEntryTime,
+                'exit_time' => null,
                 'latitude' => $request->input('latitude'),
                 'longitude' => $request->input('longitude'),
                 'date' => now(),
                 'gambar' => $gambarBinary
             ]);
-        
+
             switch ($request->input('category')) {
                 case 'work_trip':
                     WorkTrip::create([
@@ -276,7 +275,7 @@ class ApiController extends Controller
                         'status' => 'pending'
                     ]);
                     break;
-        
+
                 case 'telework':
                     Telework::create([
                         'user_id' => $request->input('user_id'),
@@ -288,12 +287,12 @@ class ApiController extends Controller
                         'reject_description' => $request->input('description')
                     ]);
                     break;
-        
+
                 case 'WFO':
                     $absensi->entry_time = now();
                     $absensi->save();
                     break;
-        
+
             }
 
             return response()->json(['message' => 'Success', 'data' => $presence]);
@@ -305,9 +304,9 @@ class ApiController extends Controller
             ];
             return response()->json($response);
         }
-    
-        
-    
+
+
+
         $user = User::find($request->input('user_id'));
         if ($user) {
             $facePointValue = $request->input('face_point');
@@ -316,7 +315,7 @@ class ApiController extends Controller
         } else {
             return response()->json(['message' => 'User not found'], 404);
         }
-    
+
         return response()->json(['message' => 'Success', 'data' => $absensi, 'user' => $user]);
     }
 
@@ -324,13 +323,13 @@ class ApiController extends Controller
 
     public function updatePresence(Request $request, $id) {
         $updateabsensi = Presence::with('user', 'standup')->find($id);
-    
+
         if (!$updateabsensi) {
             return response()->json(['message' => 'Record not found'], 404);
         }
-    
+
         $updateabsensi->update($request->all());
-    
+
         if ($request->input('status') === 'rejected') {
             if (!$request->input('description')) {
                 return response()->json(['message' => 'Description is required when rejecting.'], 400);
@@ -343,7 +342,7 @@ class ApiController extends Controller
                             $worktrip->save();
                         }
                         break;
-    
+
                     case 'telework':
                         $telework = Telework::where('presence_id', $updateabsensi->id)->first();
                         if ($telework) {
@@ -354,18 +353,18 @@ class ApiController extends Controller
                 }
             }
         }
-    
+
         if (in_array($updateabsensi->category, ['work_trip', 'telework'])) {
             if ($request->input('status') === 'allowed' && is_null($updateabsensi->entry_time)) {
                 $updateabsensi->entry_time = '8:30:00';
                 $updateabsensi->save();
             }
         }
-    
+
         return response()->json(['message' => 'Berhasil', 'data' => $updateabsensi]);
     }
-    
-    
+
+
 
     //---- STAND UP FUNCTION ----\\
 
@@ -375,7 +374,7 @@ class ApiController extends Controller
         $user = User::with('employee','standups')->where('id', $request->id)->first();
         if ($user->hasRole('employee')){
             $query = $request->has('id') ? StandUp::with('user','project','presence')->where('user_id', $request->id) : StandUp::with('user','project','presence');
-    
+
             $standUps = $query->orderBy('updated_at', 'desc')->get()
             ->map(function ($standUp) {
                 if ($standUp->user && $standUp->user->employee) {
@@ -408,9 +407,9 @@ class ApiController extends Controller
                'status' => 500,
                'message' => 'Anda tidak memiliki akses sebagai employees.',
            ];
-           
+
         }
-    }   
+    }
 
     //FUNCTION STORE STAND UP //BISA
 
@@ -429,15 +428,15 @@ class ApiController extends Controller
             'presence_id' => $latestPresence->id,
             'project_id' => $request->input('project_id'),
         ]);
-    
+
         return response()->json(['message' => 'Success', 'data' => $standup]);
     }
-    
+
     //FUNCTION UPDATE STAND UP //BISAA
 
     public function updateStandUp(Request $request, $id) {
         $updatestand = StandUp::find($id);
-    
+
         if ($updatestand) {
             $updatestand->update($request->all());
             return response()->json(['message' => 'Berhasil', 'data' => $updatestand]);
@@ -451,27 +450,27 @@ class ApiController extends Controller
     // GET LEAVE FUNCTION //BISA
     public function getLeave(Request $request){
         $userId = $request->query('user_id');
-       
+
         $jenisleave = $request->query('type');
 
         $leaveQuery = Leave::with('user','presence','leavestatus')->orderBy('updated_at', 'desc');
-        
+
         if ($userId) {
             $leaveQuery = $leaveQuery->where('user_id', $userId);
         }
-    
+
         if ($jenisleave) {
             $leaveQuery = $leaveQuery->where('type', $jenisleave);
         }
-       
+
             $leave = $leaveQuery->get()->map(function ($leave) {
                 if ($leave->user) {
                     $nama_lengkap = $leave->user->employee->first_name .' '. $leave->user->employee->last_name;
                 }
-        
+
                 $leaveStatus = $leave->leavestatus ? $leave->leavestatus->status : null;
                 $rejectDescription = ($leaveStatus === 'rejected' && $leave->leavestatus) ? $leave->leavestatus->description : null;
-        
+
                 return [
                     'id' => $leave->id,
                     'user_id' => $leave->user_id,
@@ -484,55 +483,29 @@ class ApiController extends Controller
                     'total_leave_days' => $leave->total_leave_days,
                     'description' => $leave->description,
                     'status' => $leaveStatus,
-                    'reject_description' => $rejectDescription, 
+                    'reject_description' => $rejectDescription,
                     'created_at' => $leave->created_at,
                     'updated_at' => $leave->updated_at,
                 ];
             });
-        
+
             if ($leave->isEmpty()) {
                 return response()->json(['message' => 'Data leave kosong']);
             } else {
                 return response()->json(['message' => 'Success', 'data' => $leave]);
             }
-        
+
     }
 
-    // public function getLeaveStatus(Request $request){
-    //     if ($user->hasRole('employee')){
-    //         $leavestatus = LeaveStatus::with('leave', 'user')->get()->map(function ($leave) {
-            
-    //             if ($leavestatus->user) {
-    //                 $nama_lengkap = $leave->user->employee->firstname .' '. $leave->user->employee->lastname;
-    //             }
-                
-    //             return [
-    //                 'id' => $leavestatus->id,
-    //                 'user_id' => $leavestatus->user_id,
-    //                 'leave_id' => $nama_lengkap,
-    //                 'created_at' => $leave->created_at,
-    //                 'updated_at' => $leave->updated_at,
-    //             ];
-    //         });
-            
-    //     } else {
-    //         $response = [
-    //         'status' => 500,
-    //         'message' => 'Anda tidak memiliki akses sebagai employees.',
-    //         ];
-                    
-    //     }
-    // }
-    
-    
+
     // FUNCTION STORE LEAVE //BISA
     public function storeLeave(Request $request) {
         $tanggalPemohonan = $request->input('submission_date');
         $tanggalMulai = Carbon::parse($request->input('start_date'));
         $tanggalAkhir = Carbon::parse($request->input('end_date'));
-    
+
         $jumlahHariLeave = $tanggalMulai->diffInDays($tanggalAkhir) + 1;
-        
+
         $leave = Leave::create([
             'user_id' => $request->input('user_id'),
             'type' => $request->input('type'),
@@ -543,24 +516,24 @@ class ApiController extends Controller
             'entry_date' => $request->input('entry_date'),
             'description' => $request->input('description'),
         ]);
-    
+
         $leavestatus = LeaveStatus::create([
             'user_id' => $leave->user_id,
             'leave_id' => $leave->id,
-            'status' => 'pending', 
-            'description' => null, 
+            'status' => 'pending',
+            'description' => null,
         ]);
-    
+
         return response()->json(['message' => 'Success', 'data' => $leave]);
     }
-    
-    
-    
-    
-    
-    
-    // FUNCTION UPDATE LEAVE //BISA 
-    public function updateLeave(Request $request, $id) 
+
+
+
+
+
+
+    // FUNCTION UPDATE LEAVE //BISA
+    public function updateLeave(Request $request, $id)
 {
     $leave = Leave::with('leavestatus')->find($id);
 
@@ -579,7 +552,7 @@ class ApiController extends Controller
                 $leave->leavestatus()->create($statusData);
             }
 
-            
+
             if ($request->input('status') === 'allowed') {
                 $tanggalMulai = Carbon::parse($leave->start_date);
                 $tanggalAkhir = Carbon::parse($leave->end_date);
@@ -605,9 +578,9 @@ class ApiController extends Controller
 
 
     //FUNCTION DELETE LEAVE
-    public function destroyLeave($id) 
+    public function destroyLeave($id)
     {
-        $cuti = Cuti::with('leavestatus')->find($id);
+        $cuti = Leave::with('leavestatus')->find($id);
 
         if ($cuti) {
             if ($cuti->leavestatus) {
@@ -626,19 +599,19 @@ class ApiController extends Controller
 
 
     //---- PROFILE FUNCTION ----\\
-    
+
     public function getProfile(Request $request){
         $userId = $request->query('user_id');
         $user = User::with('employee','standups')->where('id', $request->id)->first();
-        
+
         if ($user->hasRole('employee')) {
-        $employee = employee::with('user','division','position')->where('user_id', $request->id)->orderBy('updated_at', 'desc')->get()
+        $employee = Employee::with('user','division','position')->where('user_id', $request->id)->orderBy('updated_at', 'desc')->get()
         ->map(function ($employee) {
-            
+
             if ($employee) {
                 $nama_lengkap = $employee->first_name .' '. $employee->last_name;
             }
-    
+
             return [
                 'id' => $employee->id,
                 'user_id' => $employee->user_id,
@@ -683,7 +656,7 @@ class ApiController extends Controller
             ]);
         }
 
-  
+
     }
 
     public function logout  ()
