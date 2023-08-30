@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Leave;
 use App\Models\LeaveStatus;
-use App\Models\Perjadin;
 use App\Models\Presence;
 use App\Models\Telework;
 use App\Models\WorkTrip;
