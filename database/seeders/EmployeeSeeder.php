@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\division;
-use App\Models\employee;
+use App\Models\Division;
+use App\Models\Employee;
 use App\Models\Posisi;
 use App\Models\Position;
 use App\Models\User;
@@ -49,7 +49,7 @@ class EmployeeSeeder extends Seeder
             ['firstname' => 'Rafly','lastname' => 'Fachri','user_id' => 8,'id_number' => '8551791','position_id' => 3,'division_id' => 2,'gender' => 'male','address' => 'Cibubur','date' => '2001-07-13'],
         ];
         foreach ($data_divisi as $data) {
-            division::insert([
+            Division::insert([
                 'name' => $data['name'],
                 'created_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
@@ -69,12 +69,12 @@ class EmployeeSeeder extends Seeder
                 'created_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             ]);
-        
+
             $user->assignRole('employee');
         }
-        
+
         foreach ($data_employee as $data) {
-            employee::insert([
+            Employee ::insert([
                 'first_name' => $data['firstname'],
                 'last_name' => $data['lastname'],
                 'user_id' => $data['user_id'],

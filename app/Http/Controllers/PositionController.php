@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Division;
+use App\Models\Employee;
 use Carbon\Carbon;
-use App\Models\division;
-use App\Models\employee;
 use App\Models\Position;
 use Illuminate\Http\Request;
 
@@ -17,10 +17,10 @@ class PositionController extends Controller
     {
         $posisi = Position::paginate(5);
         foreach ($posisi as $item) {
-            $jumlah_pegawai = employee::where('position_id', $item->id)->count();
+            $jumlah_pegawai = Employee::where('position_id', $item->id)->count();
             $item->jumlah_pegawai = $jumlah_pegawai;
         }
-        $divisi = division::all();
+        $divisi = Division::all();
         return view('posisi.index',compact('posisi','divisi'));
     }
 

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\division;
-use App\Models\employee;
+use App\Models\Division;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -25,8 +25,8 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $employee = employee::all();
-        $division = division::all();
+        $employee = Employee::all();
+        $division = Division::all();
         return view('home',compact('employee','division'));
     }
 
@@ -51,7 +51,7 @@ class HomeController extends Controller
 
     public function boy()
     {
-        $divisi = division::all();
+        $divisi = Division::all();
         return view('divisi.boy', compact('divisi'));
     }
 }
