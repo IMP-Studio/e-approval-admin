@@ -497,32 +497,6 @@ class ApiController extends Controller
 
     }
 
-    // public function getLeaveStatus(Request $request){
-    //     if ($user->hasRole('employee')){
-    //         $leavestatus = LeaveStatus::with('leave', 'user')->get()->map(function ($leave) {
-
-    //             if ($leavestatus->user) {
-    //                 $nama_lengkap = $leave->user->employee->firstname .' '. $leave->user->employee->lastname;
-    //             }
-
-    //             return [
-    //                 'id' => $leavestatus->id,
-    //                 'user_id' => $leavestatus->user_id,
-    //                 'leave_id' => $nama_lengkap,
-    //                 'created_at' => $leave->created_at,
-    //                 'updated_at' => $leave->updated_at,
-    //             ];
-    //         });
-
-    //     } else {
-    //         $response = [
-    //         'status' => 500,
-    //         'message' => 'Anda tidak memiliki akses sebagai employees.',
-    //         ];
-
-    //     }
-    // }
-
 
     // FUNCTION STORE LEAVE //BISA
     public function storeLeave(Request $request) {

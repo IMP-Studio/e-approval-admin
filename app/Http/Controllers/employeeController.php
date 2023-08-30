@@ -96,8 +96,6 @@ class EmployeeController extends Controller
      */
     public function show(string $id)
     {
-        // $employee = employee::findOrFail($id);
-        // $divisi = division::all();
 
     }
 
