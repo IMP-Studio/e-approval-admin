@@ -41,7 +41,7 @@
                         <th class="whitespace-nowrap">No</th>
                         <th class="text-center whitespace-nowrap">Username</th>
                         <th class="text-center whitespace-nowrap">Image</th>
-                        <th class="text-center whitespace-nowrap">Divisi</th>
+                        <th class="text-center whitespace-nowrap">Position</th>
                         <th class="text-center whitespace-nowrap">Jenis Kehadiran</th>
                         <th class="text-center whitespace-nowrap">Actions</th>
                     </tr>
@@ -58,16 +58,16 @@
                             </td>
                             <td class="flex justify-center align-center">
                                 <div class="w-12 h-12 image-fit zoom-in">
-                                    <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/'.$item->gambar) }}" title="uploaded at {{ $item->updated_at->format('j F Y')  }}">
+                                    <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/'.$item->user->employee->avatar) }}" title="uploaded at {{ $item->updated_at->format('j F Y')  }}">
                                 </div>
                             </td>
                             <td class="text-center capitalize">
-                                {{ $item->user->employee->division->name }}
+                                {{ $item->user->employee->position->name }}
                             </td>
-                            <td class="text-center">
-                                {{ $item->category }}
+                            <td class="text-center capitalize">
+                                {{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}
                             </td>
-                    
+
                             <td class="table-report__action w-56">
                                 <div class="flex justify-center items-center">
                                     {{-- <a class="flex items-center text-pending mr-3" href=""> <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit </a> --}}
@@ -90,7 +90,7 @@
                                         <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                             <div class="col-span-12 mx-auto">
                                                 <div class="w-24 h-24 image-fit zoom-in">
-                                                    <img class="tooltip rounded-full" src="{{ asset('images/'.$item->gambar) }}">
+                                                    <img class="tooltip rounded-full" src="{{ asset('images/'.$item->user->employee->avatar) }}">
                                                 </div>
                                             </div>
                                             {{-- <div class="col-span-12 sm:col-span-6">
@@ -127,7 +127,7 @@
                                             @endif
                                             <div class="col-span-12 sm:col-span-6">
                                                 <label for="modal-form-1" class="text-xs">Tanggal :</label>
-                                                <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->tanggal }}">
+                                                <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->date }}">
                                             </div>
                                             <div class="col-span-12 sm:col-span-6">
                                                 <label for="modal-form-1" class="text-xs">Waktu Masuk :</label>

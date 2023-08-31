@@ -25,9 +25,9 @@ class Presence extends Model
         return $this->belongsTo(Standup::class);
     }
     public function telework()
-{
-    return $this->hasOne(Telework::class);
-}
+    {
+        return $this->hasOne(Telework::class);
+    }
     public function worktrip()
     {
         return $this->hasOne(WorkTrip::class);

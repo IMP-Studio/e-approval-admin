@@ -12,7 +12,7 @@ class PresenceController extends Controller
      */
     public function index()
     {
-        $absensi = Presence::paginate(10);
+        $absensi = Presence::paginate(5);
         return view('kehadiran',compact('absensi'));
     }
 
