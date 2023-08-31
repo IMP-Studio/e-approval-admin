@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users');
             $table->unsignedBigInteger('presence_id');
             $table->foreign('presence_id')->references('id')->on('presences');
-            $table->enum('category',['kesehatan','pendidikan','keluarga','other']);
+            $table->enum('telework_category',['kesehatan','pendidikan','keluarga','other']);
             $table->string('category_description')->nullable();
             $table->mediumText('face_point');
             $table->enum('status',['pending','allowed','rejected']);

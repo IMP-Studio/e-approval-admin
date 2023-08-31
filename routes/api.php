@@ -31,10 +31,15 @@ Route::get('/presence/{id}', [ApiController::class, 'presenceToday']);
 Route::get('/presence/today/{id}', [ApiController::class, 'getPresenceToday']);
 Route::post('/presence/store', [ApiController::class, 'storePresence']);
 Route::put('/presence/update/{id}', [ApiController::class, 'updatePresence']);
+Route::delete('/presence/wfo/delete/{id}', [ApiController::class, 'destroyWFO']);
+Route::delete('/presence/worktrip/delete/{id}', [ApiController::class, 'destroyWorktrip']);
+Route::delete('/presence/telework/delete/{id}', [ApiController::class, 'destroyTelework']);
+
 
 Route::get('/standup', [ApiController::class, 'getStandUp']);
 Route::post('/standup/store', [ApiController::class, 'storeStandUp']);
 Route::put('/standup/update/{id}', [ApiController::class, 'updateStandUp']);
+Route::delete('/standup/delete/{id}',[ApiController::class, 'destroyStandUp']);
 
 Route::get('/leave', [ApiController::class, 'getLeave']);
 Route::post('/leave/store', [ApiController::class, 'storeLeave']);
@@ -42,4 +47,3 @@ Route::put('/leave/update/{id}', [ApiController::class, 'updateLeave']);
 Route::put('/leave/delete/{id}', [ApiController::class, 'destroyLeave']);
 
 Route::get('/profile', [ApiController::class, 'getProfile']);
-

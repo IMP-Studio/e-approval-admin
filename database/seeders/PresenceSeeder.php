@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Leave;
 use App\Models\LeaveStatus;
+use App\Models\Perjadin;
 use App\Models\Presence;
 use App\Models\Telework;
 use App\Models\WorkTrip;
@@ -29,8 +30,8 @@ class PresenceSeeder extends Seeder
             ['user_id' => 8,'category' => 'leave','latitude' => null,'longitude' => null],
         ];
         $data_teleworks = [
-            ['user_id' => 2,'presence_id' => 1,'category' => 'kesehatan','category_description' => null],
-            ['user_id' => 3,'presence_id' => 2,'category' => 'other','category_description' => 'Jalan depan rumah lagi diaspal'],
+            ['user_id' => 2,'presence_id' => 1,'telework_category' => 'kesehatan','category_description' => null],
+            ['user_id' => 3,'presence_id' => 2,'telework_category' => 'other','category_description' => 'Jalan depan rumah lagi diaspal'],
         ];
         $data_work_trip = [
             ['user_id' => 6,'presence_id' => 5],
@@ -62,7 +63,7 @@ class PresenceSeeder extends Seeder
             Telework::insert([
                 'user_id' => $data['user_id'],
                 'presence_id' => $data['presence_id'],
-                'category' => $data['category'],
+                'telework_category' => $data['telework_category'],
                 'category_description' => $data['category_description'],
                 'face_point' => 'qwertyuiop',
                 'status' => 'pending',
@@ -78,6 +79,7 @@ class PresenceSeeder extends Seeder
                 'description' => 'contoh_desc',
                 'start_date' => '2023-07-26',
                 'end_date' => '2023-07-28',
+                'entry_date' => '2023-07-29',
                 'status' => 'pending',
                 'face_point' => 'qwertyuiop',
                 'created_at' => Carbon::now(),
