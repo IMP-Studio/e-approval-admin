@@ -20,7 +20,6 @@ return new class extends Migration
             $table->enum('category',['kesehatan','pendidikan','keluarga','other']);
             $table->string('category_description')->nullable();
             $table->mediumText('face_point');
-            $table->enum('status',['pending','allowed','rejected']);
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

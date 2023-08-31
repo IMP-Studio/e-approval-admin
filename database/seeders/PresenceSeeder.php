@@ -65,7 +65,6 @@ class PresenceSeeder extends Seeder
                 'category' => $data['category'],
                 'category_description' => $data['category_description'],
                 'face_point' => 'qwertyuiop',
-                'status' => 'pending',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -78,7 +77,6 @@ class PresenceSeeder extends Seeder
                 'description' => 'contoh_desc',
                 'start_date' => '2023-07-26',
                 'end_date' => '2023-07-28',
-                'status' => 'pending',
                 'face_point' => 'qwertyuiop',
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
