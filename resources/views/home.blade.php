@@ -97,10 +97,10 @@
                 </div>
 
                 <!-- BEGIN: Vertical Bar Chart Report -->
-                <div class="col-span-12 mt-6">
+                <div class="col-span-12 xl:col-span-8 mt-8">
                     <div class="intro-y block sm:flex items-center h-10">
                         <h2 class="text-lg font-medium truncate mr-5">
-                            Sales Report
+                            This Month's Attendance Report
                         </h2>
                         <div class="sm:ml-auto mt-3 sm:mt-0 relative text-slate-500">
                             <i data-lucide="calendar" class="w-4 h-4 z-10 absolute my-auto inset-y-0 ml-3 left-0"></i>
@@ -108,9 +108,9 @@
                         </div>
                     </div>
                     <div class="intro-y box p-5 mt-12 sm:mt-5">
-                        <div class="report-chart">
-                            <div class="h-[275px]">
-                                <canvas id="vertical-bar-chart-widget" class="mt-6 mb-6"></canvas>
+                        <div class="preview">
+                            <div class="">
+                                <canvas id="bar-chart" class="mt-6 mb-6"></canvas>
                             </div>
                         </div>
                     </div>
@@ -121,37 +121,114 @@
                 <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
                     <div class="intro-y flex items-center h-10">
                         <h2 class="text-lg font-medium truncate mr-5">
-                            Weekly Top Seller
+                            This Year's Attendance Report
                         </h2>
-                        <a href="" class="ml-auto text-primary truncate">Show More</a>
                     </div>
-                    <div class="intro-y box p-5 mt-5">
+                    <div id="chart" class="intro-y box p-5 mt-5">
                         <div class="mt-3">
                             <div class="h-[213px]">
-                                <canvas id="report-pie-chart"></canvas>
+                                <canvas id="pie-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="w-52 sm:w-auto mx-auto mt-8">
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 bg-success rounded-full mr-3"></div>
+                                <span class="truncate">WFO</span>
+                                <span class="font-medium ml-auto">{{ round(($wfo_yearly / ($wfo_yearly + $telework_yearly + $workTrip_yearly + $leave_yearly)) * 100, 1) }}%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                                <span class="truncate">Telework</span>
+                                <span class="font-medium ml-auto">{{ round(($telework_yearly / ($wfo_yearly + $telework_yearly + $workTrip_yearly + $leave_yearly)) * 100, 1) }}%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
+                                <span class="truncate">Work Trip</span>
+                                <span class="font-medium ml-auto">{{ round(($workTrip_yearly / ($wfo_yearly + $telework_yearly + $workTrip_yearly + $leave_yearly)) * 100, 1) }}%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
+                                <span class="truncate">Leave</span>
+                                <span class="font-medium ml-auto">{{ round(($leave_yearly / ($wfo_yearly + $telework_yearly + $workTrip_yearly + $leave_yearly)) * 100, 1) }}%</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <!-- END: Pie Chart Report -->
+
+                <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
+                    <div class="intro-y flex items-center h-10">
+                        <h2 class="text-lg font-medium truncate mr-5">
+                            This Year's Attendance Report
+                        </h2>
+                    </div>
+                    <div id="chart" class="intro-y box p-5 mt-5">
+                        <div class="mt-3">
+                            <div class="h-[213px]">
+                                <canvas id="report-donut-chart"></canvas>
                             </div>
                         </div>
                         <div class="w-52 sm:w-auto mx-auto mt-8">
                             <div class="flex items-center">
                                 <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                                <span class="truncate">17 - 30 Years old</span> <span
+                                <span class="truncate">WFO</span> <span
                                     class="font-medium ml-auto">62%</span>
                             </div>
-                            <div class="flex items-center mt-4">
+                            <div class="flex items-center mt-2">
                                 <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
-                                <span class="truncate">31 - 50 Years old</span> <span
+                                <span class="truncate">Telework</span> <span
                                     class="font-medium ml-auto">33%</span>
                             </div>
-                            <div class="flex items-center mt-4">
+                            <div class="flex items-center mt-2">
                                 <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
-                                <span class="truncate">>= 50 Years old</span> <span
+                                <span class="truncate">Work Trip</span> <span
+                                    class="font-medium ml-auto">10%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
+                                <span class="truncate">Leave</span> <span
                                     class="font-medium ml-auto">10%</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <!-- END: Pie Chart Report -->
-
+                <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
+                    <div class="intro-y flex items-center h-10">
+                        <h2 class="text-lg font-medium truncate mr-5">
+                            This Year's Attendance Report
+                        </h2>
+                    </div>
+                    <div id="chart" class="intro-y box p-5 mt-5">
+                        <div class="mt-3">
+                            <div class="h-[213px]">
+                                <canvas id="report-donut-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="w-52 sm:w-auto mx-auto mt-8">
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                                <span class="truncate">WFO</span> <span
+                                    class="font-medium ml-auto">62%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
+                                <span class="truncate">Telework</span> <span
+                                    class="font-medium ml-auto">33%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
+                                <span class="truncate">Work Trip</span> <span
+                                    class="font-medium ml-auto">10%</span>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
+                                <span class="truncate">Leave</span> <span
+                                    class="font-medium ml-auto">10%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- END: Sales Report -->
                 <!-- BEGIN: Official Store -->
@@ -546,16 +623,72 @@
                                             @php
                                             $start_date = \Carbon\Carbon::parse($data->start_date);
                                             @endphp
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d F Y') }}
+                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
                                             </div>
                                         </div>
-                                        <div class="text-success">+$115</div>
+                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-{{ $data->id }}">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
+                                        </a>
+                                    </div>
+                                </div>
+                                <div id="show-modal-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
+                                            </div>
+                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                <div class="col-span-12 mx-auto">
+                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                                    @if ($data->user->employee->avatar)
+                                                        <img class="tooltip rounded-full" src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                    @else
+                                                        <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                                    @endif
+                                                    </div>
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Position :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">ID Number :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Presence :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Category :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->category }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Category Description :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->category_description ? $data->category_description : '-' }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Temporary Entry Time :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{$data->presence->temporary_entry_time}}">
+                                                </div>
+
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 @endforeach
 
                                 {{-- <a href="" class="intro-x w-full block text-center rounded-md py-3 border border-dotted border-slate-400 dark:border-darkmode-300 text-slate-500">View More</a> --}}
                             </div>
+
                         @endif
                         @if (count($workTrip_today) > 0)
                             <div class="intro-x flex items-center h-10">
@@ -576,10 +709,66 @@
                                             @php
                                             $start_date = \Carbon\Carbon::parse($data->start_date);
                                             @endphp
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d F Y') }}
+                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
                                             </div>
                                         </div>
-                                        <div class="text-success">+$115</div>
+                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-wt-{{ $data->id }}">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
+                                        </a>
+                                    </div>
+                                </div>
+                                <div id="show-modal-wt-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
+                                            </div>
+                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                <div class="col-span-12 mx-auto">
+                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                                    @if ($data->user->employee->avatar)
+                                                        <img class="tooltip rounded-full" src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                    @else
+                                                        <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                                    @endif
+                                                    </div>
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Position :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">ID Number :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Presence :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category === 'work_trip' ? 'Work Trip' : $data->presence->category }}
+                                                    ">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Start Date :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->start_date }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">End Date :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->end_date }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Temporary Entry Time :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{$data->presence->temporary_entry_time}}">
+                                                </div>
+
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 @endforeach
@@ -606,10 +795,66 @@
                                             @php
                                             $start_date = \Carbon\Carbon::parse($data->start_date);
                                             @endphp
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d F Y') }}
+                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
                                             </div>
                                         </div>
-                                        <div class="text-success">+$115</div>
+                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-le-{{$data->id}}">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
+                                        </a>
+                                    </div>
+                                </div>
+                                <div id="show-modal-le-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
+                                            </div>
+                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                <div class="col-span-12 mx-auto">
+                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                                    @if ($data->user->employee->avatar)
+                                                        <img class="tooltip rounded-full" src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                    @else
+                                                        <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                                    @endif
+                                                    </div>
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Position :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">ID Number :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">Presence :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category === 'work_trip' ? 'Work Trip' : $data->presence->category }}
+                                                    ">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Description :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->description }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-2" class="text-xs">Start Date :</label>
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->start_date }}">
+                                                </div>
+                                                <div class="col-span-12 sm:col-span-6">
+                                                    <label for="modal-form-1" class="text-xs">End Date :</label>
+                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->end_date }}">
+                                                </div>
+
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 @endforeach
@@ -877,4 +1122,114 @@
         </div>
     </div>
 </div>
+
 @endsection
+
+@push('js')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Get the canvas element
+        const ctx_bar = document.getElementById('bar-chart').getContext('2d');
+        const ctx_pie = document.getElementById('pie-chart').getContext('2d');
+
+        // Set up data
+        const data_bar = {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug","Sept","Oct","Nov","Dec"],
+            datasets: [{
+                label: "WFO",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $wfo_data) }}],
+                backgroundColor: 'rgba(13, 148, 136,0.9)'
+            }, {
+                label: "Telework",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $telework_data) }}],
+                backgroundColor: 'rgba(22, 78, 99,0.9)'
+            }, {
+                label: "Work Trip",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $workTrip_data) }}],
+                backgroundColor: 'rgba(245, 158, 11,0.9)'
+            }, {
+                label: "Leave",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $leave_data) }}],
+                backgroundColor: 'rgba(217, 119, 6,0.9)'
+            }]
+        };
+
+        // Set up configuration
+        const options_bar = {
+            scales: {
+          x: {
+            ticks: {
+              font: {
+                size: 12
+              },
+              color: 'rgba(100, 116, 139,0.8)'
+            },
+            grid: {
+              display: false,
+              drawBorder: false
+            }
+          }
+        }
+        };
+
+        // Create the bar chart
+        const barChart = new Chart(ctx_bar, {
+            type: 'bar', // Specify the chart type
+            data: data_bar, // Set the data
+            options: options_bar // Set the configuration
+        });
+
+
+
+        var pieChart = new Chart(ctx_pie, {
+            type: 'pie',
+            data: {
+                labels: ["WFO", "Telework", "Work Trip","Leave"],
+                datasets: [{
+                    data: [{{ $wfo_yearly }}, {{ $telework_yearly }}, {{ $workTrip_yearly }},{{ $leave_yearly }}],
+                    backgroundColor: [
+                        'rgba(13, 148, 136,0.9)',
+                        'rgba(22, 78, 99,0.9)',
+                        'rgba(245, 158, 11,0.9)',
+                        'rgba(217, 119, 6,0.9)'
+                    ],
+                    hoverBackgroundColor: [
+                        'rgba(13, 148, 136)',
+                        'rgba(22, 78, 99)',
+                        'rgba(245, 158, 11)',
+                        'rgba(217, 119, 6)'
+                    ],
+                    borderWidth: 5,
+                    borderColor: 'rgba(41 53 82)',
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    }
+                }
+            }
+        });
+
+
+    </script>
+@endpush

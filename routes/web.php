@@ -65,7 +65,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export_excel', [EmployeeController::class,'export_excel'])->name('employee.excel');
         Route::get('/export_pdf', [EmployeeController::class,'export_pdf'])->name('employee.pdf');
         Route::post('/import_excel', [EmployeeController::class,'import_excel'])->name('employee.import');
-        Route::get('/get-positions/{division}', [EmployeeController::class, 'getPositions'])->name('employee.getPositions');
-    });
+        Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);    });
 });
 

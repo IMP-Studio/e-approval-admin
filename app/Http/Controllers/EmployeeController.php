@@ -42,11 +42,6 @@ class EmployeeController extends Controller
 
         return view('employee.create',compact('division'));
     }
-    public function getPositions($division)
-    {
-        $positions = Position::where('division_id', $division)->get();
-        return response()->json($positions);
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -212,6 +207,12 @@ class EmployeeController extends Controller
         // Excel::import(new EmployeeImport,$request->file('import_file')->store('export'));
 
         return redirect('/employee');
+    }
+    public function getPositions($divisionId)
+    {
+        $positions = Position::where('division_id', $divisionId)->get();
+
+        return response()->json(['data' => $positions]);
     }
 
 }
