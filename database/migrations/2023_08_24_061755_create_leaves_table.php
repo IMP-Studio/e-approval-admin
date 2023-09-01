@@ -24,7 +24,7 @@ return new class extends Migration
             $table->date('end_date');
             $table->string('total_leave_days');
             $table->date('entry_date');
-            $table->string('description');
+            $table->text('type_description');
             $table->timestamps();
             $table->datetime('deleted_at')->nullable();
         });

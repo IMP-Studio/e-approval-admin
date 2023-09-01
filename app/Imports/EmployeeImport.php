@@ -19,7 +19,6 @@ class EmployeeImport implements ToModel
     public function model(array $row)
     {
         if (empty($row[1])) {
-            // Handle jika nama kosong
             return null;
         }
 
@@ -36,19 +35,7 @@ class EmployeeImport implements ToModel
         if (!$division) {
             $division = Division::firstOrCreate(['division' => 'Default Division']);
         }
-        // $imgFilename = $row[3]; // Assuming $row[3] contains the image filename with extension
 
-        // // Handle image upload and storage
-        // $imgPath = null;
-        // if (!empty($imgFilename)) {
-        //     $imgExtension = pathinfo($imgFilename, PATHINFO_EXTENSION);
-        //     $newImgFilename = Str::random(20) . '.' . $imgExtension;
-
-        //     // Simpan gambar ke penyimpanan lokal (storage/app/public/images)
-        //     Storage::disk('public')->putFileAs('images', public_path($imgFilename), $newImgFilename);
-
-        //     $imgPath = 'images/' . $newImgFilename;
-        // }
 
 
         return new Employee([
