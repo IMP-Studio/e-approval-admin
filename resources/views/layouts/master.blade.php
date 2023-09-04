@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="{{ session('theme', 'light') }}">
     <head>
         <meta charset="UTF-8">
         <link href="{{ asset('images/IMP-location.png') }}" rel="shortcut icon">
@@ -53,10 +53,15 @@
                 display: none;
             }
             .month-item-name{
-                background-color: #232D45!important
+                background-color: #175a72!important;
+                color: white!important
             }
             .month-item-year{
-                background-color: #232D45!important
+                background-color: #175a72!important;
+                color: white!important
+            }
+            .content{
+                padding-bottom: 100px !important;
             }
         </style>
 
@@ -72,21 +77,41 @@
         <div class="flex overflow-hidden">
             @include('layouts.side-nav')
             @yield('content')
-            {{-- <div class="dark-mode-switcher cursor-pointer shadow-md fixed bottom-0 right-0 box border rounded-full w-40 h-12 flex items-center justify-center z-50 mb-10 mr-10" id="darkModeSwitcher">
-                <div class="mr-4 text-gray-700">Dark Mode</div>
-                <div class="dark-mode-switcher__toggle"></div>
-            </div> --}}
+            <div class="dark-mode-switcher cursor-pointer shadow-md fixed bottom-0 right-0 box dark:bg-dark-2 border rounded-full w-40 h-12 flex items-center justify-center z-50 mb-10 mr-10">
+                <div class="mr-4 text-gray-700 dark:text-gray-300">Dark Mode</div>
+                <div class="dark-mode-switcher__toggle border"></div>
+            </div>
         </div>
 
         @stack('js')
-        {{-- <script>
-            const darkModeSwitcher = document.getElementById('darkModeSwitcher');
-            const html = document.document.html;
+        <script>
+            const html = document.documentElement;
+            const darkModeSwitcher = document.querySelector('.dark-mode-switcher');
 
-            darkModeSwitcher.addEventListener('click', () => {
-                html.classList.toggle('dark');
-            });
-        </script> --}}
+            // Fungsi untuk mengambil dan menetapkan preferensi tema dari local storage
+            function applyThemePreference() {
+                const theme = localStorage.getItem('theme') || 'light';
+                html.classList.remove('light', 'dark'); // Hapus keduanya terlebih dahulu
+                html.classList.add(theme); // Tambahkan class sesuai preferensi
+
+                darkModeSwitcher.classList.toggle('active', theme === 'dark');
+                darkModeSwitcher.querySelector('.dark-mode-switcher__toggle').classList.toggle('dark-mode-switcher__toggle--active', theme === 'dark');
+            }
+
+            // Fungsi untuk mengubah preferensi tema dan menyimpannya di local storage
+            function toggleTheme() {
+                const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyThemePreference();
+            }
+
+            // Menambahkan event listener ke elemen dark mode switcher
+            darkModeSwitcher.addEventListener('click', toggleTheme);
+
+            // Menerapkan preferensi tema saat halaman dimuat
+            applyThemePreference();
+        </script>
 
         <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
         <script src="https://maps.googleapis.com/maps/api/js?key=["your-google-map-api"]&libraries=places"></script>

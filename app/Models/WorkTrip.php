@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\StatusCommit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class WorkTrip extends Model
 {
@@ -15,5 +16,13 @@ class WorkTrip extends Model
     public function presence()
     {
         return $this->belongsTo(Presence::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(user::class);
+    }
+    public function statusCommit()
+    {
+        return $this->morphMany(StatusCommit::class, 'statusable');
     }
 }

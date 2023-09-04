@@ -58,17 +58,16 @@
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-5" class="form-label">Division :</label>
-                            <select name="division" class="tom-select w-full capitalize" id="crud-form-5" required>
-                                <option value="0" selected disabled>Choose Division</option>
-                                @foreach ($division as $item)
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            <select name="division" id="crud-form-5" class="tom-select w-full" onchange="dapetPosisi()" required>
+                                <option value="0" selected disabled>Choose</option>
+                                @foreach ($division as $division)
+                                    <option value="{{ $division->id }}">{{ $division->name }}</option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="mt-3">
-                            <label for="crud-form-5" class="form-label">Position :</label>
-                            <select name="position" class="tom-select w-full capitalize" id="crud-form-5" required>
-                                <option value="0" selected disabled>Choose Position</option>
+                            <label for="crud-form-6" class="form-label">Position :</label>
+                            <select name="position" id="position" class="form-select w-full" required>
                             </select>
                         </div>
                         <div class="mt-3">
@@ -108,17 +107,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3">
+                        {{-- <div class="mt-3">
                             <label for="" class="form-label">Birth Date</label>
                             <input class="form-control" type="date" name="birth_date" id="">
+                        </div> --}}
+                        <div class="mt-3">
+                            <div class="relative w-56">
+                                <div class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
+                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" name="birth_date" class="datepicker form-control pl-12" data-single-mode="true">
+                            </div>
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-7" class="form-label">Address :</label>
                             <textarea class="form-control" name="address" id="" rows="4" required></textarea>
-                        </div>
-                        <div class="mt-3">
-                            <label for="crud-form-7" class="form-label">Username :</label>
-                            <input type="text" name="username" placeholder="username" class="form-control" required>
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-7" class="form-label">Email :</label>
@@ -131,47 +134,54 @@
                     </div>
             </div>
             <div class="text-right mt-5">
-                <button type="button" class="btn btn-outline-secondary w-24 mr-1"><a href="{{ route('employee') }}">Cancel</a></button>
-                <button type="submit" class="btn btn-primary w-24">Submit</button>
+                <button type="button" class="btn btn-outline-secondary w-32 h-12 mr-1"><a href="{{ route('employee') }}">Cancel</a></button>
+                <button type="submit" class="btn btn-primary w-32 h-12">Submit</button>
             </div>
 
         </form>
     </div>
 </div>
-
 @endsection
 
 @push('js')
-<script>
-    $(document).ready(function() {
-        $('#crud-form-5').change(function() {
-            const selectedDivisionId = $(this).val();
-            const positionSelect = $('#crud-form-6');
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript">
+    let jQ = $.noConflict();
 
-            positionSelect.empty().append('<option value="" selected disabled>Choose Position</option>');
+    function dapetPosisi() {
+        let divisionId = jQ("#crud-form-5").val();
+        let positionSelect = jQ("#position");
 
-            if (selectedDivisionId) {
-                $.ajax({
-                    url: '/get-positions/' + selectedDivisionId,
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        response.forEach(pos => {
-                            const option = $('<option></option>').val(pos.id).text(pos.name);
-                            positionSelect.append(option);
-                        });
-                    }
-                });
-            }
-        });
-    });
+        positionSelect.empty().append('<option value="" selected disabled>Loading...</option>');
+
+        if (divisionId) {
+            jQ.ajax({
+                url: "{{ url('employee/get-positions/') }}" + "/" + divisionId,
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    positionSelect.empty().append('<option value="0" selected disabled>Choose Position</option>');
+                    response.data.forEach(function(position) {
+                        positionSelect.append('<option value="' + position.id + '">' + position.name + '</option>');
+                        console.log(position.name)
+                    });
+                },
+                error: function() {
+                    positionSelect.empty().append('<option value="0" selected disabled>Error loading positions</option>');
+                }
+            });
+        } else {
+            positionSelect.empty().append('<option value="0" selected disabled>Choose Division first</option>');
+        }
+    }
+
     function previewImage(event) {
-            var input = event.target;
-            var reader = new FileReader();
-            var previewContainer = document.getElementById("previewContainer");
+            const input = event.target;
+            const reader = new FileReader();
+            const previewContainer = document.getElementById("previewContainer");
 
             reader.onload = function(){
-                var img = document.getElementById("preview");
+                const img = document.getElementById("preview");
                 img.src = reader.result;
                 previewContainer.style.display = "block";
                 document.getElementById('desc-img').classList.add('close-img');
@@ -180,19 +190,21 @@
             if (input.files && input.files[0]) {
                 reader.readAsDataURL(input.files[0]);
             } else {
-                var img = document.getElementById("preview");
+                const img = document.getElementById("preview");
                 img.src = "";
                 previewContainer.style.display = "none";
             }
     }
     function removeImage() {
-        var img = document.getElementById("preview");
-        var previewContainer = document.getElementById("previewContainer");
-        var input = document.getElementById("logoInput");
+        const img = document.getElementById("preview");
+        const previewContainer = document.getElementById("previewContainer");
+        const input = document.getElementById("logoInput");
         img.src = "";
         previewContainer.style.display = "none";
         input.value = "";
         document.getElementById('desc-img').classList.remove('close-img');
     }
+
+
 </script>
 @endpush
