@@ -41,16 +41,25 @@ class HomeController extends Controller
         $telework_today = Telework::whereHas('presence',
         function ($query) use ($now) {
             $query->whereDate('date', $now);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'allowed')
+                ->where('statusable_type', 'App\Models\Telework');
         })->get();
 
         $workTrip_today = WorkTrip::whereHas('presence',
         function ($query) use ($now) {
             $query->whereDate('date', $now);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'allowed')
+                ->where('statusable_type', 'App\Models\WorkTrip');
         })->get();
 
         $leave_today = Leave::whereHas('presence',
         function ($query) use ($now) {
             $query->whereDate('date', $now);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'allowed')
+                ->where('statusable_type', 'App\Models\Leave');
         })->get();
 
         // PRESENCE PER BULAN TAHUN INI
@@ -71,19 +80,28 @@ class HomeController extends Controller
             $telework_month = Telework::whereHas('presence', function ($query) use ($month, $year) {
                 $query->whereMonth('date', $month)
                     ->whereYear('date', $year);
-            })->get()->count();
+            })->whereHas('statusCommit', function ($query) {
+                $query->where('status', 'allowed')
+                    ->where('statusable_type', 'App\Models\Telework');
+            })->count();
             $telework_data[] = $telework_month;
 
             $workTrip_month = WorkTrip::whereHas('presence', function ($query) use ($month, $year) {
                 $query->whereMonth('date', $month)
                     ->whereYear('date', $year);
-            })->get()->count();
+            })->whereHas('statusCommit', function ($query) {
+                $query->where('status', 'allowed')
+                    ->where('statusable_type', 'App\Models\WorkTrip');
+            })->count();
             $workTrip_data[] = $workTrip_month;
 
             $leave_month = Leave::whereHas('presence', function ($query) use ($month, $year) {
                 $query->whereMonth('date', $month)
                     ->whereYear('date', $year);
-            })->get()->count();
+            })->whereHas('statusCommit', function ($query) {
+                $query->where('status', 'allowed')
+                    ->where('statusable_type', 'App\Models\Leave');
+            })->count();
             $leave_data[] = $leave_month;
         }
 
@@ -95,16 +113,25 @@ class HomeController extends Controller
         $telework_yearly = Telework::whereHas('presence',
         function ($query) use ($year) {
             $query->whereYear('date', $year);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'allowed')
+                ->where('statusable_type', 'App\Models\Telework');
         })->count();
 
         $workTrip_yearly = WorkTrip::whereHas('presence',
         function ($query) use ($year) {
             $query->whereYear('date', $year);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'allowed')
+                ->where('statusable_type', 'App\Models\WorkTrip');
         })->count();
 
         $leave_yearly = Leave::whereHas('presence',
         function ($query) use ($year) {
             $query->whereYear('date', $year);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'allowed')
+                ->where('statusable_type', 'App\Models\Leave');
         })->count();
 
         // PERSENTASE

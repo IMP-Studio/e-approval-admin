@@ -10,6 +10,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeSeeder extends Seeder
 {
@@ -18,20 +20,54 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
-        
 
         $data_divisi = [
             ['name' => 'Product Engineering'],
             ['name' => 'Designer'],
             ['name' => 'Human Resource'],
         ];
-        $data_posisi = [
+        $data_position = [
             ['division_id' => 1,'name' => 'Backend Developer'],
+            ['division_id' => 1,'name' => 'Frontend Developer'],
             ['division_id' => 1,'name' => 'Business Analyst'],
+            ['division_id' => 1,'name' => 'Business Development'],
+            ['division_id' => 1,'name' => 'System Analyst'],
+            ['division_id' => 1,'name' => 'System Architect'],
+            ['division_id' => 1,'name' => 'Mobile App Developer'],
             ['division_id' => 2,'name' => 'UI/UX Deisgner'],
-            ['division_id' => 1,'name' => 'Content Creator'],
+            ['division_id' => 2,'name' => 'Graphic & UI/UX Deisgner'],
+            ['division_id' => 2,'name' => 'Content Creator'],
             ['division_id' => 3,'name' => 'Human Resource Development'],
+            ['division_id' => 3,'name' => 'Quality Assurance'],
+            ['division_id' => 3,'name' => 'Finance Staff'],
         ];
+        // COBA DATA FAKER
+        // $faker = Faker::create('id_ID');
+
+        // for($i = 1; $i <= 50; $i++){
+
+        //     $user = User::insert([
+        //       'name' => $faker->name,
+        //       'email' => $faker->unique()->safeEmail(),
+        //       'password' => bcrypt('password@123')
+        //     ]);
+
+        //     Employee::insert([
+        //         'first_name' => $faker->firstName,
+        //         'first_name' => $faker->lastName,
+        //         'user_id' => $user->id,
+        //         'avatar' => 'bri.png',
+        //         'id_number' => $faker->unique()->randomNumber(8),
+        //         'position_id' => $faker->unique()->numberBetween(1,13),
+        //         'division_id' => $faker->unique()->numberBetween(1,3),
+        //         'gender' => $faker->randomElement(['male','female']),
+        //         'address' => $faker->address,
+        //         'date' => $faker->date,
+        //         'is_active' => true,
+        //     ]);
+
+
+        // }
         $data_user = [
             ['name' => 'Ibrahim Khalish','email' => 'ibrahim@gmail.com',],
             ['name' => 'Fathir Akmal','email' => 'fathir@gmail.com',],
@@ -67,7 +103,7 @@ class EmployeeSeeder extends Seeder
             'Fauzan Alghifari' => 'Human Resource',
             'Rizky Atmaja' => 'Head of Tribe',
             'Mahesa Alfian' => 'Head of Tribe',
-            
+
         ];
         foreach ($data_divisi as $data) {
             Division::insert([
@@ -76,7 +112,7 @@ class EmployeeSeeder extends Seeder
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             ]);
         }
-        foreach ($data_posisi as $data) {
+        foreach ($data_position as $data) {
             Position::insert([
                 'division_id' => $data['division_id'],
                 'name' => $data['name'],
@@ -109,12 +145,12 @@ class EmployeeSeeder extends Seeder
                 'division_id' => $data['division_id'],
                 'gender' => $data['gender'],
                 'address' => $data['address'],
-                'birth_date' => $data['date'], 
+                'birth_date' => $data['date'],
                 'is_active' => true,
                 'created_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             ]);
         }
-        
+
     }
 }

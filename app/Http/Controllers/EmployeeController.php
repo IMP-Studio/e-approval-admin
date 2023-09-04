@@ -57,8 +57,9 @@ class EmployeeController extends Controller
                 $image->storeAs($destinationPath, $profileImage);
                 $input['avatar'] = $profileImage;
             }
+
             $user = User::create([
-                'name' => $request->username,
+                'name' => $input['first_name'] . '-' . $input['last_name'],
                 'email' => $request->email,
                 'password' => $request->password,
             ]);

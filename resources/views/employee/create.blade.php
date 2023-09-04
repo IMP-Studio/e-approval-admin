@@ -116,10 +116,6 @@
                             <textarea class="form-control" name="address" id="" rows="4" required></textarea>
                         </div>
                         <div class="mt-3">
-                            <label for="crud-form-7" class="form-label">Username :</label>
-                            <input type="text" name="username" placeholder="username" class="form-control" required>
-                        </div>
-                        <div class="mt-3">
                             <label for="crud-form-7" class="form-label">Email :</label>
                             <input type="email" name="email" placeholder="email" class="form-control" required>
                         </div>

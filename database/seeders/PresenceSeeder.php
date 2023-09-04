@@ -93,50 +93,50 @@ class PresenceSeeder extends Seeder
         }
 
         $data_status_commits = [
-           
+
             [
-                'statusable_id' => 1, 
-                
+                'statusable_id' => 1,
+
                 'statusable_type' => Telework::class,
                 'description' => null,
-                'status' => 'pending',
+                'status' => 'allowed',
             ],
-            
+
             [
-                'statusable_id' => 2, 
+                'statusable_id' => 2,
                 'statusable_type' => Telework::class,
                 'description' => null,
-                'status' => 'pending',
+                'status' => 'allowed',
+            ],
+
+            [
+
+                'statusable_id' => 1,
+                'statusable_type' => WorkTrip::class,
+                'description' => null,
+                'status' => 'allowed',
+            ],
+            [
+
+                'statusable_id' => 2,
+                'statusable_type' => WorkTrip::class,
+                'description' => null,
+                'status' => 'allowed',
             ],
 
             [
                 
-                'statusable_id' => 1, 
-                'statusable_type' => WorkTrip::class,
+                'statusable_id' => 1,
+                'statusable_type' => Leave::class,
                 'description' => null,
-                'status' => 'pending',
+                'status' => 'allowed',
             ],
             [
-                
-                'statusable_id' => 2, 
-                'statusable_type' => WorkTrip::class,
-                'description' => null,
-                'status' => 'pending',
-            ],
 
-            [
-              
-                'statusable_id' => 1, 
+                'statusable_id' => 2,
                 'statusable_type' => Leave::class,
                 'description' => null,
-                'status' => 'pending',
-            ],
-            [
-              
-                'statusable_id' => 2, 
-                'statusable_type' => Leave::class,
-                'description' => null,
-                'status' => 'pending',
+                'status' => 'allowed',
             ],
         ];
 
