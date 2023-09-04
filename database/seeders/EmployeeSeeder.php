@@ -58,15 +58,16 @@ class EmployeeSeeder extends Seeder
         ];
 
         $permissionMap = [
-            'Ibrahim Khalish' => 'Ordinary Employee',
-            'Fathir Akmal' => 'Ordinary Employee',
-            'Muhammad Arrafi' => 'Ordinary Employee',
-            'Putri Kirana' => 'Ordinary Employee',
-            'Stephanie Jesselyn' => 'Ordinary Employee',
-            'Sarah Chani' => 'Ordinary Employee',
-            'Fauzan Alghifari' => 'Human Resource',
-            'Rizky Atmaja' => 'Head of Tribe',
-            'Mahesa Alfian' => 'Head of Tribe',
+            'Ibrahim Khalish' => 'ordinary_employee',
+            'Fathir Akmal' => 'ordinary_employee',
+            'Muhammad Arrafi' => 'ordinary_employee',
+            'Putri Kirana' => 'ordinary_employee',
+            'Stephanie Jesselyn' => 'ordinary_employee',
+            'Sarah Chani' => 'ordinary_employee',
+            'Fauzan Alghifari' => 'ordinary_employee',
+            'Kemal Al Ghifari' => 'human_resource',
+            'Rizky Atmaja' => 'head_of_tribe',
+            'Mahesa Alfian' => 'head_of_tribe',
             
         ];
         foreach ($data_divisi as $data) {

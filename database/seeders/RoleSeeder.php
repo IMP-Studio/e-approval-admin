@@ -15,10 +15,10 @@ class RoleSeeder extends Seeder
         $employeeRole = Role::create(['name' => 'employee','guard_name' => 'web']);
         $superAdminRole = Role::create(['name' => 'super-admin', 'guard_name' => 'web']);
 
-        $ordinaryEmployeePermission = Permission::create(['name' => 'Ordinary Employee', 'guard_name' => 'web']);
-        $headOfTribePermission = Permission::create(['name' => 'Head of Tribe','guard_name' => 'web']);
-        $humanResourcePermission = Permission::create(['name' => 'Human Resource', 'guard_name' => 'web']);
-        $presidentPermission = Permission::create(['name' => 'President', 'guard_name' => 'web']);
+        $ordinaryEmployeePermission = Permission::create(['name' => 'ordinary_employee', 'guard_name' => 'web']);
+        $headOfTribePermission = Permission::create(['name' => 'head_of_tribe','guard_name' => 'web']);
+        $humanResourcePermission = Permission::create(['name' => 'human_resource', 'guard_name' => 'web']);
+        $presidentPermission = Permission::create(['name' => 'president', 'guard_name' => 'web']);
 
         $employeeRole->givePermissionTo($ordinaryEmployeePermission);
         $employeeRole->givePermissionTo($headOfTribePermission);

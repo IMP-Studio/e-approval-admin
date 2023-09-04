@@ -37,6 +37,7 @@ Route::delete('/presence/telework/delete/{id}', [ApiController::class, 'destroyT
 
 
 Route::get('/standup', [ApiController::class, 'getStandUp']);
+Route::get('/project', [ApiController::class, 'getProject']);
 Route::post('/standup/store', [ApiController::class, 'storeStandUp']);
 Route::put('/standup/update/{id}', [ApiController::class, 'updateStandUp']);
 Route::delete('/standup/delete/{id}',[ApiController::class, 'destroyStandUp']);

@@ -131,13 +131,6 @@ class PresenceSeeder extends Seeder
                 'description' => null,
                 'status' => 'pending',
             ],
-            [
-              
-                'statusable_id' => 2, 
-                'statusable_type' => Leave::class,
-                'description' => null,
-                'status' => 'pending',
-            ],
         ];
 
         foreach ($data_status_commits as $data) {
