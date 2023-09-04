@@ -46,6 +46,14 @@ class HomeController extends Controller
                 ->where('statusable_type', 'App\Models\Telework');
         })->get();
 
+        $telework_reject = Telework::whereHas('presence',
+        function ($query) use ($now) {
+            $query->whereDate('date', $now);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'rejected')
+                ->where('statusable_type', 'App\Models\Telework');
+        })->get();
+
         $workTrip_today = WorkTrip::whereHas('presence',
         function ($query) use ($now) {
             $query->whereDate('date', $now);
@@ -134,6 +142,31 @@ class HomeController extends Controller
                 ->where('statusable_type', 'App\Models\Leave');
         })->count();
 
+        // REJECTED YEARLY
+        $telework_rejected = Telework::whereHas('presence',
+        function ($query) use ($year) {
+            $query->whereYear('date', $year);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'rejected')
+                ->where('statusable_type', 'App\Models\Telework');
+        })->count();
+
+        $workTrip_rejected = WorkTrip::whereHas('presence',
+        function ($query) use ($year) {
+            $query->whereYear('date', $year);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'rejected')
+                ->where('statusable_type', 'App\Models\WorkTrip');
+        })->count();
+
+        $leave_rejected = Leave::whereHas('presence',
+        function ($query) use ($year) {
+            $query->whereYear('date', $year);
+        })->whereHas('statusCommit', function ($query) {
+            $query->where('status', 'rejected')
+                ->where('statusable_type', 'App\Models\Leave');
+        })->count();
+
         // PERSENTASE
         $attendance_percentage = $total_employee > 0 ? round(($presence_today / $total_employee) * 100, 1) : 0;
         $telework_percentage = $total_employee > 0 ? round(($telework_today->count() / $total_employee) * 100, 1) : 0;
@@ -143,7 +176,7 @@ class HomeController extends Controller
 
         return view('home',compact('presence_today','telework_today','workTrip_today','leave_today','attendance_percentage',
         'telework_percentage','workTrip_percentage','leave_percentage','wfo_data','telework_data','workTrip_data','leave_data',
-        'wfo_yearly','telework_yearly','workTrip_yearly','leave_yearly'));
+        'wfo_yearly','telework_yearly','workTrip_yearly','leave_yearly','telework_rejected','workTrip_rejected','leave_rejected'));
     }
 
     // public function kehadiran()

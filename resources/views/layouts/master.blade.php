@@ -53,10 +53,12 @@
                 display: none;
             }
             .month-item-name{
-                background-color: #232D45!important
+                background-color: #175a72!important;
+                color: white!important
             }
             .month-item-year{
-                background-color: #232D45!important
+                background-color: #175a72!important;
+                color: white!important
             }
             .content{
                 padding-bottom: 100px !important;

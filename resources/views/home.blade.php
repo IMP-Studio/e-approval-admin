@@ -34,6 +34,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-span-12 sm:col-span-6 xl:col-span-3 intro-y">
                             <div class="report-box zoom-in">
                                 <div class="box p-5">
@@ -160,35 +161,30 @@
                 <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
                     <div class="intro-y flex items-center h-10">
                         <h2 class="text-lg font-medium truncate mr-5">
-                            This Year's Attendance Report
+                            This Year's Attendance Rejected
                         </h2>
                     </div>
                     <div id="chart" class="intro-y box p-5 mt-5">
                         <div class="mt-3">
                             <div class="h-[213px]">
-                                <canvas id="report-donut-chart"></canvas>
+                                <canvas id="donut-chart"></canvas>
                             </div>
                         </div>
                         <div class="w-52 sm:w-auto mx-auto mt-8">
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                                <span class="truncate">WFO</span> <span
-                                    class="font-medium ml-auto">62%</span>
-                            </div>
                             <div class="flex items-center mt-2">
-                                <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
+                                <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
                                 <span class="truncate">Telework</span> <span
-                                    class="font-medium ml-auto">33%</span>
+                                    class="font-medium ml-auto">{{ round(($telework_rejected / ( $telework_rejected + $workTrip_rejected + $leave_rejected)) * 100, 1) }}%</span>
                             </div>
                             <div class="flex items-center mt-2">
                                 <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
                                 <span class="truncate">Work Trip</span> <span
-                                    class="font-medium ml-auto">10%</span>
+                                    class="font-medium ml-auto">{{ round(($workTrip_rejected / ( $workTrip_rejected + $telework_rejected + $leave_rejected)) * 100, 1) }}%</span>
                             </div>
                             <div class="flex items-center mt-2">
-                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
+                                <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
                                 <span class="truncate">Leave</span> <span
-                                    class="font-medium ml-auto">10%</span>
+                                    class="font-medium ml-auto">{{ round(($leave_rejected / ( $leave_rejected + $workTrip_rejected + $telework_rejected)) * 100, 1) }}%</span>
                             </div>
                         </div>
                     </div>
@@ -669,7 +665,7 @@
                                                 </div>
                                                 <div class="col-span-12 sm:col-span-6">
                                                     <label for="modal-form-2" class="text-xs">Category :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->category }}">
+                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->telework_category }}">
                                                 </div>
                                                 <div class="col-span-12 sm:col-span-6">
                                                     <label for="modal-form-1" class="text-xs">Category Description :</label>
@@ -1132,6 +1128,7 @@
         // Get the canvas element
         const ctx_bar = document.getElementById('bar-chart').getContext('2d');
         const ctx_pie = document.getElementById('pie-chart').getContext('2d');
+        const ctx_donut = document.getElementById('donut-chart').getContext('2d');
 
         // Set up data
         const data_bar = {
@@ -1227,6 +1224,36 @@
                         display: false,
                     }
                 }
+            }
+        });
+        var donutChart = new Chart(ctx_donut, {
+            type: 'doughnut',
+            data: {
+                labels: ["Telework", "Work Trip","Leave"],
+                datasets: [{
+                    data: [ {{ $telework_rejected }}, {{ $workTrip_rejected }},{{ $leave_rejected }}],
+                    backgroundColor: [
+                        'rgba(22, 78, 99,0.9)',
+                        'rgba(245, 158, 11,0.9)',
+                        'rgba(217, 119, 6,0.9)'
+                    ],
+                    hoverBackgroundColor: [
+                        'rgba(22, 78, 99)',
+                        'rgba(245, 158, 11)',
+                        'rgba(217, 119, 6)'
+                    ],
+                    borderWidth: 5,
+                    borderColor: 'rgba(41 53 82)',
+                }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    }
+                },
+                cutout: "70%"
             }
         });
 
