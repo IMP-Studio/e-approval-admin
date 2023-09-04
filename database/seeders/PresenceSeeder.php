@@ -125,7 +125,7 @@ class PresenceSeeder extends Seeder
             ],
 
             [
-                
+
                 'statusable_id' => 1,
                 'statusable_type' => Leave::class,
                 'description' => null,
