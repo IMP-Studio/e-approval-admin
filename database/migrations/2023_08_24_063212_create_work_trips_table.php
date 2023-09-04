@@ -22,7 +22,6 @@ return new class extends Migration
             $table->date('end_date');
             $table->date('entry_date');
             $table->mediumText('face_point');
-            $table->string('description');
             $table->timestamps();
             $table->datetime('deleted_at')->nullable();
         });

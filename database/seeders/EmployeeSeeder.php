@@ -18,6 +18,8 @@ class EmployeeSeeder extends Seeder
      */
     public function run(): void
     {
+        
+
         $data_divisi = [
             ['name' => 'Product Engineering'],
             ['name' => 'Designer'],
@@ -31,22 +33,41 @@ class EmployeeSeeder extends Seeder
             ['division_id' => 3,'name' => 'Human Resource Development'],
         ];
         $data_user = [
-            ['name' => 'Ibrahim Khalish','email' => 'ibrahim@gmail.com'],
-            ['name' => 'Fathir Akmal','email' => 'fathir@gmail.com'],
-            ['name' => 'Muhammad Arrafi','email' => 'arra@gmail.com'],
-            ['name' => 'Putri Kirana','email' => 'putri@gmail.com'],
-            ['name' => 'Stephanie Jesselyn','email' => 'stephanie@gmail.com'],
-            ['name' => 'Sarah Chani','email' => 'sarah@gmail.com'],
-            ['name' => 'Rafly Fachri','email' => 'rafly@gmail.com'],
+            ['name' => 'Ibrahim Khalish','email' => 'ibrahim@gmail.com',],
+            ['name' => 'Fathir Akmal','email' => 'fathir@gmail.com',],
+            ['name' => 'Muhammad Arrafi','email' => 'arra@gmail.com',],
+            ['name' => 'Putri Kirana','email' => 'putri@gmail.com',],
+            ['name' => 'Stephanie Jesselyn','email' => 'stephanie@gmail.com',],
+            ['name' => 'Sarah Chani','email' => 'sarah@gmail.com',],
+            ['name' => 'Fauzan Alghifari','email' => 'fauzan@gmail.com',],
+            ['name' => 'Kemal Al Ghifari','email' => 'kemal@gmail.com',],
+            ['name' => 'Rizky Atmaja','email' => 'atmaja@gmail.com',],
+            ['name' => 'Mahesa Alfian','email' => 'mahesa@gmail.com',],
         ];
         $data_employee = [
-            ['firstname' => 'Ibrahim','lastname' => 'khalish','user_id' => 2,'id_number' => '8551785','position_id' => 1,'division_id' => 1,'gender' => 'male','address' => 'Cimanggis','date' => '2002-08-12'],
+            ['firstname' => 'Ibrahim','lastname' => 'Khalish','user_id' => 2,'id_number' => '8551785','position_id' => 1,'division_id' => 1,'gender' => 'male','address' => 'Cimanggis','date' => '2002-08-12'],
             ['firstname' => 'Fathir','lastname' => 'Akmal','user_id' => 3,'id_number' => '8551786','position_id' => 1,'division_id' => 1,'gender' => 'male','address' => 'Cimahi','date' => '2002-01-04'],
             ['firstname' => 'Muhammad','lastname' => 'Arrafi','user_id' => 4,'id_number' => '8551787','position_id' => 1,'division_id' => 1,'gender' => 'male','address' => 'Cibinong','date' => '2003-04-24'],
             ['firstname' => 'Putri','lastname' => 'Kirana','user_id' => 5,'id_number' => '8551788','position_id' => 4,'division_id' => 1,'gender' => 'female','address' => 'Tangerang','date' => '2001-05-09'],
             ['firstname' => 'Stephanie','lastname' => 'Jesselyn','user_id' => 6,'id_number' => '8551789','position_id' => 5,'division_id' => 3,'gender' => 'female','address' => 'Cilodong','date' => '1998-11-12'],
             ['firstname' => 'Sarah','lastname' => 'Chani','user_id' => 7,'id_number' => '8551790','position_id' => 2,'division_id' => 1,'gender' => 'female','address' => 'Cipete','date' => '2001-09-28'],
-            ['firstname' => 'Rafly','lastname' => 'Fachri','user_id' => 8,'id_number' => '8551791','position_id' => 3,'division_id' => 2,'gender' => 'male','address' => 'Cibubur','date' => '2001-07-13'],
+            ['firstname' => 'Fauzan','lastname' => 'Alghifari','user_id' => 8,'id_number' => '8551791','position_id' => 3,'division_id' => 2,'gender' => 'male','address' => 'Depok','date' => '2001-07-13'],
+            ['firstname' => 'Kemal','lastname' => 'Al Ghifari','user_id' => 9,'id_number' => '8551792','position_id' => 3,'division_id' => 3,'gender' => 'male','address' => 'Harjamukti','date' => '2001-07-13'],
+            ['firstname' => 'Rizky','lastname' => 'Atmaja','user_id' => 10,'id_number' => '8551732','position_id' => 1,'division_id' => 1,'gender' => 'male','address' => 'Harjamukti','date' => '2001-07-13'],
+            ['firstname' => 'Mahesa','lastname' => 'Alfian','user_id' => 11,'id_number' => '855170','position_id' => 2,'division_id' => 2,'gender' => 'male','address' => 'Depok','date' => '2001-07-13'],
+        ];
+
+        $permissionMap = [
+            'Ibrahim Khalish' => 'Ordinary Employee',
+            'Fathir Akmal' => 'Ordinary Employee',
+            'Muhammad Arrafi' => 'Ordinary Employee',
+            'Putri Kirana' => 'Ordinary Employee',
+            'Stephanie Jesselyn' => 'Ordinary Employee',
+            'Sarah Chani' => 'Ordinary Employee',
+            'Fauzan Alghifari' => 'Human Resource',
+            'Rizky Atmaja' => 'Head of Tribe',
+            'Mahesa Alfian' => 'Head of Tribe',
+            
         ];
         foreach ($data_divisi as $data) {
             Division::insert([
@@ -71,10 +92,14 @@ class EmployeeSeeder extends Seeder
             ]);
 
             $user->assignRole('employee');
+
+            if (isset($permissionMap[$data['name']])) {
+                $user->givePermissionTo($permissionMap[$data['name']]);
+            }
         }
 
         foreach ($data_employee as $data) {
-            Employee ::insert([
+            Employee::insert([
                 'first_name' => $data['firstname'],
                 'last_name' => $data['lastname'],
                 'user_id' => $data['user_id'],
@@ -84,11 +109,12 @@ class EmployeeSeeder extends Seeder
                 'division_id' => $data['division_id'],
                 'gender' => $data['gender'],
                 'address' => $data['address'],
-                'birth_date' => $data['date'],
+                'birth_date' => $data['date'], 
                 'is_active' => true,
                 'created_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             ]);
         }
+        
     }
 }

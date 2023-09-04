@@ -13,11 +13,16 @@ return new class extends Migration
     {
         Schema::create('status_commits', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('approver_id')->nullable();
+            $table->foreign('approver_id')->references('id')->on('users');
             $table->unsignedBigInteger('statusable_id');
             $table->string('statusable_type');
             $table->enum('status',['pending','allow_HT','allowed','rejected']);
-            $table->string('description');
+            $table->text('description')->nullable();
             $table->timestamps();
+            $table->softDeletes();
+
+            $table->index(['statusable_id', 'statusable_type']);
         });
     }
 
