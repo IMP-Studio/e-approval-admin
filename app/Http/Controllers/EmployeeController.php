@@ -52,14 +52,14 @@ class EmployeeController extends Controller
             $input = $request->all();
 
             if ($image = $request->file('avatar')) {
-                $destinationPath = 'images/';
+                $destinationPath = 'storage/';
                 $profileImage = $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
                 $input['avatar'] = $profileImage;
             }
-
+            $birthDate = Carbon::createFromFormat('d M, Y', $input['birth_date'])->format('Y-m-d');
             $user = User::create([
-                'name' => $input['first_name'] . '-' . $input['last_name'],
+                'name' => $input['first_name'] . ' ' . $input['last_name'],
                 'email' => $request->email,
                 'password' => $request->password,
             ]);
@@ -74,7 +74,7 @@ class EmployeeController extends Controller
                 'position_id' => $input['position'],
                 'gender' => $input['gender'],
                 'address' => $input['address'],
-                'birth_date' => $input['birth_date'],
+                'birth_date' => $birthDate,
                 'is_active' => true
             ]);
 
@@ -114,18 +114,18 @@ class EmployeeController extends Controller
             $input = $request->all();
 
             if ($image = $request->file('avatar')) {
-                $destinationPath = 'images/';
+                $destinationPath = 'storage/';
                 $profileImage = $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
                 $input['avatar'] = $profileImage;
 
                 if ($old_image) {
-                    Storage::delete('images/' . $old_image);
+                    Storage::delete('storage/' . $old_image);
                 }
             } else {
                 $input['avatar'] = $old_image;
             }
-
+            $birthDate = Carbon::createFromFormat('d M, Y', $input['birth_date'])->format('Y-m-d');
             $employee->update([
                 'first_name' => $input['first_name'],
                 'last_name' => $input['last_name'],
@@ -134,7 +134,7 @@ class EmployeeController extends Controller
                 'position_id' => $input['position'],
                 'gender' => $input['gender'],
                 'address' => $input['address'],
-                'birth_date' => $input['birth_date']
+                'birth_date' => $birthDate
             ]);
 
             $employee_name = $employee->first_name;
@@ -150,7 +150,7 @@ class EmployeeController extends Controller
         try {
             $employee = Employee::findOrFail($id);
             if ($employee->avatar) {
-                $imagePath = public_path('images/') . $employee->avatar;
+                $imagePath = public_path('storage/') . $employee->avatar;
                 if (file_exists($imagePath)) {
                     unlink($imagePath);
                 }

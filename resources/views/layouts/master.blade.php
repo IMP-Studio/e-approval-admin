@@ -58,6 +58,9 @@
             .month-item-year{
                 background-color: #232D45!important
             }
+            .content{
+                padding-bottom: 100px !important;
+            }
         </style>
 
         @stack('css')

@@ -616,7 +616,7 @@
                                     <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
                                         <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
                                             <img alt="Midone - HTML Admin Template"
-                                                src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                src="{{ asset('storage/'.$data->user->employee->avatar) }}">
                                         </div>
                                         <div class="ml-4 mr-auto">
                                             <div class="font-medium">{{ $data->user->name }}</div>
@@ -641,7 +641,7 @@
                                                 <div class="col-span-12 mx-auto">
                                                     <div class="w-24 h-24 image-fit zoom-in">
                                                     @if ($data->user->employee->avatar)
-                                                        <img class="tooltip rounded-full" src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                        <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
                                                     @else
                                                         <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
                                                     @endif
@@ -702,7 +702,7 @@
                                     <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
                                         <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
                                             <img alt="Midone - HTML Admin Template"
-                                                src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                src="{{ asset('storage/'.$data->user->employee->avatar) }}">
                                         </div>
                                         <div class="ml-4 mr-auto">
                                             <div class="font-medium">{{ $data->user->name }}</div>
@@ -727,7 +727,7 @@
                                                 <div class="col-span-12 mx-auto">
                                                     <div class="w-24 h-24 image-fit zoom-in">
                                                     @if ($data->user->employee->avatar)
-                                                        <img class="tooltip rounded-full" src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                        <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
                                                     @else
                                                         <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
                                                     @endif
@@ -788,7 +788,7 @@
                                     <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
                                         <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
                                             <img alt="Midone - HTML Admin Template"
-                                                src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                src="{{ asset('storage/'.$data->user->employee->avatar) }}">
                                         </div>
                                         <div class="ml-4 mr-auto">
                                             <div class="font-medium">{{ $data->user->name }}</div>
@@ -813,7 +813,7 @@
                                                 <div class="col-span-12 mx-auto">
                                                     <div class="w-24 h-24 image-fit zoom-in">
                                                     @if ($data->user->employee->avatar)
-                                                        <img class="tooltip rounded-full" src="{{ asset('images/'.$data->user->employee->avatar) }}">
+                                                        <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
                                                     @else
                                                         <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
                                                     @endif

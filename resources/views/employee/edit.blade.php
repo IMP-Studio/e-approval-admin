@@ -103,8 +103,12 @@
                                 </select>
                             </div>
                             <div class="mt-3">
-                                <label for="" class="form-label">Date of Birth</label>
-                                <input class="form-control" type="date" name="birth_date" id="" value="{{ $employee->birth_date }}">
+                                <div class="relative w-56">
+                                    <div class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
+                                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                                    </div>
+                                    <input type="text" name="birth_date" value="{{ $employee->birth_date }}" class="datepicker form-control pl-12" data-single-mode="true">
+                                </div>
                             </div>
                             <div class="mt-3">
                                 <label for="crud-form-7" class="form-label">Address :</label>

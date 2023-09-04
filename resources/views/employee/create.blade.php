@@ -58,7 +58,7 @@
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-5" class="form-label">Division :</label>
-                            <select name="division" id="crud-form-5" class="tom-select w-full capitalize" onchange="dapetPosisi()" required>
+                            <select name="division" id="crud-form-5" class="tom-select w-full" onchange="dapetPosisi()" required>
                                 <option value="0" selected disabled>Choose</option>
                                 @foreach ($division as $division)
                                     <option value="{{ $division->id }}">{{ $division->name }}</option>
@@ -67,7 +67,7 @@
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-6" class="form-label">Position :</label>
-                            <select name="position" id="position" class="form-select w-full capitalize" required>
+                            <select name="position" id="position" class="form-select w-full" required>
                             </select>
                         </div>
                         <div class="mt-3">
@@ -107,9 +107,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3">
+                        {{-- <div class="mt-3">
                             <label for="" class="form-label">Birth Date</label>
                             <input class="form-control" type="date" name="birth_date" id="">
+                        </div> --}}
+                        <div class="mt-3">
+                            <div class="relative w-56">
+                                <div class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
+                                    <i data-lucide="calendar" class="w-4 h-4"></i>
+                                </div>
+                                <input type="text" name="birth_date" class="datepicker form-control pl-12" data-single-mode="true">
+                            </div>
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-7" class="form-label">Address :</label>
@@ -126,8 +134,8 @@
                     </div>
             </div>
             <div class="text-right mt-5">
-                <button type="button" class="btn btn-outline-secondary w-24 mr-1"><a href="{{ route('employee') }}">Cancel</a></button>
-                <button type="submit" class="btn btn-primary w-24">Submit</button>
+                <button type="button" class="btn btn-outline-secondary w-32 h-12 mr-1"><a href="{{ route('employee') }}">Cancel</a></button>
+                <button type="submit" class="btn btn-primary w-32 h-12">Submit</button>
             </div>
 
         </form>
