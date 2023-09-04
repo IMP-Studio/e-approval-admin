@@ -96,46 +96,43 @@ class PresenceSeeder extends Seeder
 
             [
                 'statusable_id' => 1,
-
+                'approver_id' => 9,
                 'statusable_type' => Telework::class,
-                'description' => null,
+                'description' => 'Iya iya main jauh-jauh',
                 'status' => 'allowed',
             ],
 
             [
                 'statusable_id' => 2,
+                'approver_id' => 9,
                 'statusable_type' => Telework::class,
-                'description' => null,
+                'description' => 'Y',
                 'status' => 'allowed',
             ],
 
             [
 
                 'statusable_id' => 1,
+                'approver_id' => 9,
                 'statusable_type' => WorkTrip::class,
-                'description' => null,
+                'description' => 'ywdh.',
                 'status' => 'allowed',
             ],
             [
 
                 'statusable_id' => 2,
+                'approver_id' => 9,
                 'statusable_type' => WorkTrip::class,
-                'description' => null,
+                'description' => 'Nah itu',
                 'status' => 'allowed',
             ],
 
             [
 
                 'statusable_id' => 1,
+                'approver_id' => 9,
                 'statusable_type' => Leave::class,
-                'description' => null,
-                'status' => 'allowed',
-            ],
-            [
-
-                'statusable_id' => 2,
-                'statusable_type' => Leave::class,
-                'description' => null,
+                'description' => 'Bagus',
                 'status' => 'allowed',
             ],
         ];

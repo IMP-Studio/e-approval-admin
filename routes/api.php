@@ -27,6 +27,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::post('/loginApi', [ApiController::class, 'loginApi']);
 Route::get('/fetchPoint', [ApiController::class, 'fetchFacePoint']);
 Route::get('/presence', [ApiController::class, 'getPresence']);
+Route::get('/presence/checkout', [ApiController::class, 'checkOut']);
 Route::get('/presence/{id}', [ApiController::class, 'presenceToday']);
 Route::get('/presence/today/{id}', [ApiController::class, 'getPresenceToday']);
 Route::post('/presence/store', [ApiController::class, 'storePresence']);
