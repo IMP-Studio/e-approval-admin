@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class ApiController extends Controller
@@ -222,6 +223,7 @@ class ApiController extends Controller
     
         $user = User::with('employee', 'standups')->where('id', $loggedInUserId)->first();
         $permissionName = $user->getPermissionNames()->first();
+        
     
         if (!$user || !$user->hasRole('employee')) {
             return response()->json([
@@ -299,12 +301,15 @@ class ApiController extends Controller
                     
                         if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
                             $approver = $mostRecentStatus->approver;
-                            $approverPermission = $approver->getPermissionNames()->first();
                         
-                            if ($approver && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
-                                $data['approver_id'] = $approver->id;
-                                $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
-                                $data['permission_approver'] = $approverPermission;
+                            if ($approver) { // Check if approver exists
+                                $approverPermission = $approver->getPermissionNames()->first();
+                        
+                                if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                    $data['approver_id'] = $approver->id;
+                                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                                    $data['permission_approver'] = $approverPermission;
+                                }
                             }
                         }
                         
@@ -319,12 +324,15 @@ class ApiController extends Controller
                     
                         if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
                             $approver = $mostRecentStatus->approver;
-                            $approverPermission = $approver->getPermissionNames()->first();
                         
-                            if ($approver && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
-                                $data['approver_id'] = $approver->id;
-                                $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
-                                $data['permission_approver'] = $approverPermission;
+                            if ($approver) { // Check if approver exists
+                                $approverPermission = $approver->getPermissionNames()->first();
+                        
+                                if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                    $data['approver_id'] = $approver->id;
+                                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                                    $data['permission_approver'] = $approverPermission;
+                                }
                             }
                         }
                         
@@ -349,12 +357,15 @@ class ApiController extends Controller
                             $mostRecentStatus = $presence->leave->statusCommit->sortByDesc('created_at')->first();
                             if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
                                 $approver = $mostRecentStatus->approver;
-                                $approverPermission = $approver->getPermissionNames()->first();
                             
-                                if ($approver && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
-                                    $data['approver_id'] = $approver->id;
-                                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
-                                    $data['permission_approver'] = $approverPermission;
+                                if ($approver) { // Check if approver exists
+                                    $approverPermission = $approver->getPermissionNames()->first();
+                            
+                                    if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                        $data['approver_id'] = $approver->id;
+                                        $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                                        $data['permission_approver'] = $approverPermission;
+                                    }
                                 }
                             }
                             
@@ -571,6 +582,35 @@ class ApiController extends Controller
         return response()->json(['message' => 'Presence and related records deleted successfully']);
     }
     
+
+    //FUNCTION CHECK OUT 
+
+    public function checkOut(Request $request)
+{
+    $userId = $request->input('user_id');
+    $currentDate = Carbon::now()->toDateString();  
+
+    $presence = Presence::where('user_id', $userId)
+                            ->where('date', $currentDate)
+                            ->first();
+    
+    if (!$presence) {
+        return response()->json(['message' => 'No presence record found for today.'], 404);
+    }
+    
+    $wasUpdated = $presence->update([
+        'exit_time' => Carbon::now()->toTimeString()  
+    ]);
+
+    if ($wasUpdated) {
+        return response()->json(['message' => 'Checked out successfully.', 'data' => $presence], 200);
+    } else {
+        return response()->json(['message' => 'Failed to check out.'], 500);
+    }
+}
+
+    
+
     
     
 
@@ -579,19 +619,25 @@ class ApiController extends Controller
     //FUNCTION GET STAND UP //BISA
 
     public function getStandUp(Request $request){
-        $user = User::with('employee','standups')->where('id', $request->id)->first();
-        
-        if (!$user || !$user->hasRole('employee')) {
-            return response()->json([
-                'status' => 500,
-                'message' => 'Anda tidak memiliki akses sebagai employees.',
-            ]);
+        // If an ID is provided and is valid, fetch that user
+        if($request->has('id')) {
+            $user = User::with('employee','standups')->where('id', $request->id)->first();
+            
+            if (!$user || !$user->hasRole('employee')) {
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'Anda tidak memiliki akses sebagai employees.',
+                ]);
+            }
+            
+            $query = StandUp::with('user','project','presence')->where('user_id', $request->id);
+        } else {
+            $query = StandUp::with('user','project','presence');
         }
-        
-        $query = $request->has('id') ? StandUp::with('user','project','presence')->where('user_id', $request->id) : StandUp::with('user','project','presence');
-        
         $standUps = $query->orderBy('updated_at', 'desc')->get()
         ->map(function ($standUp) {
+            $dateTime = new \DateTime($standUp->created_at);
+            $jam = $dateTime->format('H:m A');
             $nama_lengkap = '';
             if ($standUp->user && $standUp->user->employee) {
                 $nama_lengkap = $standUp->user->employee->first_name .' '. $standUp->user->employee->last_name;
@@ -607,6 +653,7 @@ class ApiController extends Controller
                 'partner' => $standUp->project->partner->name,
                 'done' => $standUp->done,
                 'doing' => $standUp->doing,
+                'jam' => $jam,
                 'blocker' => $standUp->blocker,
                 'created_at' => $standUp->created_at,
                 'updated_at' => $standUp->updated_at,
@@ -619,6 +666,7 @@ class ApiController extends Controller
             return response()->json(['message' => 'Success', 'data' => $standUps]);
         }
     }
+    
 
     public function getProject(Request $request){
 
@@ -685,6 +733,8 @@ class ApiController extends Controller
             return response()->json(['message' => 'Record not found'], 404);
         }
     }
+
+
 
     //FUNCTION DELETE STAND UP //BISA
 
