@@ -49,6 +49,9 @@
                     Division
                 </th>
                 <th>
+                    Position
+                </th>
+                <th>
                     Address
                 </th>
             </tr>
@@ -59,13 +62,14 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $item->user->name }}</td>
                     <td class="img">
-                        <img height="50" src="images/{{ $item->img_profile }}" alt="">
+                        <img height="50" src="storage/{{ $item->avatar }}" alt="">
                     </td>
                     <td>{{ $item->firstname }}</td>
                     <td>{{ $item->lastname }}</td>
                     <td>{{ $item->gender }}</td>
-                    <td>{{ $item->staff_id }}</td>
-                    <td>{{ $item->division->division }}</td>
+                    <td>{{ $item->id_number }}</td>
+                    <td>{{ $item->division->name }}</td>
+                    <td>{{ $item->position->name }}</td>
                     <td>{{ $item->address }}</td>
                 </tr>
             @endforeach

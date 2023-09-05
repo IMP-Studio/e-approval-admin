@@ -100,8 +100,8 @@
                 <!-- BEGIN: Vertical Bar Chart Report -->
                 <div class="col-span-12 xl:col-span-8 mt-8">
                     <div class="intro-y block sm:flex items-center h-10">
-                        <h2 class="text-lg font-medium truncate mr-5">
-                            This Month's Attendance Report
+                        <h2 class="text-lg font-medium truncate mr-5 capitalize">
+                            Monthly attendance report this year
                         </h2>
                         <div class="sm:ml-auto mt-3 sm:mt-0 relative text-slate-500">
                             <i data-lucide="calendar" class="w-4 h-4 z-10 absolute my-auto inset-y-0 ml-3 left-0"></i>
@@ -121,8 +121,8 @@
                 <!-- BEGIN: Pie Chart Report -->
                 <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
                     <div class="intro-y flex items-center h-10">
-                        <h2 class="text-lg font-medium truncate mr-5">
-                            This Year's Attendance Report
+                        <h2 class="text-lg font-medium truncate mr-5 capitalize">
+                            Presence Report This Year
                         </h2>
                     </div>
                     <div id="chart" class="intro-y box p-5 mt-5">
@@ -158,10 +158,11 @@
                 </div>
                 <!-- END: Pie Chart Report -->
 
+                <!-- START DONUT CHART -->
                 <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
                     <div class="intro-y flex items-center h-10">
                         <h2 class="text-lg font-medium truncate mr-5">
-                            This Year's Attendance Rejected
+                            Presence Rejected This Year
                         </h2>
                     </div>
                     <div id="chart" class="intro-y box p-5 mt-5">
@@ -189,42 +190,24 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-span-12 sm:col-span-6 lg:col-span-4 mt-8">
-                    <div class="intro-y flex items-center h-10">
-                        <h2 class="text-lg font-medium truncate mr-5">
-                            This Year's Attendance Report
+                <!-- END DONUT CHART -->
+
+                <!-- START HORIZONTAL BAR CHART -->
+                <div class="col-span-12 xl:col-span-8 mt-8">
+                    <div class="intro-y block sm:flex items-center h-10">
+                        <h2 class="text-lg font-medium truncate mr-5 capitalize">
+                            Monthly attendance report this year (Rejected)
                         </h2>
                     </div>
-                    <div id="chart" class="intro-y box p-5 mt-5">
-                        <div class="mt-3">
-                            <div class="h-[213px]">
-                                <canvas id="report-donut-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="w-52 sm:w-auto mx-auto mt-8">
-                            <div class="flex items-center">
-                                <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                                <span class="truncate">WFO</span> <span
-                                    class="font-medium ml-auto">62%</span>
-                            </div>
-                            <div class="flex items-center mt-2">
-                                <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
-                                <span class="truncate">Telework</span> <span
-                                    class="font-medium ml-auto">33%</span>
-                            </div>
-                            <div class="flex items-center mt-2">
-                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
-                                <span class="truncate">Work Trip</span> <span
-                                    class="font-medium ml-auto">10%</span>
-                            </div>
-                            <div class="flex items-center mt-2">
-                                <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
-                                <span class="truncate">Leave</span> <span
-                                    class="font-medium ml-auto">10%</span>
+                    <div class="intro-y box p-5 mt-12 sm:mt-5">
+                        <div class="preview">
+                            <div class="">
+                                <canvas id="horizontal-bar-chart" class="mt-6 mb-6"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- END HORIZONTAL BAR CHART -->
 
                 <!-- END: Sales Report -->
                 <!-- BEGIN: Official Store -->
@@ -1023,95 +1006,95 @@
                     </div>
                     <!-- END: Important Notes -->
                     <!-- BEGIN: Schedules -->
-                    <div
-                        class="col-span-12 md:col-span-6 xl:col-span-4 2xl:col-span-12 xl:col-start-1 xl:row-start-2 2xl:col-start-auto 2xl:row-start-auto mt-3">
-                        <div class="intro-x flex items-center h-10">
-                            <h2 class="text-lg font-medium truncate mr-5">
-                                Schedules
-                            </h2>
-                            <a href="" class="ml-auto text-primary truncate flex items-center"> <i data-lucide="plus"
-                                    class="w-4 h-4 mr-1"></i> Add New Schedules </a>
-                        </div>
-                        <div class="mt-5">
-                            <div class="intro-x box">
-                                <div class="p-5">
-                                    <div class="flex">
-                                        <i data-lucide="chevron-left" class="w-5 h-5 text-slate-500"></i>
-                                        <div class="font-medium text-base mx-auto">April</div>
-                                        <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500"></i>
+                        <div
+                            class="col-span-12 md:col-span-6 xl:col-span-4 2xl:col-span-12 xl:col-start-1 xl:row-start-2 2xl:col-start-auto 2xl:row-start-auto mt-3">
+                            <div class="intro-x flex items-center h-10">
+                                <h2 class="text-lg font-medium truncate mr-5">
+                                    Schedules
+                                </h2>
+                                <a href="" class="ml-auto text-primary truncate flex items-center"> <i data-lucide="plus"
+                                        class="w-4 h-4 mr-1"></i> Add New Schedules </a>
+                            </div>
+                            <div class="mt-5">
+                                <div class="intro-x box">
+                                    <div class="p-5">
+                                        <div class="flex">
+                                            <i data-lucide="chevron-left" class="w-5 h-5 text-slate-500"></i>
+                                            <div class="font-medium text-base mx-auto">April</div>
+                                            <i data-lucide="chevron-right" class="w-5 h-5 text-slate-500"></i>
+                                        </div>
+                                        <div class="grid grid-cols-7 gap-4 mt-5 text-center">
+                                            <div class="font-medium">Su</div>
+                                            <div class="font-medium">Mo</div>
+                                            <div class="font-medium">Tu</div>
+                                            <div class="font-medium">We</div>
+                                            <div class="font-medium">Th</div>
+                                            <div class="font-medium">Fr</div>
+                                            <div class="font-medium">Sa</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">29</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">30</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">31</div>
+                                            <div class="py-0.5 rounded relative">1</div>
+                                            <div class="py-0.5 rounded relative">2</div>
+                                            <div class="py-0.5 rounded relative">3</div>
+                                            <div class="py-0.5 rounded relative">4</div>
+                                            <div class="py-0.5 rounded relative">5</div>
+                                            <div class="py-0.5 bg-success/20 dark:bg-success/30 rounded relative">6</div>
+                                            <div class="py-0.5 rounded relative">7</div>
+                                            <div class="py-0.5 bg-primary text-white rounded relative">8</div>
+                                            <div class="py-0.5 rounded relative">9</div>
+                                            <div class="py-0.5 rounded relative">10</div>
+                                            <div class="py-0.5 rounded relative">11</div>
+                                            <div class="py-0.5 rounded relative">12</div>
+                                            <div class="py-0.5 rounded relative">13</div>
+                                            <div class="py-0.5 rounded relative">14</div>
+                                            <div class="py-0.5 rounded relative">15</div>
+                                            <div class="py-0.5 rounded relative">16</div>
+                                            <div class="py-0.5 rounded relative">17</div>
+                                            <div class="py-0.5 rounded relative">18</div>
+                                            <div class="py-0.5 rounded relative">19</div>
+                                            <div class="py-0.5 rounded relative">20</div>
+                                            <div class="py-0.5 rounded relative">21</div>
+                                            <div class="py-0.5 rounded relative">22</div>
+                                            <div class="py-0.5 bg-pending/20 dark:bg-pending/30 rounded relative">23</div>
+                                            <div class="py-0.5 rounded relative">24</div>
+                                            <div class="py-0.5 rounded relative">25</div>
+                                            <div class="py-0.5 rounded relative">26</div>
+                                            <div class="py-0.5 bg-primary/10 dark:bg-primary/50 rounded relative">27</div>
+                                            <div class="py-0.5 rounded relative">28</div>
+                                            <div class="py-0.5 rounded relative">29</div>
+                                            <div class="py-0.5 rounded relative">30</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">1</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">2</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">3</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">4</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">5</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">6</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">7</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">8</div>
+                                            <div class="py-0.5 rounded relative text-slate-500">9</div>
+                                        </div>
                                     </div>
-                                    <div class="grid grid-cols-7 gap-4 mt-5 text-center">
-                                        <div class="font-medium">Su</div>
-                                        <div class="font-medium">Mo</div>
-                                        <div class="font-medium">Tu</div>
-                                        <div class="font-medium">We</div>
-                                        <div class="font-medium">Th</div>
-                                        <div class="font-medium">Fr</div>
-                                        <div class="font-medium">Sa</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">29</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">30</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">31</div>
-                                        <div class="py-0.5 rounded relative">1</div>
-                                        <div class="py-0.5 rounded relative">2</div>
-                                        <div class="py-0.5 rounded relative">3</div>
-                                        <div class="py-0.5 rounded relative">4</div>
-                                        <div class="py-0.5 rounded relative">5</div>
-                                        <div class="py-0.5 bg-success/20 dark:bg-success/30 rounded relative">6</div>
-                                        <div class="py-0.5 rounded relative">7</div>
-                                        <div class="py-0.5 bg-primary text-white rounded relative">8</div>
-                                        <div class="py-0.5 rounded relative">9</div>
-                                        <div class="py-0.5 rounded relative">10</div>
-                                        <div class="py-0.5 rounded relative">11</div>
-                                        <div class="py-0.5 rounded relative">12</div>
-                                        <div class="py-0.5 rounded relative">13</div>
-                                        <div class="py-0.5 rounded relative">14</div>
-                                        <div class="py-0.5 rounded relative">15</div>
-                                        <div class="py-0.5 rounded relative">16</div>
-                                        <div class="py-0.5 rounded relative">17</div>
-                                        <div class="py-0.5 rounded relative">18</div>
-                                        <div class="py-0.5 rounded relative">19</div>
-                                        <div class="py-0.5 rounded relative">20</div>
-                                        <div class="py-0.5 rounded relative">21</div>
-                                        <div class="py-0.5 rounded relative">22</div>
-                                        <div class="py-0.5 bg-pending/20 dark:bg-pending/30 rounded relative">23</div>
-                                        <div class="py-0.5 rounded relative">24</div>
-                                        <div class="py-0.5 rounded relative">25</div>
-                                        <div class="py-0.5 rounded relative">26</div>
-                                        <div class="py-0.5 bg-primary/10 dark:bg-primary/50 rounded relative">27</div>
-                                        <div class="py-0.5 rounded relative">28</div>
-                                        <div class="py-0.5 rounded relative">29</div>
-                                        <div class="py-0.5 rounded relative">30</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">1</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">2</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">3</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">4</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">5</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">6</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">7</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">8</div>
-                                        <div class="py-0.5 rounded relative text-slate-500">9</div>
-                                    </div>
-                                </div>
-                                <div class="border-t border-slate-200/60 p-5">
-                                    <div class="flex items-center">
-                                        <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
-                                        <span class="truncate">UI/UX Workshop</span> <span
-                                            class="font-medium xl:ml-auto">23th</span>
-                                    </div>
-                                    <div class="flex items-center mt-4">
-                                        <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
-                                        <span class="truncate">VueJs Frontend Development</span> <span
-                                            class="font-medium xl:ml-auto">10th</span>
-                                    </div>
-                                    <div class="flex items-center mt-4">
-                                        <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
-                                        <span class="truncate">Laravel Rest API</span> <span
-                                            class="font-medium xl:ml-auto">31th</span>
+                                    <div class="border-t border-slate-200/60 p-5">
+                                        <div class="flex items-center">
+                                            <div class="w-2 h-2 bg-pending rounded-full mr-3"></div>
+                                            <span class="truncate">UI/UX Workshop</span> <span
+                                                class="font-medium xl:ml-auto">23th</span>
+                                        </div>
+                                        <div class="flex items-center mt-4">
+                                            <div class="w-2 h-2 bg-primary rounded-full mr-3"></div>
+                                            <span class="truncate">VueJs Frontend Development</span> <span
+                                                class="font-medium xl:ml-auto">10th</span>
+                                        </div>
+                                        <div class="flex items-center mt-4">
+                                            <div class="w-2 h-2 bg-warning rounded-full mr-3"></div>
+                                            <span class="truncate">Laravel Rest API</span> <span
+                                                class="font-medium xl:ml-auto">31th</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                     <!-- END: Schedules -->
                 </div>
             </div>
@@ -1129,6 +1112,7 @@
         const ctx_bar = document.getElementById('bar-chart').getContext('2d');
         const ctx_pie = document.getElementById('pie-chart').getContext('2d');
         const ctx_donut = document.getElementById('donut-chart').getContext('2d');
+        const ctx_horizontal_bar = document.getElementById('horizontal-bar-chart').getContext('2d');
 
         // Set up data
         const data_bar = {
@@ -1167,7 +1151,6 @@
                 backgroundColor: 'rgba(217, 119, 6,0.9)'
             }]
         };
-
         // Set up configuration
         const options_bar = {
             scales: {
@@ -1183,9 +1166,8 @@
               drawBorder: false
             }
           }
-        }
+            }
         };
-
         // Create the bar chart
         const barChart = new Chart(ctx_bar, {
             type: 'bar', // Specify the chart type
@@ -1193,9 +1175,7 @@
             options: options_bar // Set the configuration
         });
 
-
-
-        var pieChart = new Chart(ctx_pie, {
+        const pieChart = new Chart(ctx_pie, {
             type: 'pie',
             data: {
                 labels: ["WFO", "Telework", "Work Trip","Leave"],
@@ -1226,7 +1206,7 @@
                 }
             }
         });
-        var donutChart = new Chart(ctx_donut, {
+        const donutChart = new Chart(ctx_donut, {
             type: 'doughnut',
             data: {
                 labels: ["Telework", "Work Trip","Leave"],
@@ -1255,6 +1235,62 @@
                 },
                 cutout: "70%"
             }
+        });
+
+        const data_bar_horizontal = {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug","Sept","Oct","Nov","Dec"],
+            datasets: [{
+                label: "Telework",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $telework_data_month_rejected) }}],
+                backgroundColor: 'rgba(22, 78, 99,0.9)'
+            }, {
+                label: "Work Trip",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $workTrip_data_month_rejected) }}],
+                backgroundColor: 'rgba(245, 158, 11, 0.9)'
+            }, {
+                label: "Leave",
+                barPercentage: 0.8,
+                barThickness: 10,
+                maxBarThickness: 8,
+                minBarLength: 2,
+                data: [{{ implode(', ', $leave_data_month_rejected) }}],
+                backgroundColor: 'rgba(217, 119, 6, 0.9)'
+            }]
+        };
+        const options_bar_horizontal = {
+            scales: {
+                y: {
+                    ticks: {
+                    font: {
+                        size: 12
+                    },
+                    color: 'rgba(100, 116, 139,0.8)'
+                    },
+                    grid: {
+                    display: false,
+                    drawBorder: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'right',
+                }
+            },
+            indexAxis: 'y'
+        };
+        const barChartHorizontal = new Chart(ctx_horizontal_bar, {
+            type: 'bar', // Specify the chart type
+            data: data_bar_horizontal, // Set the data
+            options: options_bar_horizontal // Set the configuration
         });
 
 
