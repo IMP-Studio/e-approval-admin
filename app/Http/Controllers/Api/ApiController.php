@@ -15,11 +15,12 @@ use App\Models\LeaveStatus;
 use App\Models\StatusCommit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Laravel\Sanctum\PersonalAccessToken;
+use Illuminate\Support\Facades\Validator;
 
 class ApiController extends Controller
 {
@@ -56,6 +57,8 @@ class ApiController extends Controller
     $userData = [
         'id' => $user->id,
         'user_id' => $user->employee->user_id,
+        'first_name' => $user->employee->first_name,
+        'last_name' => $user->employee->last_name,
         'nama_lengkap' => $nama_lengkap = $user->employee->first_name .' '. $user->employee->last_name,
         'divisi' => $user->employee->division->name,
         'posisi' => $user->employee->position->name,
@@ -444,7 +447,6 @@ class ApiController extends Controller
                     'user_id' => $request->input('user_id'),
                     'presence_id' => $presence->id,
                     'file' => $request->input('file'),
-                    'reject_description' => $request->input('description'),
                     'start_date' => $request->input('start_date'),
                     'end_date' => $request->input('end_date'),
                     'face_point' => $request->input('face_point'),
@@ -609,10 +611,60 @@ class ApiController extends Controller
     }
 }
 
+public function approveReject(Request $request, $id)
+{
+    $errors = [];
     
+    if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'allow_HT'])) {
+        $errors['status'] = 'The status field is required and must be one of: rejected, allowed, allow_HT.';
+    }
 
-    
-    
+    if ($request->has('description') && !is_string($request->input('description'))) {
+        $errors['description'] = 'The description must be a string.';
+    }
+
+    if (in_array($request->input('status'), ['rejected', 'allowed']) && !$request->has('description')) {
+        $errors['description'] = 'The description is required when status is rejected or allowed.';
+    }
+
+    if (!$request->has('approver_id') || !User::find($request->input('approver_id'))) {
+        $errors['approver_id'] = 'The approver id field is required and must exist in the users table.';
+    }
+
+    if (!empty($errors)) {
+        return response()->json(['errors' => $errors], 400);
+    }
+    $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
+    $statusableType = class_basename($statusCommit->statusable_type);
+    $statusCommit->approver_id = $request->input('approver_id');
+    $statusCommit->status = $request->input('status');
+    $statusCommit->description = $request->input('description', null);
+
+    switch ($statusableType) {
+        case 'Presence':
+            $presence = Presence::findOrFail($statusCommit->statusable_id);
+            $statusCommit->statusable()->associate($presence);
+            break;
+        case 'Telework':
+            $telework = Telework::findOrFail($statusCommit->statusable_id);
+            $statusCommit->statusable()->associate($telework);
+            break;
+        case 'Leave':
+            $leave = Leave::findOrFail($statusCommit->statusable_id);
+            $statusCommit->statusable()->associate($leave);
+            break;
+        case 'WorkTrip':
+            $workTrip = WorkTrip::findOrFail($statusCommit->statusable_id);
+            $statusCommit->statusable()->associate($workTrip);
+            break;
+        default:
+            return response()->json(['error' => 'Invalid statusable_type provided.'], 400);
+    }
+
+    $statusCommit->save();
+
+    return response()->json(['message' => 'Approval status saved successfully.'], 200);
+}
 
     //---- STAND UP FUNCTION ----\\
 
@@ -802,21 +854,26 @@ class ApiController extends Controller
     
     
     // FUNCTION STORE LEAVE //BISA
+
     public function storeLeave(Request $request) {
+        $currentDate = Carbon::now();
+        $submissionDate = Carbon::parse($request->input('submission_date'));
+        $startDate = Carbon::parse($request->input('start_date'));
     
-        $tanggalPemohonan = $request->input('submission_date');
-        $tanggalMulai = Carbon::parse($request->input('start_date'));
-        $tanggalAkhir = Carbon::parse($request->input('end_date'));
+        if ($startDate->diffInDays($submissionDate, false) < 2) {
+            return response()->json(['error' => 'Harus submit start_date dengan selisih 2 hari dengan submission_date'], 400);
+        }
     
-        $jumlahHariLeave = $tanggalMulai->diffInDays($tanggalAkhir) + 1;
+        $endDate = Carbon::parse($request->input('end_date'));
+        $totalDays = $startDate->diffInDays($endDate) + 1;
     
         $leave = Leave::create([
             'user_id' => $request->input('user_id'),
             'type' => $request->input('type'),
-            'submission_date' => $tanggalPemohonan,
-            'total_leave_days' => $jumlahHariLeave,
-            'start_date' => $tanggalMulai,
-            'end_date' => $tanggalAkhir,
+            'submission_date' => $submissionDate,
+            'total_leave_days' => $totalDays,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'entry_date' => $request->input('entry_date'),
             'type_description' => $request->input('type_description'),
         ]);
@@ -827,12 +884,13 @@ class ApiController extends Controller
                 'status' => 'pending',
                 'description' => null,
             ]);
-        } else {
         }
-    
     
         return response()->json(['message' => 'Success', 'data' => $leave]);
     }
+    
+
+    
     
     
     public function updateLeave(Request $request, $id) {
@@ -840,6 +898,14 @@ class ApiController extends Controller
     
         if (!$leave) {
             return response()->json(['message' => 'Record not found'], 404);
+        }
+    
+        $today = Carbon::now();
+        $startDate = Carbon::parse($request->input('start_date'));
+        $differenceInDays = $today->diffInDays($startDate, false); 
+    
+        if ($differenceInDays < 2) {
+            return response()->json(['message' => 'You must apply for a leave at least 2 days before the start date.'], 400);
         }
     
         $leave->update($request->all());
@@ -852,11 +918,10 @@ class ApiController extends Controller
             ];
     
             $existingStatus = $leave->statusCommit->first();
-
+    
             if ($existingStatus) {
                 $existingStatus->update($statusData);
             }
-            
     
             if ($request->input('status') === 'allowed') {
                 $tanggalMulai = Carbon::parse($leave->start_date);
@@ -879,6 +944,7 @@ class ApiController extends Controller
     
         return response()->json(['message' => 'Update successful', 'data' => $leave]);
     }
+    
     
     
     

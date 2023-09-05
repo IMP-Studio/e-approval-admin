@@ -16,18 +16,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            // $table->enum('level_permission',[0,1,2,3,4]);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->mediumText('facePoint')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->datetime('deleted_at')->nullable();
-            // 0 untuk employee
-            // 1 untuk HT
-            // 2 untuk HR
-            // 3 untuk CTO || CEO || COO
-            // 4 untuk SuperAdmin
         });
     }
 

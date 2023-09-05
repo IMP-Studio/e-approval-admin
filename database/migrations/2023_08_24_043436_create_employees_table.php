@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
             $table->string('first_name');
             $table->string('last_name');
-            $table->string('avatar');
+            $table->string('avatar')->nullable();
             $table->string('id_number')->unique();
             $table->unsignedBigInteger('position_id');
             $table->foreign('position_id')->references('id')->on('positions');
