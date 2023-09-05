@@ -36,10 +36,16 @@
                     Gender
                 </th>
                 <th style="font-weight: bold;font-size:12px;text-align:center">
-                    Staff ID
+                    ID Number
                 </th>
                 <th style="font-weight: bold;font-size:12px;text-align:center">
                     Division
+                </th>
+                <th style="font-weight: bold;font-size:12px;text-align:center">
+                    Position
+                </th>
+                <th style="font-weight: bold;font-size:12px;text-align:center">
+                    Birth Date
                 </th>
                 <th style="font-weight: bold;font-size:12px;text-align:center">
                     Address
@@ -53,20 +59,21 @@
                         <td style="width:24;text-align:center;">{{ $item->user->name }}</td>
                         <td style="width:24;text-align:center;">{{ $item->user->email }}</td>
                         <td style="width:20;text-align:center;">
-                            {{ $item->img_profile }}
-                            <img height="50" src="images/{{ $item->img_profile }}" alt="">
+                            {{ $item->avatar }}
+                            <img height="50" src="storage/{{ $item->avatar }}" alt="">
                         </td>
-                        <td style="width: 15;text-align:center;">{{ $item->firstname }}</td>
-                        <td style="width: 15;text-align:center;">{{ $item->lastname }}</td>
+                        <td style="width: 15;text-align:center;">{{ $item->first_name }}</td>
+                        <td style="width: 15;text-align:center;">{{ $item->last_name }}</td>
                         <td style="width: 8;text-align:center;">{{ $item->gender }}</td>
-                        <td style="width: 12;text-align:center;">{{ $item->staff_id }}</td>
-                        <td style="width: 20;text-align:center;">{{ $item->division->division }}</td>
-                        <td style="width: 20;text-align:center;">{{ $item->date_of_birth }}</td>
+                        <td style="width: 12;text-align:center;">{{ $item->id_number }}</td>
+                        <td style="width: 20;text-align:center;">{{ $item->division->name }}</td>
+                        <td style="width: 20;text-align:center;">{{ $item->position->name }}</td>
+                        <td style="width: 20;text-align:center;">{{ $item->birth_date }}</td>
                         <td style="width: 60;text-align:center;">{{ $item->address }}</td>
                     </tr>
                 @endforeach
         </tbody>
-    
+
     </table>
 </body>
 </html>

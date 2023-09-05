@@ -22,14 +22,15 @@ class profileRequest extends FormRequest
     public function rules()
     {
         return [
-            'firstname' => 'required',
-            'lastname' => 'required',
-            'img_profile' => 'required|image|mimes:jpeg,png,jpg',
-            'staff_id' => 'required',
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'avatar' => 'required|image|mimes:jpeg,png,jpg',
+            'id_number' => 'required',
+            'position_id' => 'required',
             'division_id' => 'required',
             'gender' => 'required',
             'address' => 'required',
-            'date_of_birth' => 'required',
+            'birth_date' => 'required',
         ];
     }
 }

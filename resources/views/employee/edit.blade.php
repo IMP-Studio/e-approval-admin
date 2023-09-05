@@ -35,7 +35,7 @@
     <div class="content">
         <div class="intro-y flex items-center mt-8">
             <h2 class="text-lg font-medium mr-auto">
-                Form Edit {{ $employee->firstname }}
+                Form Edit {{ $employee->first_name }}
             </h2>
         </div>
         <div class="intro-y box p-5">
@@ -62,7 +62,7 @@
                                     <div class="flex flex-wrap">
                                         <div class="w-16 h-16 relative image-fit mb-5 mr-5 cursor-pointer zoom-in"
                                             id="previewContainer" style="">
-                                            <img class="rounded-md" id="preview" src="{{ asset('images/'.$employee->avatar) }}" style=""
+                                            <img class="rounded-md" id="preview" src="{{ asset('storage/'.$employee->avatar) }}" style=""
                                                 data-action="zoom">
                                             <div title="Remove this image?"
                                                 class="tooltip w-5 h-5 flex items-center justify-center absolute rounded-full text-white bg-danger right-0 top-0 -mr-2 -mt-2"
@@ -140,13 +140,13 @@
             img.src = reader.result;
             previewContainer.style.display = "block";
             document.getElementById('desc-img').classList.add('close-img');
-            file.value = "{{ asset('images/'.$employee->img_profile) }}";
+            file.value = "{{ asset('storage/'.$employee->avatar) }}";
         };
 
         if (input.files && input.files[0]) {
             reader.readAsDataURL(input.files[0]);
         } else {
-            img.src = "{{ asset('images/'.$employee->img_profile) }}"; // Initialize with the existing image source
+            img.src = "{{ asset('storage/'.$employee->avatar) }}"; // Initialize with the existing image source
             previewContainer.style.display = "none";
         }
     }
