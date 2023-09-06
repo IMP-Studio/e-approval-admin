@@ -19,8 +19,10 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class ApiController extends Controller
 {
@@ -406,10 +408,13 @@ class ApiController extends Controller
 
     //FUNCTION STORE PRESENCE . dicoba lagi.. kan baru
 
+
+
     public function storePresence(Request $request) {
+    
         $gambarBinary = base64_encode($request->input('face_point'));
     
-        $temporaryEntryTime = now();  
+        $temporaryEntryTime = now();
         $userId = $request->input('user_id');
     
         $user = User::with('employee', 'standups')->where('id', $userId)->first();
@@ -425,128 +430,135 @@ class ApiController extends Controller
             ]);
         }
     
-        $entryTime = '00:00:00';  
+        $entryTime = '00:00:00';
         if ($request->input('category') === 'WFO') {
-            $entryTime = now()->format('H:i:s');  
+            $entryTime = now()->format('H:i:s');
         }
     
-        $presence = Presence::create([
-            'user_id' => $request->input('user_id'),
-            'category' => $request->input('category'),
-            'entry_time' => $entryTime,
-            'exit_time' => '00:00:00', 
-            'temporary_entry_time' => $temporaryEntryTime,
-            'latitude' => $request->input('latitude'),
-            'longitude' => $request->input('longitude'),
-            'date' => now(),
-        ]);
+        DB::beginTransaction();  
     
-        switch ($request->input('category')) {
-            case 'work_trip':
-                $workTrip = WorkTrip::create([
-                    'user_id' => $request->input('user_id'),
-                    'presence_id' => $presence->id,
-                    'file' => $request->input('file'),
-                    'start_date' => $request->input('start_date'),
-                    'end_date' => $request->input('end_date'),
-                    'face_point' => $request->input('face_point'),
-                    'entry_date' => $request->input('end_date'),
-                ]);
-                $workTrip->statusCommit()->create([
-                    'status' => 'pending'
-                ]);
-                break;
+        try {
+            $presence = Presence::create([
+                'user_id' => $request->input('user_id'),
+                'category' => $request->input('category'),
+                'entry_time' => $entryTime,
+                'exit_time' => '00:00:00',
+                'temporary_entry_time' => $temporaryEntryTime,
+                'latitude' => $request->input('latitude'),
+                'longitude' => $request->input('longitude'),
+                'date' => now(),
+            ]);
     
-            case 'telework':
-                $telework = Telework::create([
-                    'user_id' => $request->input('user_id'),
-                    'presence_id' => $presence->id,
-                    'telework_category' => $request->input('telework_category'),
-                    'category_description' => $request->input('category_description'),
-                    'face_point' => $request->input('face_point'),
-                    'reject_description' => $request->input('description')
-                ]);
-                $telework->statusCommit()->create([
-                    'status' => 'pending'
-                ]);
-                break;
+            switch ($request->input('category')) {
+                case 'work_trip':
+                    $file = $request->file('file');
+                    $originalName = $file->getClientOriginalName();
+                    $file->storeAs('files', $originalName, 'public');
+                    WorkTrip::create([
+                        'user_id' => $request->input('user_id'),
+                        'presence_id' => $presence->id,
+                        'file' => $originalName,
+                        'start_date' => $request->input('start_date'),
+                        'end_date' => $request->input('end_date'),
+                        'face_point' => $request->input('face_point'),
+                        'entry_date' => $request->input('end_date'),
+                    ])->statusCommit()->create([
+                        'status' => 'pending'
+                    ]);
+                    break;
+    
+                case 'telework':
+                    Telework::create([
+                        'user_id' => $request->input('user_id'),
+                        'presence_id' => $presence->id,
+                        'telework_category' => $request->input('telework_category'),
+                        'category_description' => $request->input('category_description'),
+                        'face_point' => $request->input('face_point'),
+                        'reject_description' => $request->input('description')
+                    ])->statusCommit()->create([
+                        'status' => 'pending'
+                    ]);
+                    break;
+            }
+    
+            $user->facePoint = $request->input('face_point');
+            $user->save();
+    
+            DB::commit();  
+    
+            return response()->json(['message' => 'Success', 'data' => $presence, 'user' => $user]);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();  
+    
+            return response()->json(['message' => 'Failed to create presence: ' . $e->getMessage()], 500);
         }
-    
-        $user->facePoint = $request->input('face_point');
-        $user->save();
-    
-        return response()->json(['message' => 'Success', 'data' => $presence, 'user' => $user]);
     }
     
     
+    
 
-    //FUNCTION UPDATE PRESENCE //BISA
+    //FUNCTION UPDATE PRESENCE // KHUSUS UNTUK FILE UPDATE WORKTRIP MASIH BELUM BISAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA (blocker maybe ?)
 
     public function updatePresence(Request $request, $id) {
-        $errors = [];
+        $updateabsensi = Presence::with('telework', 'worktrip')->find($id);
     
-        if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'allow_HT'])) {
-            $errors['status'] = 'The status field is required and must be one of: rejected, allowed, allow_HT.';
-        }
-    
-        if ($request->has('description') && !is_string($request->input('description'))) {
-            $errors['description'] = 'The description must be a string.';
-        }
-    
-        if (in_array($request->input('status'), ['rejected', 'allowed']) && !$request->has('description')) {
-            $errors['description'] = 'The description is required when status is rejected or allowed.';
-        }
-    
-        if (!$request->has('approver_id') || !User::find($request->input('approver_id'))) {
-            $errors['approver_id'] = 'The approver id field is required and must exist in the users table.';
-        }
-    
-        if (!empty($errors)) {
-            return response()->json(['errors' => $errors], 400);
-        }
-    
-        $updateabsensi = Presence::with('user', 'standup', 'telework', 'worktrip')->find($id);
         if (!$updateabsensi) {
             return response()->json(['message' => 'Record not found'], 404);
         }
     
-        $updateabsensi->update($request->only(['status', 'description', 'approver_id']));
+        // Update the Presence main attributes
+        $updateabsensi->update($request->all());
     
-        $categoryUpdateMap = [
-            'work_trip' => WorkTrip::class,
-            'telework' => Telework::class,
-        ];
+        if ($updateabsensi->category == 'work_trip') {
+            $relatedModel = Worktrip::where('presence_id', $updateabsensi->id)->first();
     
-        if (array_key_exists($updateabsensi->category, $categoryUpdateMap)) {
-            $modelClass = $categoryUpdateMap[$updateabsensi->category];
-            $modelInstance = $modelClass::where('presence_id', $updateabsensi->id)->first();
-            if ($modelInstance) {
-                $latestStatusCommit = $modelInstance->statusCommit->sortByDesc('created_at')->first();
-                if ($latestStatusCommit) {
-                    $latestStatusCommit->update($request->only(['status', 'description', 'approver_id']));
-                } else {
-                    $modelInstance->statusCommit()->create($request->only(['status', 'description', 'approver_id']));
-                }
+            if (!$relatedModel) {
+                return response()->json(['message' => 'Related work_trip model not found'], 404);
             }
-        }
     
-        if (in_array($updateabsensi->category, ['work_trip', 'telework']) && 
-            $request->input('status') === 'allowed' && 
-            $updateabsensi->entry_time === '00:00:00') {
-            $updateabsensi->entry_time = $updateabsensi->temporary_entry_time;
-            $updateabsensi->save();
+           
+            // Handle the file replacement
+            if($request->hasFile('file')){
+                $file = $request->file('file');
+                $originalName = $file->getClientOriginalName();
+
+    
+                if ($relatedModel->file) {
+                    Storage::disk('public')->delete('files/' . $relatedModel->file);
+                }
+    
+                $file->storeAs('files', $originalName, 'public');
+                $relatedModel->file = 'files/' . $originalName;
+                
+            }
+
+            dd($request->all());
+    
+            // Update other attributes of work_trip
+            $relatedModel->update($request->all());
+        } 
+        elseif ($updateabsensi->category == 'telework') {
+            $relatedModel = Telework::where('presence_id', $updateabsensi->id)->first();
+            
+            if (!$relatedModel) {
+                return response()->json(['message' => 'Related telework model not found'], 404);
+            }
+    
+            // Update telework attributes
+            $relatedModel->update($request->all());
         }
     
         return response()->json([
-            'message' => 'Berhasil', 
-            'data' => $updateabsensi, 
-            'status' => $request->input('status')
+            'message' => 'Data updated successfully',
+            'data' => $updateabsensi->refresh(),  // Refresh to get updated relationships as well
         ]);
     }
-    
-    
-    
 
+    
+    
+    
+    //FUNCTION DESTROY PRESENCE //BISA
     public function destroyPresence(Request $request, $id) {
         $presence = Presence::find($id);
     
@@ -585,7 +597,7 @@ class ApiController extends Controller
     }
     
 
-    //FUNCTION CHECK OUT 
+    //FUNCTION CHECK OUT  //BISA
 
     public function checkOut(Request $request)
 {
@@ -611,6 +623,7 @@ class ApiController extends Controller
     }
 }
 
+// APPROVE AND REJECT FUNCTION //BISA
 public function approveReject(Request $request, $id)
 {
     $errors = [];
@@ -634,34 +647,37 @@ public function approveReject(Request $request, $id)
     if (!empty($errors)) {
         return response()->json(['errors' => $errors], 400);
     }
+
     $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
-    $statusableType = class_basename($statusCommit->statusable_type);
-    $statusCommit->approver_id = $request->input('approver_id');
-    $statusCommit->status = $request->input('status');
-    $statusCommit->description = $request->input('description', null);
+    $statusable = $statusCommit->statusable;
 
-    switch ($statusableType) {
-        case 'Presence':
-            $presence = Presence::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($presence);
-            break;
-        case 'Telework':
-            $telework = Telework::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($telework);
-            break;
-        case 'Leave':
-            $leave = Leave::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($leave);
-            break;
-        case 'WorkTrip':
-            $workTrip = WorkTrip::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($workTrip);
-            break;
-        default:
-            return response()->json(['error' => 'Invalid statusable_type provided.'], 400);
+    if ($statusable instanceof Presence) {
+        $statusable->update($request->only(['status', 'description', 'approver_id']));
+        if (in_array($statusable->category, ['work_trip', 'telework']) && 
+            $request->input('status') === 'allowed' && 
+            $statusable->entry_time === '00:00:00') {
+            $statusable->entry_time = $statusable->temporary_entry_time;
+            $statusable->save();
+        }
+
+        $categoryUpdateMap = [
+            'work_trip' => WorkTrip::class,
+            'telework' => Telework::class,
+        ];
+    
+        if (array_key_exists($statusable->category, $categoryUpdateMap)) {
+            $modelClass = $categoryUpdateMap[$statusable->category];
+            $modelInstance = $modelClass::where('presence_id', $statusable->id)->first();
+            if ($modelInstance) {
+                $latestStatusCommit = $modelInstance->statusCommit->sortByDesc('created_at')->first();
+                if ($latestStatusCommit) {
+                    $latestStatusCommit->update($request->only(['status', 'description', 'approver_id']));
+                } else {
+                    $modelInstance->statusCommit()->create($request->only(['status', 'description', 'approver_id']));
+                }
+            }
+        }
     }
-
-    $statusCommit->save();
 
     return response()->json(['message' => 'Approval status saved successfully.'], 200);
 }
@@ -819,7 +835,6 @@ public function approveReject(Request $request, $id)
                            ? $leave->user->employee->first_name .' '. $leave->user->employee->last_name 
                            : null;
         
-            // Consider most recent status due to polymorphic relationship.
             $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
             $approver_name = $mostRecentStatus && $mostRecentStatus->approver ? $mostRecentStatus->approver->employee->first_name .' '. $mostRecentStatus->approver->employee->last_name : null;
         
@@ -855,18 +870,22 @@ public function approveReject(Request $request, $id)
     
     // FUNCTION STORE LEAVE //BISA
 
-    public function storeLeave(Request $request) {
-        $currentDate = Carbon::now();
-        $submissionDate = Carbon::parse($request->input('submission_date'));
-        $startDate = Carbon::parse($request->input('start_date'));
-    
-        if ($startDate->diffInDays($submissionDate, false) < 2) {
-            return response()->json(['error' => 'Harus submit start_date dengan selisih 2 hari dengan submission_date'], 400);
-        }
-    
-        $endDate = Carbon::parse($request->input('end_date'));
-        $totalDays = $startDate->diffInDays($endDate) + 1;
-    
+
+public function storeLeave(Request $request) {
+    $currentDate = Carbon::now();
+    $submissionDate = Carbon::parse($request->input('submission_date'));
+    $startDate = Carbon::parse($request->input('start_date'));
+
+    if ($startDate->diffInDays($submissionDate, false) < 2) {
+        return response()->json(['error' => 'Harus submit start_date dengan selisih 2 hari dengan submission_date'], 400);
+    }
+
+    $endDate = Carbon::parse($request->input('end_date'));
+    $totalDays = $startDate->diffInDays($endDate) + 1;
+
+    DB::beginTransaction();  // Start a new database transaction
+
+    try {
         $leave = Leave::create([
             'user_id' => $request->input('user_id'),
             'type' => $request->input('type'),
@@ -877,7 +896,7 @@ public function approveReject(Request $request, $id)
             'entry_date' => $request->input('entry_date'),
             'type_description' => $request->input('type_description'),
         ]);
-    
+
         if (!$leave->statusCommit()->exists()) {
             $leave->statusCommit()->create([
                 'approver_id' => null,
@@ -885,9 +904,18 @@ public function approveReject(Request $request, $id)
                 'description' => null,
             ]);
         }
-    
+
+        DB::commit();  // Commit the transaction
+
         return response()->json(['message' => 'Success', 'data' => $leave]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();  // Rollback the transaction
+
+        return response()->json(['message' => 'Failed to create leave: ' . $e->getMessage()], 500);
     }
+}
+
     
 
     
