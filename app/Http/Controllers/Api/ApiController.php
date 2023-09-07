@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\Leave;
+use App\Mail\OTPEmail;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\StandUp;
@@ -15,17 +16,204 @@ use App\Models\LeaveStatus;
 use App\Models\StatusCommit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\OtpVerification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 
 class ApiController extends Controller
 {
+
+      //---- ForgetPassword otp FUNCTION ----\\ 
+
+    // get otp done\\
+    public function getOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+
+            return response()->json($response, $response['status']);
+        }
+
+        $user = User::with('employee')->where('email', $request->email)->first();
+
+        if ($user) {
+            OtpVerification::where('user_id', $user->id)->delete();
+
+            $otp = rand(100000, 999999);
+
+            $otpVerification = new OtpVerification([
+                'user_id' => $user->id,
+                'otp_code' => $otp,
+                'expiry_time' => now('Asia/Jakarta')->addMinutes(10),
+            ]);
+            $otpVerification->save();
+
+            Mail::to($request->email)->send(new OTPEmail($otp));
+
+            $response = [
+                'status' => 200,
+                'message' => 'OTP sent to email',
+                'data' => [
+                    'user_id' => $user->id,
+                    'otp_code' => $otpVerification->otp_code,
+                    'firstname' => $user->employee->firstname,
+                    'email' => $request->email,
+                ],
+            ];
+            return response()->json($response);
+        } else {
+            $response = [
+                'status' => 404,
+                'message' => 'User not found',
+            ];
+        }
+
+        return response()->json($response, $response['status']);
+    }
+    // get otp end\\
+
+    // Verif otp done \\
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'otp_code' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+
+            return response()->json($response, $response['status']);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            $response = [
+                'status' => 404,
+                'message' => 'User not found',
+            ];
+            return response()->json($response, $response['status']);
+        }
+
+        $otpVerification = OtpVerification::where('user_id', $user->id)
+            ->where('otp_code', $request->otp_code)
+            ->first();
+
+        if ($otpVerification) {
+            if ($otpVerification->expiry_time > now('Asia/Jakarta')) {
+                $otpVerification->update(['is_verified' => 'yes']);
+
+                $response = [
+                    'status' => 200,
+                    'data' => [
+                        'user_id' => $user->id,
+                        'otp_code' => $otpVerification->otp_code,
+                    ],
+                    'message' => 'OTP successfully verified',
+                ];
+            } else {
+                $otpVerification->delete();
+                $response = [
+                    'status' => 400,
+                    'message' => 'OTP code expired, Try Again',
+                ];
+            }
+        } else {
+            $response = [
+                'status' => 400,
+                'message' => 'Invalid OTP, Try Again',
+            ];
+        }
+
+        return response()->json($response, $response['status']);
+    }
+    // Verif otp end \\
+
+
+    // change password done
+    public function changePasswordAfterOtpVerification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'new_password' => 'required|min:8|confirmed',
+            'otp_code' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+
+            return response()->json($response, $response['status']);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            $response = [
+                'status' => 400,
+                'message' => 'User not found',
+            ];
+            return response()->json($response, $response['status']);
+        }
+
+        $otpVerification = OtpVerification::where('user_id', $user->id)
+            ->where('is_verified', 'yes')
+            ->where('otp_code', $request->otp_code)
+            ->first();
+
+        if (!$otpVerification) {
+            $response = [
+                'status' => 400,
+                'message' => 'Invalid OTP or OTP not verified',
+            ];
+        } else {
+            $user->update([
+                'password' => Hash::make($request->new_password),
+            ]);
+
+            $otpVerification->delete();
+
+            $response = [
+                'status' => 200,
+                'message' => 'Password changed successfully',
+            ];
+        }
+
+        return response()->json($response, $response['status']);
+    }
+    // change password done end
+
+    //---- ForgetPassword otp FUNCTION end ----\\ 
+
     
     public function loginApi(Request $request)
 {
@@ -52,7 +240,7 @@ class ApiController extends Controller
     if (!$user->employee) {
         return response()->json(['status' => 500, 'message' => 'Employee data not found.']);
     }
-    \Log::info('User permissions: ' . json_encode($user->getPermissionNames()));
+    // info('User permissions: ' . json_encode($user->getPermissionNames()));
 
 
 
@@ -89,7 +277,7 @@ class ApiController extends Controller
     if($user!='[]' && Hash::check($request->password, $user->password)){
         if ($user->hasRole('employee')) {
                 if ($permissionName == 'ordinary_employee') {
-                    $token=$user->createToken('Personal Acces Token')->plainTextToken;
+                    $token = $user->createToken('Personal Acces Token')->plainTextToken;
                     $response = [
                         'status' => 200,
                         'token' => $token,
@@ -517,30 +705,25 @@ class ApiController extends Controller
                 return response()->json(['message' => 'Related work_trip model not found'], 404);
             }
     
-           
             // Handle the file replacement
-            if($request->hasFile('file')){
+            if ($request->hasFile('file')){
                 $file = $request->file('file');
                 $originalName = $file->getClientOriginalName();
-
     
                 if ($relatedModel->file) {
                     Storage::disk('public')->delete('files/' . $relatedModel->file);
                 }
     
                 $file->storeAs('files', $originalName, 'public');
-                $relatedModel->file = 'files/' . $originalName;
-                
+                $relatedModel->file = $originalName;
+                // $relatedModel->save();
             }
-
-            dd($request->all());
     
-            // Update other attributes of work_trip
-            $relatedModel->update($request->all());
+            $relatedModel->update($request->except('file'));
         } 
         elseif ($updateabsensi->category == 'telework') {
             $relatedModel = Telework::where('presence_id', $updateabsensi->id)->first();
-            
+    
             if (!$relatedModel) {
                 return response()->json(['message' => 'Related telework model not found'], 404);
             }
@@ -766,7 +949,7 @@ public function approveReject(Request $request, $id)
             return response()->json(['message' => 'Failed. user_id is not provided in the request.'], 400);
         }
     
-        \Log::info('User ID from Request: ' . $request->input('user_id'));
+        info('User ID from Request: ' . $request->input('user_id'));
     
         $latestPresence = Presence::where('user_id', $request->input('user_id'))->latest('created_at')->first();
     
@@ -774,7 +957,7 @@ public function approveReject(Request $request, $id)
             return response()->json(['message' => 'Failed. No presence record found for the user.'], 400);
         }
     
-        \Log::info('Latest Presence ID: ' . $latestPresence->id);
+        info('Latest Presence ID: ' . $latestPresence->id);
     
         $standup = StandUp::create([
             'user_id' => $request->input('user_id'),
@@ -1054,13 +1237,13 @@ public function storeLeave(Request $request) {
             }
     }
 
-    public function logout() {
+    public function logout(Request $request) {
         $user = Auth::user();
-        $password = request()->input('password');
-    
-        // Validate the password
-        if(!Hash::check($password, $user->password)) {
-            return response()->json(['message' => 'Password is incorrect'], 400);
+        $inputpassword = $request->input('validpassword');
+        $validpassword = Hash::check($inputpassword, $user->password);
+
+        if (!$validpassword) {
+            return response()->json(['message' => 'Password salah'], 400);
         }
     
         $token = PersonalAccessToken::findToken(request()->bearerToken());

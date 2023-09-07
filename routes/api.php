@@ -50,3 +50,8 @@ Route::put('/leave/update/{id}', [ApiController::class, 'updateLeave']);
 Route::put('/leave/delete/{id}', [ApiController::class, 'destroyLeave']);
 
 Route::get('/profile', [ApiController::class, 'getProfile']);
+
+// otp
+Route::post('/sendotp', [ApiController::class, 'getOtp']);
+Route::post('/verifyotp', [ApiController::class, 'verifyotp']);
+route::post('/resetPasswordOtp', [ApiController::class, 'changePasswordAfterOtpVerification']);
