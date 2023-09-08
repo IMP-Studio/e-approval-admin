@@ -60,7 +60,13 @@
                         </td>
                         <td class="flex justify-center align-center">
                             <div class="w-12 h-12 image-fit zoom-in">
-                                <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('storage/'.$item->avatar) }}" title="Uploaded at {{ $item->updated_at->format('j F Y') }}">
+                                @if ($item->avatar)
+                                    <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('storage/'.$item->avatar) }} " title="Uploaded at {{ $item->updated_at ? $item->updated_at->format('d M Y') : '?' }}">
+                                @elseif($item->gender == 'male')
+                                    <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }} " title="Uploaded at {{ $item->updated_at ? $item->updated_at->format('d M Y') : '?' }}">
+                                @elseif($item->gender == 'female')
+                                    <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }} " title="Uploaded at {{ $item->updated_at ? $item->updated_at->format('d M Y') : '?' }}">
+                                @endif
                             </div>
                         </td>
                         <td class="w-50 text-center">
@@ -134,7 +140,13 @@
                                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                     <div class="col-span-12 mx-auto">
                                         <div class="w-24 h-24 image-fit zoom-in">
-                                            <img class="tooltip rounded-full" src="{{ Storage::disk('public')->exists($item->avatar) ? asset('storage/' . $item->avatar) : asset('images/user.png') }}">
+                                            @if ($item->avatar)
+                                                <img class="tooltip rounded-full" src="{{ asset('storage/'.$item->avatar) }}">
+                                            @elseif($item->gender == 'male')
+                                                <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                            @elseif($item->gender == 'female')
+                                                <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">

@@ -146,11 +146,11 @@
 @push('js')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script type="text/javascript">
-    let jQ = $.noConflict();
+    const jQ = $.noConflict();
 
     function dapetPosisi() {
-        let divisionId = jQ("#crud-form-5").val();
-        let positionSelect = jQ("#position");
+        const divisionId = jQ("#crud-form-5").val();
+        const positionSelect = jQ("#position");
 
         positionSelect.empty().append('<option value="" selected disabled>Loading...</option>');
 
@@ -176,12 +176,12 @@
     }
 
     function previewImage(event) {
-            const input = event.target;
-            const reader = new FileReader();
-            const previewContainer = document.getElementById("previewContainer");
+            let input = event.target;
+            let reader = new FileReader();
+            let previewContainer = document.getElementById("previewContainer");
 
             reader.onload = function(){
-                const img = document.getElementById("preview");
+                let img = document.getElementById("preview");
                 img.src = reader.result;
                 previewContainer.style.display = "block";
                 document.getElementById('desc-img').classList.add('close-img');
@@ -190,15 +190,15 @@
             if (input.files && input.files[0]) {
                 reader.readAsDataURL(input.files[0]);
             } else {
-                const img = document.getElementById("preview");
+                let img = document.getElementById("preview");
                 img.src = "";
                 previewContainer.style.display = "none";
             }
     }
     function removeImage() {
-        const img = document.getElementById("preview");
-        const previewContainer = document.getElementById("previewContainer");
-        const input = document.getElementById("logoInput");
+        let img = document.getElementById("preview");
+        let previewContainer = document.getElementById("previewContainer");
+        let input = document.getElementById("logoInput");
         img.src = "";
         previewContainer.style.display = "none";
         input.value = "";

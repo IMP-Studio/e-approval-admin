@@ -19,10 +19,10 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('avatar')->nullable();
             $table->string('id_number')->unique();
-            $table->unsignedBigInteger('position_id');
-            $table->foreign('position_id')->references('id')->on('positions');
             $table->unsignedBigInteger('division_id');
             $table->foreign('division_id')->references('id')->on('divisions');
+            $table->unsignedBigInteger('position_id');
+            $table->foreign('position_id')->references('id')->on('positions');
             $table->enum('gender',['male','female']);
             $table->string('address');
             $table->date('birth_date');

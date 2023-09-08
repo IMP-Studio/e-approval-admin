@@ -6,6 +6,7 @@ use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Leave;
 use App\Models\Presence;
+use App\Models\StandUp;
 use App\Models\Telework;
 use App\Models\WorkTrip;
 use Carbon\Carbon;
@@ -31,12 +32,12 @@ class HomeController extends Controller
     public function index()
     {
         $now = Carbon::now()->setTimezone('Asia/Jakarta');
-        $today = $now->format('Y-m-d');
         $year = $now->format('Y');
         $total_employee = Employee::count();
 
         // START PRESENCE TODAY
             $presence_today = Presence::whereDate('date',$now)->get()->count();
+            $wfo_today = Presence::whereDate('date', $now)->where('category','WFO')->get();
 
             $telework_today = Telework::whereHas('presence',
             function ($query) use ($now) {
@@ -72,11 +73,6 @@ class HomeController extends Controller
         // END PRESENCE TODAY
 
         // START PRESENCE MONTH STATUS ALLOWED
-            $attendance_data = [];
-            $telework_data = [];
-            $workTrip_data = [];
-            $leave_data = [];
-
             for ($i = 1; $i <= 12; $i++) {
                 $month = str_pad($i, 2, '0', STR_PAD_LEFT);
 
@@ -116,10 +112,6 @@ class HomeController extends Controller
         // END PRESENCE MONTH STATUS ALLOWED
 
         // START PRESENCE MONTH STATUS REJECTED
-            $attendance_data_month_rejected = [];
-            $telework_data_month_rejected = [];
-            $workTrip_data_month_rejected = [];
-            $leave_data_month_rejected = [];
 
             for ($i = 1; $i <= 12; $i++) {
                 $month = str_pad($i, 2, '0', STR_PAD_LEFT);
@@ -216,7 +208,7 @@ class HomeController extends Controller
         $leave_percentage = $total_employee > 0 ? round(($leave_today->count() / $total_employee) * 100, 1) : 0;
 
 
-        return view('home',compact('presence_today','telework_today','workTrip_today','leave_today','attendance_percentage',
+        return view('home',compact('presence_today','wfo_today','telework_today','workTrip_today','leave_today','attendance_percentage',
         'telework_percentage','workTrip_percentage','leave_percentage','wfo_data','telework_data','workTrip_data','leave_data',
         'wfo_yearly','telework_yearly','workTrip_yearly','leave_yearly','telework_rejected','workTrip_rejected','leave_rejected',
         'telework_data_month_rejected','workTrip_data_month_rejected','leave_data_month_rejected'));
@@ -227,14 +219,15 @@ class HomeController extends Controller
     //     return view('kehadiran');
     // }
 
-    public function cuti()
-    {
-        return view('cuti');
-    }
 
     public function standup()
     {
-        return view('standup');
+        $today = Carbon::today();
+        $standup_today = StandUp::whereHas('presence', function ($query) use ($today) {
+            $query->whereDate('date', $today);
+        })->paginate(5);
+
+        return view('standup',compact('standup_today'));
     }
     public function back()
     {

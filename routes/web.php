@@ -31,12 +31,11 @@ Route::get('/back', [HomeController::class, 'back'])->name('back');
 Auth::routes();
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/cuti', [HomeController::class, 'cuti'])->name('cuti');
     Route::get('/standup', [HomeController::class, 'standup'])->name('standup');
 
     Route::get('/attendance', [PresenceController::class, 'index'])->name('kehadiran');
 
-    Route::prefix('divisi')->group(function () {
+    Route::prefix('division')->group(function () {
         Route::get('/', [DivisionController::class, 'index'])->name('divisi');
         Route::get('/create', [DivisionController::class, 'create'])->name('divisi.create');
         Route::post('/store', [DivisionController::class, 'store'])->name('divisi.store');

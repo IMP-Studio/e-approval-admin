@@ -62,9 +62,17 @@
                                     <div class="flex flex-wrap">
                                         <div class="w-16 h-16 relative image-fit mb-5 mr-5 cursor-pointer zoom-in"
                                             id="previewContainer" style="">
+                                            @if ($employee->avatar)
                                             <img class="rounded-md" id="preview" src="{{ asset('storage/'.$employee->avatar) }}" style=""
-                                                data-action="zoom">
-                                            <div title="Remove this image?"
+                                            data-action="zoom">
+                                            @elseif($employee->gender == 'male')
+                                            <img class="rounded-md" id="preview" src="{{ asset('images/default-boy.jpg') }}" style=""
+                                            data-action="zoom">
+                                            @elseif($employee->gender == 'female')
+                                            <img class="rounded-md" id="preview" src="{{ asset('images/default-women.jpg') }}" style=""
+                                            data-action="zoom">
+                                            @endif
+                                                <div title="Remove this image?"
                                                 class="tooltip w-5 h-5 flex items-center justify-center absolute rounded-full text-white bg-danger right-0 top-0 -mr-2 -mt-2"
                                                 onclick="removeImage()"> <i data-lucide="x" class="w-4 h-4"></i>
                                             </div>
@@ -130,11 +138,11 @@
     <script>
 
     function previewImage(event) {
-        var input = event.target;
-        var reader = new FileReader();
-        var previewContainer = document.getElementById("previewContainer");
-        var img = document.getElementById("preview");
-        var file = document.getElementById("logoInput");
+        let input = event.target;
+        let reader = new FileReader();
+        let previewContainer = document.getElementById("previewContainer");
+        let img = document.getElementById("preview");
+        let file = document.getElementById("logoInput");
 
         reader.onload = function(){
             img.src = reader.result;
@@ -146,18 +154,18 @@
         if (input.files && input.files[0]) {
             reader.readAsDataURL(input.files[0]);
         } else {
-            img.src = "{{ asset('storage/'.$employee->avatar) }}"; // Initialize with the existing image source
+            img.src = "{{ asset('storage/'.$employee->avatar) }}";
             previewContainer.style.display = "none";
         }
     }
-        function removeImage() {
-            var img = document.getElementById("preview");
-            var previewContainer = document.getElementById("previewContainer");
-            var input = document.getElementById("logoInput");
-            img.src = "";
-            previewContainer.style.display = "none";
-            input.value = "";
-            document.getElementById('desc-img').classList.remove('close-img');
-        }
+    function removeImage() {
+        let img = document.getElementById("preview");
+        let previewContainer = document.getElementById("previewContainer");
+        let input = document.getElementById("logoInput");
+        img.src = "";
+        previewContainer.style.display = "none";
+        input.value = "";
+        document.getElementById('desc-img').classList.remove('close-img');
+    }
     </script>
 @endpush
