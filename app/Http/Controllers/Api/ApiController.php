@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\Leave;
+use App\Mail\OTPEmail;
 use App\Models\Partner;
 use App\Models\Project;
 use App\Models\StandUp;
@@ -15,15 +16,268 @@ use App\Models\LeaveStatus;
 use App\Models\StatusCommit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\OtpVerification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
 use Illuminate\Support\Facades\Validator;
 
 class ApiController extends Controller
 {
+
+      //---- ForgetPassword otp FUNCTION ----\\ 
+
+    //change password..
+    
+      public function changePasswordWithoutOtpVerification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'new_password' => 'required|min:8|confirmed',
+        ]);
+    
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+    
+            return response()->json($response, $response['status']);
+        }
+    
+        // Check if the current password is valid
+        $isCurrentPasswordValid = $this->validateCurrentPassword($request->user_id, $request->validate);
+    
+        if (!$isCurrentPasswordValid) {
+            $response = [
+                'status' => 400,
+                'message' => 'Incorrect current password',
+            ];
+            return response()->json($response, $response['status']);
+        }
+    
+        $user = User::where('id', $request->user_id)->first();
+    
+        if (!$user) {
+            $response = [
+                'status' => 400,
+                'message' => 'User not found',
+            ];
+            return response()->json($response, $response['status']);
+        }
+    
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+    
+        $response = [
+            'status' => 200,
+            'message' => 'Password changed successfully',
+        ];
+    
+        return response()->json($response, $response['status']);
+    }
+    
+    private function validateCurrentPassword($userId, $enteredPassword)
+    {
+        $user = User::where('id', $userId)->first();
+    
+        if (!$user) {
+            return false;
+        }
+    
+        return Hash::check($enteredPassword, $user->password);
+    }
+
+    // get otp done\\
+    public function getOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+
+            return response()->json($response, $response['status']);
+        }
+
+        $user = User::with('employee')->where('email', $request->email)->first();
+
+        if ($user) {
+            OtpVerification::where('user_id', $user->id)->delete();
+
+            $otp = rand(100000, 999999);
+
+            $otpVerification = new OtpVerification([
+                'user_id' => $user->id,
+                'otp_code' => $otp,
+                'expiry_time' => now('Asia/Jakarta')->addMinutes(10),
+            ]);
+            $otpVerification->save();
+
+            Mail::to($request->email)->send(new OTPEmail($otp));
+
+            $response = [
+                'status' => 200,
+                'message' => 'OTP sent to email',
+                'data' => [
+                    'user_id' => $user->id,
+                    'otp_code' => $otpVerification->otp_code,
+                    'firstname' => $user->employee->firstname,
+                    'email' => $request->email,
+                ],
+            ];
+            return response()->json($response);
+        } else {
+            $response = [
+                'status' => 404,
+                'message' => 'User not found',
+            ];
+        }
+
+        return response()->json($response, $response['status']);
+    }
+    // get otp end\\
+
+    // Verif otp done \\
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'otp_code' => 'required|min:6',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+
+            return response()->json($response, $response['status']);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            $response = [
+                'status' => 404,
+                'message' => 'User not found',
+            ];
+            return response()->json($response, $response['status']);
+        }
+
+        $otpVerification = OtpVerification::where('user_id', $user->id)
+            ->where('otp_code', $request->otp_code)
+            ->first();
+
+        if ($otpVerification) {
+            if ($otpVerification->expiry_time > now('Asia/Jakarta')) {
+                $otpVerification->update(['is_verified' => 'yes']);
+
+                $response = [
+                    'status' => 200,
+                    'data' => [
+                        'user_id' => $user->id,
+                        'otp_code' => $otpVerification->otp_code,
+                    ],
+                    'message' => 'OTP successfully verified',
+                ];
+            } else {
+                $otpVerification->delete();
+                $response = [
+                    'status' => 400,
+                    'message' => 'OTP code expired, Try Again',
+                ];
+            }
+        } else {
+            $response = [
+                'status' => 400,
+                'message' => 'Invalid OTP, Try Again',
+            ];
+        }
+
+        return response()->json($response, $response['status']);
+    }
+    // Verif otp end \\
+
+
+    // change password done
+    public function changePasswordAfterOtpVerification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'new_password' => 'required|min:8|confirmed',
+            'otp_code' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+
+            $errorMessages = $errors->all();
+            $response = [
+                'status' => 400,
+                'message' => $errorMessages,
+            ];
+
+            return response()->json($response, $response['status']);
+        }
+
+        $user = User::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            $response = [
+                'status' => 400,
+                'message' => 'User not found',
+            ];
+            return response()->json($response, $response['status']);
+        }
+
+        $otpVerification = OtpVerification::where('user_id', $user->id)
+            ->where('is_verified', 'yes')
+            ->where('otp_code', $request->otp_code)
+            ->first();
+
+        if (!$otpVerification) {
+            $response = [
+                'status' => 400,
+                'message' => 'Invalid OTP or OTP not verified',
+            ];
+        } else {
+            $user->update([
+                'password' => Hash::make($request->new_password),
+            ]);
+
+            $otpVerification->delete();
+
+            $response = [
+                'status' => 200,
+                'message' => 'Password changed successfully',
+            ];
+        }
+
+        return response()->json($response, $response['status']);
+    }
+    // change password done end
+
+    //---- ForgetPassword otp FUNCTION end ----\\ 
+
     
     public function loginApi(Request $request)
 {
@@ -50,7 +304,7 @@ class ApiController extends Controller
     if (!$user->employee) {
         return response()->json(['status' => 500, 'message' => 'Employee data not found.']);
     }
-    \Log::info('User permissions: ' . json_encode($user->getPermissionNames()));
+    // info('User permissions: ' . json_encode($user->getPermissionNames()));
 
 
 
@@ -87,7 +341,7 @@ class ApiController extends Controller
     if($user!='[]' && Hash::check($request->password, $user->password)){
         if ($user->hasRole('employee')) {
                 if ($permissionName == 'ordinary_employee') {
-                    $token=$user->createToken('Personal Acces Token')->plainTextToken;
+                    $token = $user->createToken('Personal Acces Token')->plainTextToken;
                     $response = [
                         'status' => 200,
                         'token' => $token,
@@ -241,7 +495,25 @@ class ApiController extends Controller
         }
     
         $presenceQuery = Presence::with(['user', 'standup', 'worktrip', 'telework', 'leave']);
-    
+
+        if ($request->has('start_date')) {
+            $startDate = Carbon::parse($request->start_date);
+            $presenceQuery->whereDate('date', '>=', $startDate);
+        }
+        if ($request->has('end_date')) {
+            $endDate = Carbon::parse($request->end_date);
+            $presenceQuery->whereDate('date', '<=', $endDate);
+        }
+
+        if ($request->has('type')) {
+            $type = $request->type;
+            if ($type == 'WFA') {
+                $presenceQuery->where('category', 'telework'); 
+            } elseif ($type == 'PERJADIN') {
+                $presenceQuery->where('category', 'work_trip'); 
+            }
+        }
+
         if ($permissionName == 'ordinary_employee' || $scope === 'self') {
             $presenceQuery->where('user_id', $loggedInUserId);
         }
@@ -404,149 +676,348 @@ class ApiController extends Controller
     }
     
 
-    //FUNCTION STORE PRESENCE . dicoba lagi.. kan baru
+    //GET PRESENCE BY ID FUNCTION //BISA
 
-    public function storePresence(Request $request) {
-        $gambarBinary = base64_encode($request->input('face_point'));
+    public function getPresenceById(Request $request, $id) {
+        $presence = Presence::with(['user', 'standup', 'worktrip', 'telework', 'leave'])->find($id);
     
-        $temporaryEntryTime = now();  
-        $userId = $request->input('user_id');
-    
-        $user = User::with('employee', 'standups')->where('id', $userId)->first();
-    
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
+        if (!$presence) {
+            return response()->json(['status' => 404, 'message' => 'Presence not found']);
         }
     
-        if (!$user->hasRole('employee')) {
-            return response()->json([
-                'status' => 500,
-                'message' => 'Anda tidak memiliki akses sebagai employees.',
-            ]);
+        $statuses = [];
+        if ($request->has('status') && $request->status != 'all') {
+            $statuses = explode(',', $request->status);
         }
     
-        $entryTime = '00:00:00';  
-        if ($request->input('category') === 'WFO') {
-            $entryTime = now()->format('H:i:s');  
+        if (!empty($statuses) && !in_array($presence->category, $statuses)) {
+            return response()->json(['status' => 404, 'message' => 'Presence does not match the given status']);
         }
     
-        $presence = Presence::create([
-            'user_id' => $request->input('user_id'),
-            'category' => $request->input('category'),
-            'entry_time' => $entryTime,
-            'exit_time' => '00:00:00', 
-            'temporary_entry_time' => $temporaryEntryTime,
-            'latitude' => $request->input('latitude'),
-            'longitude' => $request->input('longitude'),
-            'date' => now(),
-        ]);
+        $nama_lengkap = $presence->user ? $presence->user->employee->first_name . ' ' . $presence->user->employee->last_name : '';
+        $data = [
+            'id' => $presence->id,
+            'user_id' => $presence->user_id,
+            'nama_lengkap' => $nama_lengkap,
+            'posisi' => $presence->user->employee->position->name,
+            'category' => $presence->category,
+            'entry_time' => $presence->entry_time,
+            'exit_time' => $presence->exit_time,
+            'date' => $presence->date,
+            'latitude' => $presence->latitude,
+            'longitude' => $presence->longitude,
+            'created_at' => $presence->created_at,
+            'updated_at' => $presence->updated_at,
+        ];
     
-        switch ($request->input('category')) {
-            case 'work_trip':
-                $workTrip = WorkTrip::create([
-                    'user_id' => $request->input('user_id'),
-                    'presence_id' => $presence->id,
-                    'file' => $request->input('file'),
-                    'start_date' => $request->input('start_date'),
-                    'end_date' => $request->input('end_date'),
-                    'face_point' => $request->input('face_point'),
-                    'entry_date' => $request->input('end_date'),
-                ]);
-                $workTrip->statusCommit()->create([
-                    'status' => 'pending'
-                ]);
-                break;
-    
-            case 'telework':
-                $telework = Telework::create([
-                    'user_id' => $request->input('user_id'),
-                    'presence_id' => $presence->id,
-                    'telework_category' => $request->input('telework_category'),
-                    'category_description' => $request->input('category_description'),
-                    'face_point' => $request->input('face_point'),
-                    'reject_description' => $request->input('description')
-                ]);
-                $telework->statusCommit()->create([
-                    'status' => 'pending'
-                ]);
-                break;
+
+        if ($presence->category === 'telework' && $presence->telework) {
+            $data['category_description'] = $presence->telework->category_description;
+            $data['telework_category'] = $presence->telework->telework_category;
+            $data['face_point'] = $presence->telework->face_point;
+            if ($presence->telework) {
+                $mostRecentStatus = $presence->telework->statusCommit->sortByDesc('created_at')->first();
+            
+                if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                    $approver = $mostRecentStatus->approver;
+                
+                    if ($approver) { // Check if approver exists
+                        $approverPermission = $approver->getPermissionNames()->first();
+                
+                        if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                            $data['approver_id'] = $approver->id;
+                            $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                            $data['permission_approver'] = $approverPermission;
+                        }
+                    }
+                }
+                
+            }
+        } elseif ($presence->category === 'work_trip' && $presence->worktrip) {
+            $data['file'] = $presence->worktrip->file;
+            $data['start_date'] = $presence->worktrip->start_date;
+            $data['end_date'] = $presence->worktrip->end_date;
+            $data['entry_date'] = $presence->worktrip->entry_date;
+            if ($presence->worktrip) {
+                $mostRecentStatus = $presence->worktrip->statusCommit->sortByDesc('created_at')->first();
+            
+                if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                    $approver = $mostRecentStatus->approver;
+                
+                    if ($approver) { // Check if approver exists
+                        $approverPermission = $approver->getPermissionNames()->first();
+                
+                        if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                            $data['approver_id'] = $approver->id;
+                            $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                            $data['permission_approver'] = $approverPermission;
+                        }
+                    }
+                }
+                
+            }
+        } elseif ($presence->category === 'leave' && $presence->leave) {
+            $relevantLeave = $presence->leave ?? Leave::where('user_id', $presence->user_id)
+                        ->where('start_date', '<=', $presence->date)
+                        ->where('end_date', '>=', $presence->date)
+                        ->first();
+            
+                    if ($relevantLeave) {
+                        $data['type'] = $relevantLeave->type;
+                        $data['type_description'] = $relevantLeave->type_description;
+                        $data['submission_date'] = $relevantLeave->submission_date;
+                        $data['total_leave_days'] = $relevantLeave->total_leave_days;
+                        $data['start_date'] = $relevantLeave->start_date;
+                        $data['end_date'] = $relevantLeave->end_date;
+                        $data['entry_date'] = $relevantLeave->entry_date;
+
+                        if ($presence->leave) {
+                            $mostRecentStatus = $presence->leave->statusCommit->sortByDesc('created_at')->first();
+                            if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                                $approver = $mostRecentStatus->approver;
+                            
+                                if ($approver) { // Check if approver exists
+                                    $approverPermission = $approver->getPermissionNames()->first();
+                            
+                                    if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                        $data['approver_id'] = $approver->id;
+                                        $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                                        $data['permission_approver'] = $approverPermission;
+                                    }
+                                }
+                            }
+                            
+                        }
+                    }
         }
     
-        $user->facePoint = $request->input('face_point');
-        $user->save();
+        if ($presence->standup) {
+            $data['standup_id'] = $presence->standup->id;
+                    $data['done'] = $presence->standup->done;
+                    $data['doing'] = $presence->standup->doing;
+                    $data['blocker'] = $presence->standup->blocker;
+                    $data['project'] = $presence->standup->project_id;
+                    $data['project_name'] = $presence->standup->project->name;
+                    $data['partner'] = $presence->standup->project->partnername;
+        }
+
+        if (isset($mostRecentStatus) && $mostRecentStatus) {
+            $data['status'] = $mostRecentStatus->status;
+            $data['status_description'] = $mostRecentStatus->description;
+        }
     
-        return response()->json(['message' => 'Success', 'data' => $presence, 'user' => $user]);
+        return response()->json(['message' => 'Success', 'data' => $data]);
+    }
+
+
+    public function getLeaveById(Request $request, $id) {
+        $leave = Leave::with(['user', 'user.employee', 'statusCommit'])->find($id);
+    
+        if (!$leave) {
+            return response()->json(['status' => 404, 'message' => 'Leave not found']);
+        }
+    
+        $nama_lengkap = $leave->user ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name : '';
+        $data = [
+            'id' => $leave->id,
+            'user_id' => $leave->user_id,
+            'nama_lengkap' => $nama_lengkap,
+            'posisi' => $leave->user->employee->position->name,
+            'type' => $leave->type,
+            'type_description' => $leave->type_description,
+            'submission_date' => $leave->submission_date,
+            'total_leave_days' => $leave->total_leave_days,
+            'start_date' => $leave->start_date,
+            'end_date' => $leave->end_date,
+            'entry_date' => $leave->entry_date,
+            'created_at' => $leave->created_at,
+            'updated_at' => $leave->updated_at,
+        ];
+    
+        $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
+        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+            $approver = $mostRecentStatus->approver;
+    
+            if ($approver) { // Check if approver exists
+                $approverPermission = $approver->getPermissionNames()->first();
+    
+                if ($approverPermission && in_array($approverPermission, ['head_of_tribe', 'human_resource', 'president'])) {
+                    $data['approver_id'] = $approver->id;
+                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                    $data['permission_approver'] = $approverPermission;
+                }
+            }
+            $data['status'] = $mostRecentStatus->status;
+            $data['status_description'] = $mostRecentStatus->description;
+        }
+    
+        return response()->json(['message' => 'Success', 'data' => $data]);
     }
     
     
+    
 
-    //FUNCTION UPDATE PRESENCE //BISA
+    //FUNCTION STORE PRESENCE . dicoba lagi.. kan baru
+
+
+
+    public function storePresence(Request $request) {
+        DB::beginTransaction();  
+    
+        try {
+            $userId = $request->input('user_id');
+            $user = User::with('employee', 'standups')->where('id', $userId)->first();
+    
+            if (!$user) {
+                throw new \Exception('User not found', 404);
+            }
+    
+            if (!$user->hasRole('employee')) {
+                throw new \Exception('Anda tidak memiliki akses sebagai employees.', 500);
+            }
+    
+            $entryTime = ($request->input('category') === 'WFO') ? now()->format('H:i:s') : '00:00:00';
+    
+            $presence = Presence::create([
+                'user_id' => $userId,
+                'category' => $request->input('category'),
+                'entry_time' => $entryTime,
+                'exit_time' => '00:00:00',
+                'temporary_entry_time' => now(),
+                'latitude' => $request->input('latitude'),
+                'longitude' => $request->input('longitude'),
+                'date' => now(),
+            ]);
+    
+            switch ($request->input('category')) {
+                case 'work_trip':
+                    if (!$request->hasFile('file')) {
+                        throw new \Exception('File is required.', 400);
+                    }
+
+                    // Assuming face_point is received as a list from the client
+                    $facePointList = $request->input('face_point');
+
+                    // Convert the list to JSON
+                    $facePointJson = json_encode($facePointList);
+
+                    // Convert the JSON to Base64
+                    $facePointBase64 = base64_encode($facePointJson);
+            
+                    $file = $request->file('file');
+            
+                    $originalFilename = $file->getClientOriginalName();
+                    
+                    $storedFilePath = $file->storeAs('files', $originalFilename, 'public'); // Use original filename to store
+            
+                    if (!$storedFilePath) {
+                        throw new \Exception("Error storing the file.");
+                    }
+            
+                    $workTrip = WorkTrip::create([
+                        'user_id' => $userId,
+                        'presence_id' => $presence->id,
+                        'file' => $storedFilePath, // This will now also be the original filename
+                        'start_date' => $request->input('start_date'),
+                        'end_date' => $request->input('end_date'),
+                        'face_point' => $facePointBase64,
+                        'entry_date' => $request->input('entry_date'),
+                    ]);
+            
+                    if (!$workTrip->statusCommit()->create(['status' => 'pending'])) {
+                        throw new \Exception("Error creating status for WorkTrip.");
+                    }
+                    break;
+    
+                case 'telework':
+                       $facePointList = $request->input('face_point');
+
+                       $facePointJson = json_encode($facePointList);
+   
+                       $facePointBase64 = base64_encode($facePointJson);
+                    $telework = Telework::create([
+                        'user_id' => $userId,
+                        'presence_id' => $presence->id,
+                        'telework_category' => $request->input('telework_category'),
+                        'category_description' => $request->input('category_description'),
+                        'face_point' => $facePointBase64,
+                        'reject_description' => $request->input('description')
+                    ]);
+    
+                    if (!$telework->statusCommit()->create(['status' => 'pending'])) {
+                        throw new \Exception("Error creating status for Telework.");
+                    }
+                    break;
+            }
+    
+            $user->facePoint = $request->input('face_point');
+            $user->save();
+    
+            DB::commit();  
+    
+            return response()->json(['message' => 'Success', 'data' => $presence, 'user' => $user], 200);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();  
+    
+            return response()->json(['message' => 'Failed: ' . $e->getMessage()], $e->getCode() > 0 ? $e->getCode() : 500);
+        }
+    }
+
+    //FUNCTION UPDATE PRESENCE // Bisa
 
     public function updatePresence(Request $request, $id) {
-        $errors = [];
+        $updateabsensi = Presence::with('telework', 'worktrip')->find($id);
     
-        if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'allow_HT'])) {
-            $errors['status'] = 'The status field is required and must be one of: rejected, allowed, allow_HT.';
-        }
-    
-        if ($request->has('description') && !is_string($request->input('description'))) {
-            $errors['description'] = 'The description must be a string.';
-        }
-    
-        if (in_array($request->input('status'), ['rejected', 'allowed']) && !$request->has('description')) {
-            $errors['description'] = 'The description is required when status is rejected or allowed.';
-        }
-    
-        if (!$request->has('approver_id') || !User::find($request->input('approver_id'))) {
-            $errors['approver_id'] = 'The approver id field is required and must exist in the users table.';
-        }
-    
-        if (!empty($errors)) {
-            return response()->json(['errors' => $errors], 400);
-        }
-    
-        $updateabsensi = Presence::with('user', 'standup', 'telework', 'worktrip')->find($id);
         if (!$updateabsensi) {
             return response()->json(['message' => 'Record not found'], 404);
         }
     
-        $updateabsensi->update($request->only(['status', 'description', 'approver_id']));
+        $updateabsensi->update($request->all());
     
-        $categoryUpdateMap = [
-            'work_trip' => WorkTrip::class,
-            'telework' => Telework::class,
-        ];
+        if ($updateabsensi->category == 'work_trip') {
+            $relatedModel = Worktrip::where('presence_id', $updateabsensi->id)->first();
     
-        if (array_key_exists($updateabsensi->category, $categoryUpdateMap)) {
-            $modelClass = $categoryUpdateMap[$updateabsensi->category];
-            $modelInstance = $modelClass::where('presence_id', $updateabsensi->id)->first();
-            if ($modelInstance) {
-                $latestStatusCommit = $modelInstance->statusCommit->sortByDesc('created_at')->first();
-                if ($latestStatusCommit) {
-                    $latestStatusCommit->update($request->only(['status', 'description', 'approver_id']));
-                } else {
-                    $modelInstance->statusCommit()->create($request->only(['status', 'description', 'approver_id']));
-                }
+            if (!$relatedModel) {
+                return response()->json(['message' => 'Related work_trip model not found'], 404);
             }
-        }
     
-        if (in_array($updateabsensi->category, ['work_trip', 'telework']) && 
-            $request->input('status') === 'allowed' && 
-            $updateabsensi->entry_time === '00:00:00') {
-            $updateabsensi->entry_time = $updateabsensi->temporary_entry_time;
-            $updateabsensi->save();
+            // Handle the file replacement
+            if ($request->hasFile('file')){
+                $file = $request->file('file');
+                $originalName = $file->getClientOriginalName();
+    
+                if ($relatedModel->file) {
+                    Storage::disk('public')->delete('files/' . $relatedModel->file);
+                }
+    
+                $file->storeAs('files', $originalName, 'public');
+                $relatedModel->file = $originalName;
+                // $relatedModel->save();
+            }
+    
+            $relatedModel->update($request->except('file'));
+        } 
+        elseif ($updateabsensi->category == 'telework') {
+            $relatedModel = Telework::where('presence_id', $updateabsensi->id)->first();
+    
+            if (!$relatedModel) {
+                return response()->json(['message' => 'Related telework model not found'], 404);
+            }
+    
+            $relatedModel->update($request->all());
         }
     
         return response()->json([
-            'message' => 'Berhasil', 
-            'data' => $updateabsensi, 
-            'status' => $request->input('status')
+            'message' => 'Data updated successfully',
+            'data' => $updateabsensi->refresh(),  
         ]);
     }
-    
-    
-    
 
+    
+    
+    
+    //FUNCTION DESTROY PRESENCE //BISA
     public function destroyPresence(Request $request, $id) {
         $presence = Presence::find($id);
     
@@ -585,7 +1056,7 @@ class ApiController extends Controller
     }
     
 
-    //FUNCTION CHECK OUT 
+    //FUNCTION CHECK OUT  //BISA
 
     public function checkOut(Request $request)
 {
@@ -611,6 +1082,7 @@ class ApiController extends Controller
     }
 }
 
+// APPROVE AND REJECT FUNCTION //BISA
 public function approveReject(Request $request, $id)
 {
     $errors = [];
@@ -634,34 +1106,37 @@ public function approveReject(Request $request, $id)
     if (!empty($errors)) {
         return response()->json(['errors' => $errors], 400);
     }
+
     $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
-    $statusableType = class_basename($statusCommit->statusable_type);
-    $statusCommit->approver_id = $request->input('approver_id');
-    $statusCommit->status = $request->input('status');
-    $statusCommit->description = $request->input('description', null);
+    $statusable = $statusCommit->statusable;
 
-    switch ($statusableType) {
-        case 'Presence':
-            $presence = Presence::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($presence);
-            break;
-        case 'Telework':
-            $telework = Telework::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($telework);
-            break;
-        case 'Leave':
-            $leave = Leave::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($leave);
-            break;
-        case 'WorkTrip':
-            $workTrip = WorkTrip::findOrFail($statusCommit->statusable_id);
-            $statusCommit->statusable()->associate($workTrip);
-            break;
-        default:
-            return response()->json(['error' => 'Invalid statusable_type provided.'], 400);
+    if ($statusable instanceof Presence) {
+        $statusable->update($request->only(['status', 'description', 'approver_id']));
+        if (in_array($statusable->category, ['work_trip', 'telework']) && 
+            $request->input('status') === 'allowed' && 
+            $statusable->entry_time === '00:00:00') {
+            $statusable->entry_time = $statusable->temporary_entry_time;
+            $statusable->save();
+        }
+
+        $categoryUpdateMap = [
+            'work_trip' => WorkTrip::class,
+            'telework' => Telework::class,
+        ];
+    
+        if (array_key_exists($statusable->category, $categoryUpdateMap)) {
+            $modelClass = $categoryUpdateMap[$statusable->category];
+            $modelInstance = $modelClass::where('presence_id', $statusable->id)->first();
+            if ($modelInstance) {
+                $latestStatusCommit = $modelInstance->statusCommit->sortByDesc('created_at')->first();
+                if ($latestStatusCommit) {
+                    $latestStatusCommit->update($request->only(['status', 'description', 'approver_id']));
+                } else {
+                    $modelInstance->statusCommit()->create($request->only(['status', 'description', 'approver_id']));
+                }
+            }
+        }
     }
-
-    $statusCommit->save();
 
     return response()->json(['message' => 'Approval status saved successfully.'], 200);
 }
@@ -750,7 +1225,7 @@ public function approveReject(Request $request, $id)
             return response()->json(['message' => 'Failed. user_id is not provided in the request.'], 400);
         }
     
-        \Log::info('User ID from Request: ' . $request->input('user_id'));
+        info('User ID from Request: ' . $request->input('user_id'));
     
         $latestPresence = Presence::where('user_id', $request->input('user_id'))->latest('created_at')->first();
     
@@ -758,7 +1233,7 @@ public function approveReject(Request $request, $id)
             return response()->json(['message' => 'Failed. No presence record found for the user.'], 400);
         }
     
-        \Log::info('Latest Presence ID: ' . $latestPresence->id);
+        info('Latest Presence ID: ' . $latestPresence->id);
     
         $standup = StandUp::create([
             'user_id' => $request->input('user_id'),
@@ -819,7 +1294,6 @@ public function approveReject(Request $request, $id)
                            ? $leave->user->employee->first_name .' '. $leave->user->employee->last_name 
                            : null;
         
-            // Consider most recent status due to polymorphic relationship.
             $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
             $approver_name = $mostRecentStatus && $mostRecentStatus->approver ? $mostRecentStatus->approver->employee->first_name .' '. $mostRecentStatus->approver->employee->last_name : null;
         
@@ -828,6 +1302,9 @@ public function approveReject(Request $request, $id)
                 'user_id' => $leave->user_id,
                 'nama_lengkap' => $nama_lengkap,
                 'type' => $leave->type,
+                'entry_time' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->entry_time : null,
+                'category' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->category : null,
+                'posisi' => $leave->user->employee->position->name,
                 'submission_date' => $leave->submission_date,
                 'start_date' => $leave->start_date,
                 'end_date' => $leave->end_date,
@@ -855,18 +1332,22 @@ public function approveReject(Request $request, $id)
     
     // FUNCTION STORE LEAVE //BISA
 
-    public function storeLeave(Request $request) {
-        $currentDate = Carbon::now();
-        $submissionDate = Carbon::parse($request->input('submission_date'));
-        $startDate = Carbon::parse($request->input('start_date'));
-    
-        if ($startDate->diffInDays($submissionDate, false) < 2) {
-            return response()->json(['error' => 'Harus submit start_date dengan selisih 2 hari dengan submission_date'], 400);
-        }
-    
-        $endDate = Carbon::parse($request->input('end_date'));
-        $totalDays = $startDate->diffInDays($endDate) + 1;
-    
+
+public function storeLeave(Request $request) {
+    $currentDate = Carbon::now();
+    $submissionDate = Carbon::parse($request->input('submission_date'));
+    $startDate = Carbon::parse($request->input('start_date'));
+
+    // if ($startDate->diffInDays($submissionDate, false) < 2) {
+    //     return response()->json(['error' => 'Harus submit start_date dengan selisih 2 hari dengan submission_date'], 400);
+    // }
+
+    $endDate = Carbon::parse($request->input('end_date'));
+    $totalDays = $startDate->diffInDays($endDate) + 1;
+
+    DB::beginTransaction();  
+
+    try {
         $leave = Leave::create([
             'user_id' => $request->input('user_id'),
             'type' => $request->input('type'),
@@ -877,7 +1358,7 @@ public function approveReject(Request $request, $id)
             'entry_date' => $request->input('entry_date'),
             'type_description' => $request->input('type_description'),
         ]);
-    
+
         if (!$leave->statusCommit()->exists()) {
             $leave->statusCommit()->create([
                 'approver_id' => null,
@@ -885,9 +1366,18 @@ public function approveReject(Request $request, $id)
                 'description' => null,
             ]);
         }
-    
+
+        DB::commit();  // Commit the transaction
+
         return response()->json(['message' => 'Success', 'data' => $leave]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();  // Rollback the transaction
+
+        return response()->json(['message' => 'Failed to create leave: ' . $e->getMessage()], 500);
     }
+}
+
     
 
     
@@ -902,11 +1392,8 @@ public function approveReject(Request $request, $id)
     
         $today = Carbon::now();
         $startDate = Carbon::parse($request->input('start_date'));
-        $differenceInDays = $today->diffInDays($startDate, false); 
-    
-        if ($differenceInDays < 2) {
-            return response()->json(['message' => 'You must apply for a leave at least 2 days before the start date.'], 400);
-        }
+        // $differenceInDays = $today->diffInDays($startDate, false); 
+
     
         $leave->update($request->all());
     
@@ -1026,13 +1513,13 @@ public function approveReject(Request $request, $id)
             }
     }
 
-    public function logout() {
+    public function logout(Request $request) {
         $user = Auth::user();
-        $password = request()->input('password');
-    
-        // Validate the password
-        if(!Hash::check($password, $user->password)) {
-            return response()->json(['message' => 'Password is incorrect'], 400);
+        $inputpassword = $request->input('validpassword');
+        $validpassword = Hash::check($inputpassword, $user->password);
+
+        if (!$validpassword) {
+            return response()->json(['message' => 'Password salah'], 400);
         }
     
         $token = PersonalAccessToken::findToken(request()->bearerToken());
