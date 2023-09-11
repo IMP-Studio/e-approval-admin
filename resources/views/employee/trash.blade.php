@@ -60,7 +60,7 @@
                         </td>
                         <td class="flex justify-center align-center">
                             <div class="w-12 h-12 image-fit zoom-in">
-                                <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('images/'.$item->img_profile) }}" title="Uploaded at {{ $item->updated_at->format('j F Y') }}">
+                                <img data-action="zoom" class="tooltip rounded-full" src="{{ asset('storage/'.$item->avatar) }}" title="Uploaded at {{ $item->updated_at->format('j F Y') }}">
                             </div>
                         </td>
                         <td class="w-50 text-center">
@@ -72,10 +72,10 @@
 
                         </td>
                         <td class="text-center">
-                            {{ $item->staff_id }}
+                            {{ $item->id_number }}
                         </td>
                         <td class="text-center capitalize">
-                            {{ $item->posisi->posisi ? $item->posisi->posisi : '-' }}
+                            {{ $item->position->name ? $item->position->name : '-' }}
                         </td>
                         <td class="w-40">
                             <div class="flex items-center justify-center">
@@ -115,7 +115,7 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->firstname }}?
+                                                Do you really want to delete {{ $item->first_name }}?
                                                 <br>
                                                 This process cannot be undone.
                                             </div>
@@ -139,20 +139,16 @@
                                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                     <div class="col-span-12 mx-auto">
                                         <div class="w-24 h-24 image-fit zoom-in">
-                                            <img class="tooltip rounded-full" src="{{ asset('images/'.$item->img_profile) }}">
+                                            <img class="tooltip rounded-full" src="{{ asset('storage/'.$item->avatar) }}">
                                         </div>
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->firstname }}">
+                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->first_name }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->lastname }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Staff Id :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->staff_id }}">
+                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->last_name }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="modal-form-2" class="text-xs">Gender :</label>
@@ -160,19 +156,19 @@
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="modal-form-1" class="text-xs">Staff Id :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->staff_id }}">
+                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->id_number }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Posisi :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="">
+                                        <label for="modal-form-2" class="text-xs">Position :</label>
+                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->position->name }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
                                         <label for="modal-form-1" class="text-xs">Address :</label>
                                         <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->address }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Date of Birth :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->date_of_birth }}">
+                                        <label for="modal-form-2" class="text-xs">Birth Date :</label>
+                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->birth_date }}">
                                     </div>
                                 </div>
                             </div>

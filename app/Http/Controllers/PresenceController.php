@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Presence;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class PresenceController extends Controller
@@ -12,8 +13,9 @@ class PresenceController extends Controller
      */
     public function index()
     {
-        $absensi = Presence::paginate(5);
-        return view('kehadiran',compact('absensi'));
+        $today = Carbon::today();
+        $absensi_today = Presence::whereDate('date', $today)->paginate(5);
+        return view('kehadiran',compact('absensi_today'));
     }
 
     /**

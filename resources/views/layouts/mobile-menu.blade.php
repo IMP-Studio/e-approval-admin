@@ -19,27 +19,21 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('cuti') }}" class="menu {{ Request::is('cuti*') ? 'menu--active' : '' }}">
-                <div class="menu__icon"> <i data-lucide="tag"></i> </div>
-                <div class="menu__title"> Cuti </div>
-            </a>
-        </li>
-        <li>
             <a href="{{ route('standup') }}" class="menu {{ Request::is('standup*') ? 'menu--active' : '' }}">
                 <div class="menu__icon"> <i data-lucide="message-square"></i> </div>
                 <div class="menu__title"> Standup </div>
             </a>
         </li>
         <li>
-            <a href="{{ route('divisi') }}" class="menu {{ Request::is('divisi*') ? 'menu--active' : '' }}">
+            <a href="{{ route('divisi') }}" class="menu {{ Request::is('division*') ? 'menu--active' : '' }}">
                 <div class="menu__icon"> <i data-lucide="clipboard"></i> </div>
-                <div class="menu__title"> Divisi </div>
+                <div class="menu__title"> Division </div>
             </a>
         </li>
         <li>
             <a href="{{ route('position') }}" class="menu {{ Request::is('position*') ? 'menu--active' : '' }}">
                 <div class="menu__icon"> <i data-lucide="contact"></i> </div>
-                <div class="menu__title"> Posisi </div>
+                <div class="menu__title"> Position </div>
             </a>
         </li>
         <li>

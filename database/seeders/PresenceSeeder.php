@@ -10,135 +10,253 @@ use App\Models\Presence;
 use App\Models\Telework;
 use App\Models\WorkTrip;
 use App\Models\LeaveStatus;
+use App\Models\StandUp;
 use App\Models\StatusCommit;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Faker\Factory as Faker;
+
 
 class PresenceSeeder extends Seeder
 {
     public function run(): void
     {
-        $data_presences = [
-            ['user_id' => 2,'category' => 'telework','latitude' => null,'longitude' => null],
-            ['user_id' => 3,'category' => 'telework','latitude' => null,'longitude' => null],
-            ['user_id' => 4,'category' => 'WFO','latitude' => '123456.78','longitude' => '123456.78'],
-            ['user_id' => 5,'category' => 'WFO','latitude' => '123456.78','longitude' => '123456.78'],
-            ['user_id' => 6,'category' => 'work_trip','latitude' => null,'longitude' => null],
-            ['user_id' => 7,'category' => 'work_trip','latitude' => null,'longitude' => null],
-            ['user_id' => 8,'category' => 'leave','latitude' => null,'longitude' => null],
-        ];
-        $data_teleworks = [
-            ['user_id' => 2,'presence_id' => 1,'telework_category' => 'kesehatan','category_description' => null],
-            ['user_id' => 3,'presence_id' => 2,'telework_category' => 'other','category_description' => 'Jalan depan rumah lagi diaspal'],
-        ];
-        $data_work_trip = [
-            ['user_id' => 6,'presence_id' => 5],
-            ['user_id' => 7,'presence_id' => 6],
-        ];
-        $data_leave = [
-            [
-                'user_id' => 8,'presence_id' => 7,'submission_date' => '2023-09-10','type' => 'yearly','start_date' => '2023-09-15-',
-                'end_date' => '2023-09-20','total_leave_days' => '20 days','entry_date' => '2023-09-21','description' => 'pulang kampung'
-            ]
-        ];
-        foreach ($data_presences as $data) {
-            Presence::create([
-                'user_id' => $data['user_id'],
-                'category' => $data['category'],
-                'entry_time' => Carbon::now(),
-                'temporary_entry_time' => Carbon::now(),
-                'date' => Carbon::now(),
-                'latitude' => $data['latitude'],
-                'longitude' => $data['longitude'],
+        $faker = Faker::create('id_ID');
+
+        for ($i = 1; $i <= 200 ; $i++) {
+            $category = $faker->randomElement([
+                'WFO', 'WFO','WFO',
+                'telework', 'work_trip', 'leave'
             ]);
-        }
+            $latitude = null;
+            $longitude = null;
+            if ($category === 'WFO') {
+                $latitude = $faker->latitude;
+                $longitude = $faker->longitude;
+            }
+            $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
+            $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
 
-        // Seeding Teleworks
-        foreach ($data_teleworks as $data) {
-            Telework::create([
-                'user_id' => $data['user_id'],
-                'presence_id' => $data['presence_id'],
-                'telework_category' => $data['telework_category'],
-                'category_description' => $data['category_description'],
-                'face_point' => 'qwertyuiop',
+            $presenceId = Presence::insertGetId([
+                'user_id' => $faker->numberBetween(2,51),
+                'category' => $category,
+                'entry_time' => $entry_time,
+                'temporary_entry_time' => $faker->time('H:i:s'),
+                'date' => $date,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
             ]);
-        }
+            $presenceDate = Carbon::parse($date)->copy();
 
-        // Seeding WorkTrips
-        foreach ($data_work_trip as $data) {
-            WorkTrip::create([
-                'user_id' => $data['user_id'],
-                'presence_id' => $data['presence_id'],
-                'file' => 'contoh_file',
-                'start_date' => '2023-07-26',
-                'end_date' => '2023-07-28',
-                'entry_date' => '2023-07-29',
-                'face_point' => 'qwertyuiop',
+            if ($category === 'telework') {
+                $teleworkCategory = $faker->randomElement(['kesehatan','pendidikan','keluarga','other']);
+                $categoryDescription = null;
+
+                if ($teleworkCategory === 'other') {
+                    $categoryDescription = $faker->sentence;
+                }
+
+                $telework = Telework::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'telework_category' => $teleworkCategory,
+                    'category_description' => $categoryDescription,
+                    'face_point' => $faker->text(100),
+                ]);
+
+                $statusableId = $telework->id;
+                $statusableType = Telework::class;
+                $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+
+                StatusCommit::create([
+                    'statusable_id' => $statusableId,
+                    'statusable_type' => $statusableType,
+                    'description' => $faker->sentence,
+                    'status' => $status,
+                ]);
+            } elseif ($category === 'work_trip') {
+                $start_date = $presenceDate->addDays(2)->toDateString();
+                $end_date = $presenceDate->addDays(random_int(1,3))->toDateString();
+                $entry_date = $presenceDate->addDays(random_int(1,2))->toDateString();
+
+                $workTrip = WorkTrip::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'file' => 'contoh_file',
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'entry_date' => $entry_date,
+                    'face_point' => $faker->text(100),
+                ]);
+
+                $statusableId = $workTrip->id;
+                $statusableType = WorkTrip::class;
+                $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+
+                StatusCommit::create([
+                    'statusable_id' => $statusableId,
+                    'statusable_type' => $statusableType,
+                    'description' => $faker->sentence,
+                    'status' => $status,
+                ]);
+            } elseif ($category === 'leave') {
+                $start_date = $presenceDate->addDays(2)->toDateString();
+                $end_date = $presenceDate->addDays(random_int(2, 4))->toDateString();
+                $entry_date = $presenceDate->addDays(random_int(1, 2))->toDateString();
+                $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
+
+                $leave = Leave::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'submission_date' => $date,
+                    'type' => $faker->randomElement(['yearly','exclusive','emergency']),
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'total_leave_days' => $total_leave_days,
+                    'type_description' => $faker->sentence(random_int(3,5)),
+                    'entry_date' => $entry_date,
+                ]);
+
+                $statusableId = $leave->id;
+                $statusableType = Leave::class;
+                $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+
+                StatusCommit::create([
+                    'statusable_id' => $statusableId,
+                    'statusable_type' => $statusableType,
+                    'description' => $faker->sentence,
+                    'status' => $status,
+                ]);
+            }
+            if ($category !== 'leave') {
+                StandUp::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'project_id' => $faker->numberBetween(1,7),
+                    'done' => $faker->sentence(3),
+                    'doing' => $faker->sentence(3),
+                    'blocker' => $faker->optional()->sentence(1),
+                ]);
+            }
+        }
+        // PRESENCE TODAY
+        for ($i = 1; $i <= 10; $i++) {
+            $category = $faker->randomElement([
+                'WFO', 'WFO', 'WFO',
+                'telework', 'work_trip', 'leave'
             ]);
-        }
 
-        // Seeding Leaves
-        foreach ($data_leave as $data) {
-            Leave::create([
-                'user_id' => $data['user_id'],
-                'presence_id' => $data['presence_id'],
-                'submission_date' => $data['submission_date'],
-                'type' => $data['type'],
-                'start_date' => $data['start_date'],
-                'end_date' => $data['end_date'],
-                'total_leave_days' => $data['total_leave_days'],
-                'type_description' => 'mati',
-                'entry_date' => $data['entry_date'],
+            $latitude = null;
+            $longitude = null;
+
+            if ($category === 'WFO') {
+                $latitude = $faker->latitude;
+                $longitude = $faker->longitude;
+            }
+
+            $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
+            $date = Carbon::now()->setTimezone('Asia/Jakarta'); // Menggunakan Carbon untuk mendapatkan tanggal hari ini
+
+            $presenceId = Presence::insertGetId([
+                'user_id' => $faker->numberBetween(2, 51),
+                'category' => $category,
+                'entry_time' => $entry_time,
+                'temporary_entry_time' => $faker->time('H:i:s'),
+                'date' => $date,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
             ]);
-        }
 
-        $data_status_commits = [
+            if ($category === 'telework') {
+                $teleworkCategory = $faker->randomElement(['kesehatan', 'pendidikan', 'keluarga', 'other']);
+                $categoryDescription = null;
 
-            [
-                'statusable_id' => 1,
-                'approver_id' => 9,
-                'statusable_type' => Telework::class,
-                'description' => 'Iya iya main jauh-jauh',
-                'status' => 'allowed',
-            ],
+                if ($teleworkCategory === 'other') {
+                    $categoryDescription = $faker->sentence;
+                }
 
-            [
-                'statusable_id' => 2,
-                'approver_id' => 9,
-                'statusable_type' => Telework::class,
-                'description' => 'Y',
-                'status' => 'allowed',
-            ],
+                $telework = Telework::create([
+                    'user_id' => $faker->numberBetween(2, 51),
+                    'presence_id' => $presenceId,
+                    'telework_category' => $teleworkCategory,
+                    'category_description' => $categoryDescription,
+                    'face_point' => $faker->text(100),
+                ]);
 
-            [
+                $statusableId = $telework->id;
+                $statusableType = Telework::class;
+                $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
 
-                'statusable_id' => 1,
-                'approver_id' => 9,
-                'statusable_type' => WorkTrip::class,
-                'description' => 'ywdh.',
-                'status' => 'allowed',
-            ],
-            [
+                StatusCommit::create([
+                    'statusable_id' => $statusableId,
+                    'statusable_type' => $statusableType,
+                    'description' => $faker->sentence,
+                    'status' => $status,
+                ]);
+            } elseif ($category === 'work_trip') {
+                $start_date = $date->addDays(2)->toDateString();
+                $end_date = $date->addDays(random_int(1, 3))->toDateString();
+                $entry_date = $date->addDays(random_int(1, 2))->toDateString();
 
-                'statusable_id' => 2,
-                'approver_id' => 9,
-                'statusable_type' => WorkTrip::class,
-                'description' => 'Nah itu',
-                'status' => 'allowed',
-            ],
+                $workTrip = WorkTrip::create([
+                    'user_id' => $faker->numberBetween(2, 51),
+                    'presence_id' => $presenceId,
+                    'file' => 'contoh_file',
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'entry_date' => $entry_date,
+                    'face_point' => $faker->text(100),
+                ]);
 
-            [
+                $statusableId = $workTrip->id;
+                $statusableType = WorkTrip::class;
+                $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
 
-                'statusable_id' => 1,
-                'approver_id' => 9,
-                'statusable_type' => Leave::class,
-                'description' => 'Bagus',
-                'status' => 'allowed',
-            ],
-        ];
+                StatusCommit::create([
+                    'statusable_id' => $statusableId,
+                    'statusable_type' => $statusableType,
+                    'description' => $faker->sentence,
+                    'status' => $status,
+                ]);
+            } elseif ($category === 'leave') {
+                $start_date = $date->addDays(2)->toDateString();
+                $end_date = $date->addDays(random_int(2, 4))->toDateString();
+                $entry_date = $date->addDays(random_int(1, 2))->toDateString();
+                $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
 
-        foreach ($data_status_commits as $data) {
-            StatusCommit::create($data);
+                $leave = Leave::create([
+                    'user_id' => $faker->numberBetween(2, 51),
+                    'presence_id' => $presenceId,
+                    'submission_date' => $date,
+                    'type' => $faker->randomElement(['yearly', 'exclusive', 'emergency']),
+                    'start_date' => $start_date,
+                    'end_date' => $end_date,
+                    'total_leave_days' => $total_leave_days,
+                    'type_description' => $faker->sentence(random_int(3, 5)),
+                    'entry_date' => $entry_date,
+                ]);
+
+                $statusableId = $leave->id;
+                $statusableType = Leave::class;
+                $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+
+                StatusCommit::create([
+                    'statusable_id' => $statusableId,
+                    'statusable_type' => $statusableType,
+                    'description' => $faker->sentence,
+                    'status' => $status,
+                ]);
+            }
+            if ($category !== 'leave') {
+                StandUp::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'project_id' => $faker->numberBetween(1,7),
+                    'done' => $faker->sentence(3),
+                    'doing' => $faker->sentence(3),
+                    'blocker' => $faker->optional()->sentence(1),
+                ]);
+            }
         }
 
     }
