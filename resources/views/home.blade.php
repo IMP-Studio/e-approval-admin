@@ -234,86 +234,90 @@
                             </div>
                             <div class="mt-2">
                                 @foreach ($telework_today as $data)
-                                <div class="intro-x">
-                                    <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
-                                        <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
-                                            @if ($data->user->employee->avatar)
-                                                <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
-                                            @elseif($data->user->employee->gender == 'male')
-                                                <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($data->user->employee->gender == 'female')
-                                                <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                            @endif
-                                        </div>
-                                        <div class="ml-4 mr-auto overflow-hidden">
-                                            <div class="font-medium truncate">{{ $data->user->name }}</div>
-                                            @php
-                                            $start_date = \Carbon\Carbon::parse($data->start_date);
-                                            @endphp
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
-                                            </div>
-                                        </div>
-                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-{{ $data->id }}">
-                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
-                                        </a>
-                                    </div>
-                                </div>
-                                <div id="show-modal-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
-                                            </div>
-                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                                <div class="col-span-12 mx-auto">
-                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                    @if ($data->user && $data->user->employee)
+                                        <div class="intro-x">
+                                            <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
+                                                <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
                                                     @if ($data->user->employee->avatar)
-                                                        <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
-                                                    @else
-                                                        <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                                        <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
+                                                    @elseif($data->user->employee->gender == 'male')
+                                                        <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                    @elseif($data->user->employee->gender == 'female')
+                                                        <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
                                                     @endif
+                                                </div>
+                                                <div class="ml-4 mr-auto overflow-hidden">
+                                                    <div class="font-medium truncate">{{ $data->user->name }}</div>
+                                                    @php
+                                                    $start_date = \Carbon\Carbon::parse($data->start_date);
+                                                    @endphp
+                                                    <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
                                                     </div>
                                                 </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Position :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">ID Number :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Presence :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Category :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->telework_category }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Category Description :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->category_description ? $data->category_description : '-' }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Temporary Entry Time :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{$data->presence->temporary_entry_time}}">
-                                                </div>
-
+                                                <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-{{ $data->id }}">
+                                                    <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
+                                                </a>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                @endforeach
+                                        <div id="show-modal-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
+                                                    </div>
+                                                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                        <div class="col-span-12 mx-auto">
+                                                            <div class="w-24 h-24 image-fit zoom-in">
+                                                            @if ($data->user->employee->avatar)
+                                                                <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
+                                                            @elseif($data->user->employee->gender == 'male')
+                                                                <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                            @elseif($data->user->employee->gender == 'female')
+                                                                <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
+                                                            @endif
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Position :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">ID Number :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Presence :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Category :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->telework_category }}">
+                                                        </div>
+                                                        @if ($data->category_description)
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Category Description :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->category_description }}">
+                                                        </div>
+                                                        @endif
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Temporary Entry Time :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{$data->presence->temporary_entry_time}}">
+                                                        </div>
 
-                                {{-- <a href="" class="intro-x w-full block text-center rounded-md py-3 border border-dotted border-slate-400 dark:border-darkmode-300 text-slate-500">View More</a> --}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                @endforeach
                             </div>
                         @endif
                         @if (count($workTrip_today) > 0)
@@ -324,84 +328,87 @@
                             </div>
                             <div class="mt-2">
                                 @foreach ($workTrip_today as $data)
-                                <div class="intro-x">
-                                    <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
-                                        <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
-                                            @if ($data->user->employee->avatar)
-                                                <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
-                                            @elseif($data->user->employee->gender == 'male')
-                                                <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($data->user->employee->gender == 'female')
-                                                <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                            @endif
-                                        </div>
-                                        <div class="ml-4 mr-auto overflow-hidden">
-                                            <div class="font-medium truncate">{{ $data->user->name }}sssssssssd</div>
-                                            @php
-                                            $start_date = \Carbon\Carbon::parse($data->start_date);
-                                            @endphp
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
-                                            </div>
-                                        </div>
-                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-wt-{{ $data->id }}">
-                                            <i data-lucide="eye" class="w-4 h-4 ml-1"></i> Show
-                                        </a>
-                                    </div>
-                                </div>
-                                <div id="show-modal-wt-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
-                                            </div>
-                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                                <div class="col-span-12 mx-auto">
-                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                    @if ($data->user && $data->user->employee)
+                                        <div class="intro-x">
+                                            <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
+                                                <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
                                                     @if ($data->user->employee->avatar)
-                                                        <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
-                                                    @else
-                                                        <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                                        <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
+                                                    @elseif($data->user->employee->gender == 'male')
+                                                        <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                    @elseif($data->user->employee->gender == 'female')
+                                                        <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
                                                     @endif
+                                                </div>
+                                                <div class="ml-4 mr-auto overflow-hidden">
+                                                    <div class="font-medium truncate">{{ $data->user->name }}sssssssssd</div>
+                                                    @php
+                                                    $start_date = \Carbon\Carbon::parse($data->start_date);
+                                                    @endphp
+                                                    <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
                                                     </div>
                                                 </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Position :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">ID Number :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Presence :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category === 'work_trip' ? 'Work Trip' : $data->presence->category }}
-                                                    ">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Start Date :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->start_date }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">End Date :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->end_date }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Temporary Entry Time :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{$data->presence->temporary_entry_time}}">
-                                                </div>
-
+                                                <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-wt-{{ $data->id }}">
+                                                    <i data-lucide="eye" class="w-4 h-4 ml-1"></i> Show
+                                                </a>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
+                                        <div id="show-modal-wt-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
+                                                    </div>
+                                                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                        <div class="col-span-12 mx-auto">
+                                                            <div class="w-24 h-24 image-fit zoom-in">
+                                                                @if ($data->user->employee->avatar)
+                                                                    <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
+                                                                @elseif($data->user->employee->gender == 'male')
+                                                                    <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                                @elseif($data->user->employee->gender == 'female')
+                                                                    <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->first_name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $data->user->employee->last_name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Staff Id :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Position :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $data->user->employee->position->name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Category :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category === 'work_trip' ? ' Work Trip' : $data->presence->category }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Start Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->start_date }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">End Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->end_date }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Entry Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->entry_date }}">
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 @endforeach
 
                                 {{-- <a href="" class="intro-x w-full block text-center rounded-md py-3 border border-dotted border-slate-400 dark:border-darkmode-300 text-slate-500">View More</a> --}}
@@ -415,90 +422,104 @@
                             </div>
                             <div class="mt-2">
                                 @foreach ($leave_today as $data)
-                                <div class="intro-x">
-                                    <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
-                                        <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
-                                            @if ($data->user->employee->avatar)
-                                                <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
-                                            @elseif($data->user->employee->gender == 'male')
-                                                <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($data->user->employee->gender == 'female')
-                                                <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                            @endif
-                                        </div>
-                                        <div class="ml-4 mr-auto overflow-hidden">
-                                            <div class="font-medium truncate">{{ $data->user->name }}</div>
-                                            @php
-                                            $start_date = \Carbon\Carbon::parse($data->start_date);
-                                            @endphp
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}
-                                            </div>
-                                        </div>
-                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-le-{{$data->id}}">
-                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
-                                        </a>
-                                    </div>
-                                </div>
-                                <div id="show-modal-le-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
-                                            </div>
-                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                                <div class="col-span-12 mx-auto">
-                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                    @if ($data->user && $data->user->employee)
+                                        <div class="intro-x">
+                                            <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
+                                                <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
                                                     @if ($data->user->employee->avatar)
-                                                        <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
-                                                    @else
-                                                        <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
+                                                        <img class="rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
+                                                    @elseif($data->user->employee->gender == 'male')
+                                                        <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                    @elseif($data->user->employee->gender == 'female')
+                                                        <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
                                                     @endif
+                                                </div>
+                                                <div class="ml-4 mr-auto overflow-hidden">
+                                                    <div class="font-medium truncate">{{ $data->user->name }}</div>
+                                                    @php
+                                                        $start_date = \Carbon\Carbon::parse($data->start_date);
+                                                    @endphp
+                                                    <div class="text-slate-500 text-xs mt-0.5">{{ $start_date->format('d M Y') }}</div>
+                                                </div>
+                                                <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-le-{{$data->id}}">
+                                                    <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div id="show-modal-le-{{ $data->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h2 class="font-medium text-lg mx-auto">Detail {{ $data->user->name }}</h2>
+                                                    </div>
+                                                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                        <div class="col-span-12 mx-auto">
+                                                            <div class="w-24 h-24 image-fit zoom-in">
+                                                                @if ($data->user->employee->avatar)
+                                                                    <img class="tooltip rounded-full" src="{{ asset('storage/'.$data->user->employee->avatar) }}">
+                                                                @elseif($data->user->employee->gender == 'male')
+                                                                    <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                                @elseif($data->user->employee->gender == 'female')
+                                                                    <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->first_name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $data->user->employee->last_name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Staff Id :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-2" class="text-xs">Position :</label>
+                                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $data->user->employee->position->name }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Category :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Type Leave :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->type }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Type Description :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->type_description }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Submission Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->submission_date }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Start Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->start_date }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">End Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->end_date }}">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Total Leave Days :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->total_leave_days }} Days">
+                                                        </div>
+                                                        <div class="col-span-12 sm:col-span-6">
+                                                            <label for="modal-form-1" class="text-xs">Entry Date :</label>
+                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->entry_date }}">
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->first_name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->user->employee->last_name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Position :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->user->employee->position->name }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">ID Number :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->user->employee->id_number }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">Presence :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category }}
-                                                    ">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Type :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->type }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-2" class="text-xs">Start Date :</label>
-                                                    <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $data->start_date }}">
-                                                </div>
-                                                <div class="col-span-12 sm:col-span-6">
-                                                    <label for="modal-form-1" class="text-xs">End Date :</label>
-                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->end_date }}">
-                                                </div>
-
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
+                                    @endif
                                 @endforeach
-
-                                {{-- <a href="" class="intro-x w-full block text-center rounded-md py-3 border border-dotted border-slate-400 dark:border-darkmode-300 text-slate-500">View More</a> --}}
                             </div>
                         @endif
-
                     </div>
                     <!-- BEGIN: List WFO Today -->
                     @if (count($wfo_today) > 0)
@@ -513,75 +534,83 @@
                                 <div class="col-span-12 lg:col-span-8 2xl:col-span-12">
                                     <div class="chat__chat-list overflow-y-auto scrollbar-hidden pr-1 pt-1">
                                         @foreach ($wfo_today as $item)
-                                            <div class="overflow-hidden">
-                                                <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
-                                                    <div class="w-10 h-10 flex-none image-fit">
-                                                        @if ($item->user->employee->avatar)
-                                                            <img class="rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
-                                                        @elseif($item->user->employee->gender == 'male')
-                                                            <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                                        @elseif($item->user->employee->gender == 'female')
-                                                            <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                                        @endif
-                                                        <div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full z-50 border-2 border-white dark:border-darkmode-600"></div>
-                                                    </div>
-                                                    <div class="ml-4 mr-auto overflow-hidden">
-                                                        <div class="font-medium truncate">{{ $item->user->name }}</div>
-                                                        @php
-                                                            $entry_time = \Carbon\Carbon::parse($item->entry_time);
-                                                        @endphp
-                                                        <div class="text-slate-500 text-xs mt-0.5">{{ $entry_time->format('d M Y') }}
+                                            @if ($item->user && $item->user->employee)
+                                                <div class="overflow-hidden">
+                                                    <div class="box px-5 py-3 mb-3 flex items-center zoom-in">
+                                                        <div class="w-10 h-10 flex-none image-fit">
+                                                            @if ($item->user->employee->avatar)
+                                                                <img class="rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
+                                                            @elseif($item->user->employee->gender == 'male')
+                                                                <img class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                            @elseif($item->user->employee->gender == 'female')
+                                                                <img class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
+                                                            @endif
+                                                            <div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full z-50 border-2 border-white dark:border-darkmode-600"></div>
                                                         </div>
+                                                        <div class="ml-4 mr-auto overflow-hidden">
+                                                            <div class="font-medium truncate">{{ $item->user->name }}</div>
+                                                            @php
+                                                                $entry_time = \Carbon\Carbon::parse($item->entry_time);
+                                                            @endphp
+                                                            <div class="text-slate-500 text-xs mt-0.5">{{ $entry_time->format('d M Y') }}
+                                                            </div>
+                                                        </div>
+                                                        <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-wfo-{{$item->id}}">
+                                                            <i data-lucide="eye" class="w-4 h-4 ml-2"></i> Show
+                                                        </a>
                                                     </div>
-                                                    <a class="flex items-center text-success" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-wfo-{{$item->id}}">
-                                                        <i data-lucide="eye" class="w-4 h-4 ml-2"></i> Show
-                                                    </a>
                                                 </div>
-                                            </div>
-                                            <div id="show-modal-wfo-{{ $item->id }}" class="modal" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-lg">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h2 class="font-medium text-lg mx-auto">Detail {{ $item->user->name }}</h2>
-                                                        </div>
-                                                        <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                                            <div class="col-span-12 mx-auto">
-                                                                <div class="w-24 h-24 image-fit zoom-in">
-                                                                @if ($item->user->employee->avatar)
-                                                                    <img class="tooltip rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
-                                                                @else
-                                                                    <img class="tooltip rounded-full" src="{{ asset('images/user.png') }}">
-                                                                @endif
+                                                <div id="show-modal-wfo-{{ $item->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-lg">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h2 class="font-medium text-lg mx-auto">Detail {{ $item->user->name }}</h2>
+                                                            </div>
+                                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                                                <div class="col-span-12 mx-auto">
+                                                                    <div class="w-24 h-24 image-fit zoom-in">
+                                                                        @if ($item->user->employee->avatar)
+                                                                            <img class="tooltip rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
+                                                                        @elseif($item->user->employee->gender == 'male')
+                                                                            <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
+                                                                        @elseif($item->user->employee->gender == 'female')
+                                                                            <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-1" class="text-xs">Firstname :</label>
+                                                                    <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->user->employee->first_name }}">
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-2" class="text-xs">Lastname :</label>
+                                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->user->employee->last_name }}">
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-2" class="text-xs">Staff Id :</label>
+                                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->user->employee->id_number }}">
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-2" class="text-xs">Position :</label>
+                                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->user->employee->position->name }}">
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-1" class="text-xs">Category :</label>
+                                                                    <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}">
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-2" class="text-xs">Entry Time  :</label>
+                                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->entry_time }} WIB">
+                                                                </div>
+                                                                <div class="col-span-12 sm:col-span-6">
+                                                                    <label for="modal-form-2" class="text-xs">Exit Time  :</label>
+                                                                    <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->exit_time }} WIB">
                                                                 </div>
                                                             </div>
-                                                            <div class="col-span-12 sm:col-span-6">
-                                                                <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                                                <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->user->employee->first_name }}">
-                                                            </div>
-                                                            <div class="col-span-12 sm:col-span-6">
-                                                                <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                                                <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $item->user->employee->last_name }}">
-                                                            </div>
-                                                            <div class="col-span-12 sm:col-span-6">
-                                                                <label for="modal-form-1" class="text-xs">Position :</label>
-                                                                <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->user->employee->position->name }}">
-                                                            </div>
-                                                            <div class="col-span-12 sm:col-span-6">
-                                                                <label for="modal-form-1" class="text-xs">ID Number :</label>
-                                                                <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->user->employee->id_number }}">
-                                                            </div>
-                                                            <div class="col-span-12 sm:col-span-6">
-                                                                <label for="modal-form-1" class="text-xs">Presence :</label>
-                                                                <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->category }}">
-                                                            </div>
-                                                            <div class="col-span-12 sm:col-span-6">
-                                                                <label for="modal-form-2" class="text-xs">Entry Time :</label>
-                                                                <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $item->entry_time }}">
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            @endif
                                         @endforeach
                                     </div>
                                 </div>

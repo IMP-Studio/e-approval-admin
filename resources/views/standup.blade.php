@@ -66,51 +66,50 @@
                         </td>
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
-                                <a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-">
+                                <a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-{{$item->id}}-modal">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
                             </div>
                         </td>
                     </tr>
-                    @endforeach
-
-                    <div id="detail-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
+                    <div id="detail-{{$item->id}}-modal" class="modal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
                             <div class="modal-content">
-                                <form id="delete-form" method="POST" action="">
-                                    @csrf
-                                    @method('delete')
-                                    <div class="modal-body p-0">
-                                        <div class="p-5 text-center">
-                                            <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
-                                            <div class="text-3xl mt-5">Are you sure?</div>
-                                            <div class="text-slate-500 mt-2">
-                                                Do you really want to delete?
-                                                <br>
-                                                This process cannot be undone.
-                                            </div>
-                                        </div>
-                                        <div class="px-5 pb-8 text-center">
-                                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                                            <button type="submit" class="btn btn-danger w-24">Delete</button>
-                                        </div>
+                                <div class="modal-header">
+                                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                                </div>
+                                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                                    <div class="col-span-12">
+                                        <label for="modal-form-1" class="form-label">Done :</label>
+                                        <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->done }}</textarea>
                                     </div>
-                                </form>
+                                    <div class="col-span-12">
+                                        <label for="modal-form-2" class="form-label">Doing :</label>
+                                        <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->doing }}</textarea>
+                                    </div>
+                                    @if ($item->blocker)
+                                    <div class="col-span-12">
+                                        <label for="modal-form-2" class="form-label">Blocker :</label>
+                                        <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->blocker }}</textarea>
+                                    </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
-
-
+                    @endforeach
                 </tbody>
             </table>
-            <div class="flex justify-center items-center">
-                {{ $standup_today->links('pagination.custom', [
-                    'paginator' => $standup_today,
-                    'prev_text' => 'Previous',
-                    'next_text' => 'Next',
-                    'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                ]) }}
-            </div>
+            @if ($standup_today->count() > 0)
+                <div class="flex justify-center items-center">
+                    {{ $standup_today->links('pagination.custom', [
+                        'paginator' => $standup_today,
+                        'prev_text' => 'Previous',
+                        'next_text' => 'Next',
+                        'slider_text' => 'Showing items from {start} to {end} out of {total}',
+                    ]) }}
+                </div>
+            @endif
         </div>
 
 

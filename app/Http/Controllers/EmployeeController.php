@@ -136,10 +136,14 @@ class EmployeeController extends Controller
                 'address' => $input['address'],
                 'birth_date' => $birthDate
             ]);
+            $user = $employee->user;
+            $user->update([
+                'name' => $input['first_name'] . ' ' . $input['last_name']
+            ]);
 
-            $employee_name = $employee->first_name;
+            $employee_name = $user->name;
 
-            return redirect()->route('employee')->with(['updated' => "$employee_name added successfully"]);
+            return redirect()->route('employee')->with(['updated' => "$employee_name updated successfully"]);
         } catch (\Throwable $th) {
             return redirect()->route('employee')->with(['error' => "Failed to update employee"]);
         }
@@ -163,7 +167,7 @@ class EmployeeController extends Controller
                 $user->delete();
             }
 
-            $employee_name = $employee->firstname;
+            $employee_name = $user->name;
 
             return redirect()->back()->with(['delete' => "$employee_name deleted successfully"]);
         } catch (\Throwable $th) {

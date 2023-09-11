@@ -128,15 +128,18 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             }
-            StandUp::create([
-                'user_id' => $faker->numberBetween(2,51),
-                'presence_id' => $presenceId,
-                'project_id' => $faker->numberBetween(1,7),
-                'done' => $faker->sentence(3),
-                'doing' => $faker->sentence(3),
-                'blocker' => $faker->optional()->sentence(1),
-            ]);
+            if ($category !== 'leave') {
+                StandUp::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'project_id' => $faker->numberBetween(1,7),
+                    'done' => $faker->sentence(3),
+                    'doing' => $faker->sentence(3),
+                    'blocker' => $faker->optional()->sentence(1),
+                ]);
+            }
         }
+        // PRESENCE TODAY
         for ($i = 1; $i <= 10; $i++) {
             $category = $faker->randomElement([
                 'WFO', 'WFO', 'WFO',
@@ -244,14 +247,16 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             }
-            StandUp::create([
-                'user_id' => $faker->numberBetween(2,51),
-                'presence_id' => $presenceId,
-                'project_id' => $faker->numberBetween(1,7),
-                'done' => $faker->sentence(3),
-                'doing' => $faker->sentence(3),
-                'blocker' => $faker->optional()->sentence(1),
-            ]);
+            if ($category !== 'leave') {
+                StandUp::create([
+                    'user_id' => $faker->numberBetween(2,51),
+                    'presence_id' => $presenceId,
+                    'project_id' => $faker->numberBetween(1,7),
+                    'done' => $faker->sentence(3),
+                    'doing' => $faker->sentence(3),
+                    'blocker' => $faker->optional()->sentence(1),
+                ]);
+            }
         }
 
     }

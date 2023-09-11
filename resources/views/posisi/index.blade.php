@@ -134,14 +134,16 @@
                     @endforeach
                 </tbody>
             </table>
-            <div class="flex justify-center items-center">
-                {{ $posisi->links('pagination.custom', [
-                    'paginator' => $posisi,
-                    'prev_text' => 'Previous',
-                    'next_text' => 'Next',
-                    'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                ]) }}
-            </div>
+            @if ($posisi->count() > 0)
+                <div class="flex justify-center items-center">
+                    {{ $posisi->links('pagination.custom', [
+                        'paginator' => $posisi,
+                        'prev_text' => 'Previous',
+                        'next_text' => 'Next',
+                        'slider_text' => 'Showing items from {start} to {end} out of {total}',
+                    ]) }}
+                </div>
+            @endif
         </div>
     </div>
 </div>
