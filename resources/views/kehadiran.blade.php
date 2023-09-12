@@ -9,18 +9,15 @@
         <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
             <div class="dropdown">
                 <button class="dropdown-toggle btn btn-primary px-2" aria-expanded="false" data-tw-toggle="dropdown">
-                    More <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
+                    Action <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
                 </button>
                 <div class="dropdown-menu w-40 items-end">
                     <ul class="dropdown-content">
                         <li>
-                            <a href="" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export to Excel </a>
+                            <a href="{{ route('presence.excel',['year' => 2023]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export to Excel </a>
                         </li>
                         <li>
                             <a href="" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export to PDF </a>
-                        </li>
-                        <li>
-                            <a href="javascript:;" class="dropdown-item" data-tw-target="#import-modal" data-tw-toggle="modal"><i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel </a>
                         </li>
                     </ul>
                 </div>
@@ -239,6 +236,8 @@
                     'slider_text' => 'Showing items from {start} to {end} out of {total}',
                 ]) }}
             </div>
+            @else
+                <h1 class="text-center">Tidak ada data absensi hari ini</h1>
             @endif
         </div>
     </div>

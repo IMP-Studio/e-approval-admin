@@ -101,14 +101,16 @@
                 </tbody>
             </table>
             @if ($standup_today->count() > 0)
-                <div class="flex justify-center items-center">
-                    {{ $standup_today->links('pagination.custom', [
-                        'paginator' => $standup_today,
-                        'prev_text' => 'Previous',
-                        'next_text' => 'Next',
-                        'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                    ]) }}
-                </div>
+            <div class="flex justify-center items-center">
+                {{ $standup_today->links('pagination.custom', [
+                    'paginator' => $standup_today,
+                    'prev_text' => 'Previous',
+                    'next_text' => 'Next',
+                    'slider_text' => 'Showing items from {start} to {end} out of {total}',
+                ]) }}
+            </div>
+            @else
+            <h1 class="text-center">Tidak ada standup hari ini</h1>
             @endif
         </div>
 

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PresenceExport;
+use App\Exports\PresenceSheet;
 use App\Models\Presence;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PresenceController extends Controller
 {
@@ -16,6 +19,11 @@ class PresenceController extends Controller
         $today = Carbon::today();
         $absensi_today = Presence::whereDate('date', $today)->paginate(5);
         return view('kehadiran',compact('absensi_today'));
+    }
+
+    public function exportExcel($year)
+    {
+        return Excel::download(new PresenceExport($year), "Presence $year.xlsx");
     }
 
     /**
