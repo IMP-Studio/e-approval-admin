@@ -10,7 +10,7 @@ class StatusCommit extends Model
 {
     use HasFactory,SoftDeletes;
     protected $table = 'status_commits';
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     public function statusable()
     {

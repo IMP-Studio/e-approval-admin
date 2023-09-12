@@ -33,7 +33,7 @@ class ApiController extends Controller
       //---- ForgetPassword otp FUNCTION ----\\ 
 
     //change password..
-    
+
       public function changePasswordWithoutOtpVerification(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -447,16 +447,30 @@ class ApiController extends Controller
     //FUNCTION GET PRESENCE TODAY //BISAA
     public function getPresenceToday($id) {
         $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
+        
     
         $attendanceToday = Presence::where('user_id', $id)
                                   ->whereDate('date', $currentDate)
                                   ->first();
+
+        $category = $attendanceToday->category ?? null;
+
+        if($category != null){
+            if($category == 'WFO'){
+                 $category = 'Work From Office';
+            }elseif($category == 'telework'){
+                 $category = 'Work From Anywhere';
+            }elseif($category == 'work_trip'){
+                 $category = 'Perjalanan Dinas';
+            }
+        }
+        
     
         if ($attendanceToday) {
             return response()->json([
                 'status' => 'attended',
-                'category' => $attendanceToday->category,
-                'entry_time'     => $attendanceToday->entry_time,
+                'category' => $category,
+                'entry_time'     => $attendanceToday -> entry_time,
                 'exit_time'    => $attendanceToday->exit_time,
                 'date'         => $attendanceToday->date
             ]);
@@ -464,6 +478,10 @@ class ApiController extends Controller
             // Return more detailed information for debugging:
             return response()->json([
                 'status' => 'notAttended',
+                'category' => 'Belum check in',
+                'entry_time' => '00:00 AM',
+                'exit_time'    =>'00:00 AM',
+                'date'         => $currentDate,
                 'system_date' => $currentDate,
                 'carbon_date' => $currentDate,
                 'user_id' => $id  // Confirming the user_id used in the query
@@ -1107,6 +1125,16 @@ public function approveReject(Request $request, $id)
         return response()->json(['errors' => $errors], 400);
     }
 
+    DB::table('status_commits')->where('id', $id)->update([
+    'approver_id' => $request->input('approver_id'),
+    'status' => $request->input('status'),
+    'description' => $request->input('description')
+]);
+
+$statusCommit = StatusCommit::findOrFail($id);
+
+
+
     $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
     $statusable = $statusCommit->statusable;
 
@@ -1138,7 +1166,7 @@ public function approveReject(Request $request, $id)
         }
     }
 
-    return response()->json(['message' => 'Approval status saved successfully.'], 200);
+    return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh()], 200);
 }
 
     //---- STAND UP FUNCTION ----\\
@@ -1146,7 +1174,6 @@ public function approveReject(Request $request, $id)
     //FUNCTION GET STAND UP //BISA
 
     public function getStandUp(Request $request){
-        // If an ID is provided and is valid, fetch that user
         if($request->has('id')) {
             $user = User::with('employee','standups')->where('id', $request->id)->first();
             
