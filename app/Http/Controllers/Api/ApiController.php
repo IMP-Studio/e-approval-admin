@@ -581,6 +581,7 @@ class ApiController extends Controller
                     'date' => $presence->date,
                     'latitude' => $presence->latitude,
                     'longitude' => $presence->longitude,
+                    'emergency_description' => $presence->emergency_description,
                     'created_at' => $presence->created_at,
                     'updated_at' => $presence->updated_at,
                 ];
@@ -722,6 +723,7 @@ class ApiController extends Controller
             'entry_time' => $presence->entry_time,
             'exit_time' => $presence->exit_time,
             'date' => $presence->date,
+            'emergency_description' => $presence->emergency_description,
             'latitude' => $presence->latitude,
             'longitude' => $presence->longitude,
             'created_at' => $presence->created_at,
@@ -1100,6 +1102,33 @@ class ApiController extends Controller
     }
 }
 
+//EMERGENCY //BISA
+
+    public function emergencyCheckOut(Request $request)
+{
+    $userId = $request->input('user_id');
+    $currentDate = Carbon::now()->toDateString();  
+
+    $presence = Presence::where('user_id', $userId)
+                            ->where('date', $currentDate)
+                            ->first();
+    
+    if (!$presence) {
+        return response()->json(['message' => 'No presence record found for today.'], 404);
+    }
+    
+    $wasUpdated = $presence->update([
+        'exit_time' => Carbon::now()->toTimeString(),
+        'emergency_description' => $request->input('emergency_description')
+    ]);
+
+    if ($wasUpdated) {
+        return response()->json(['message' => 'Checked out successfully.', 'data' => $presence], 200);
+    } else {
+        return response()->json(['message' => 'Failed to check out.'], 500);
+    }
+}
+
 // APPROVE AND REJECT FUNCTION //BISA
 public function approveReject(Request $request, $id)
 {
@@ -1126,47 +1155,25 @@ public function approveReject(Request $request, $id)
     }
 
     DB::table('status_commits')->where('id', $id)->update([
-    'approver_id' => $request->input('approver_id'),
-    'status' => $request->input('status'),
-    'description' => $request->input('description')
-]);
-
-$statusCommit = StatusCommit::findOrFail($id);
-
-
+        'approver_id' => $request->input('approver_id'),
+        'status' => $request->input('status'),
+        'description' => $request->input('description')
+    ]);
 
     $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
     $statusable = $statusCommit->statusable;
 
-    if ($statusable instanceof Presence) {
+    if ($statusable->presence) {
         $statusable->update($request->only(['status', 'description', 'approver_id']));
-        if (in_array($statusable->category, ['work_trip', 'telework']) && 
+        if (in_array($statusable->presence->category, ['work_trip', 'telework']) && 
             $request->input('status') === 'allowed' && 
-            $statusable->entry_time === '00:00:00') {
-            $statusable->entry_time = $statusable->temporary_entry_time;
-            $statusable->save();
-        }
-
-        $categoryUpdateMap = [
-            'work_trip' => WorkTrip::class,
-            'telework' => Telework::class,
-        ];
-    
-        if (array_key_exists($statusable->category, $categoryUpdateMap)) {
-            $modelClass = $categoryUpdateMap[$statusable->category];
-            $modelInstance = $modelClass::where('presence_id', $statusable->id)->first();
-            if ($modelInstance) {
-                $latestStatusCommit = $modelInstance->statusCommit->sortByDesc('created_at')->first();
-                if ($latestStatusCommit) {
-                    $latestStatusCommit->update($request->only(['status', 'description', 'approver_id']));
-                } else {
-                    $modelInstance->statusCommit()->create($request->only(['status', 'description', 'approver_id']));
-                }
-            }
+           $statusable->presence->entry_time === '00:00:00') {
+           $statusable->presence->entry_time =$statusable->presence->temporary_entry_time;
+           $statusable->presence->save();
         }
     }
-
-    return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh()], 200);
+    
+    return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh(), 'absensi' => $statusable], 200);
 }
 
     //---- STAND UP FUNCTION ----\\
