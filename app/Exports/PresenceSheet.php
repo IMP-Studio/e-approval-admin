@@ -53,7 +53,7 @@ class PresenceSheet implements FromQuery, WithTitle, WithHeadings, WithMapping, 
     public function headings(): array
     {
         return [
-            ["Data Presence $this->monthName"],
+            ["Data Presence $this->monthName",'','','','','','','','',"Standup $this->monthName"],
             [
                 'No',
                 'Username',
@@ -114,7 +114,7 @@ class PresenceSheet implements FromQuery, WithTitle, WithHeadings, WithMapping, 
             'C' => 26,
             'D' => 28,
             'E' => 14,
-            'F' => 22,
+            'F' => 24,
             'G' => 15,
             'H' => 15,
             'I' => 16,
@@ -130,7 +130,7 @@ class PresenceSheet implements FromQuery, WithTitle, WithHeadings, WithMapping, 
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
         for ($col = 'C'; $col <= $lastColumn; $col++) {
-            $sheet->getStyle($col)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            $sheet->getStyle($col)->getAlignment()->setVertical('center');
             $sheet->getStyle($col)->getAlignment()->setIndent(1);
         }
         return [
@@ -142,8 +142,14 @@ class PresenceSheet implements FromQuery, WithTitle, WithHeadings, WithMapping, 
             ],
             'B3:B' . $lastRow => [
                 'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+            ],
+            'F4:F' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
                 ],
             ],
             'J' => [

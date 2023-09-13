@@ -89,7 +89,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
         for ($col = 'C'; $col <= $lastColumn; $col++) {
-            $sheet->getStyle($col)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+            $sheet->getStyle($col)->getAlignment()->setVertical('center');
             $sheet->getStyle($col)->getAlignment()->setIndent(1);
         }
         return [
@@ -101,8 +101,8 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             ],
             'B3:B' . $lastRow => [
                 'alignment' => [
-                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
-                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
                 ],
             ],
             'F' => [
