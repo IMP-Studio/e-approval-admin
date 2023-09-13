@@ -1174,19 +1174,25 @@ $statusCommit = StatusCommit::findOrFail($id);
     //FUNCTION GET STAND UP //BISA
 
     public function getStandUp(Request $request){
-        if($request->has('id')) {
-            $user = User::with('employee','standups')->where('id', $request->id)->first();
-            
+        $today = Carbon::today();
+        $lastMonth = Carbon::today()->subMonth();
+    
+        if ($request->has('id')) {
+            $user = User::with('employee', 'standups')->where('id', $request->id)->first();
+    
             if (!$user || !$user->hasRole('employee')) {
                 return response()->json([
                     'status' => 500,
                     'message' => 'Anda tidak memiliki akses sebagai employees.',
                 ]);
             }
-            
-            $query = StandUp::with('user','project','presence')->where('user_id', $request->id);
+    
+            $query = StandUp::with('user', 'project', 'presence')
+                            ->where('user_id', $request->id)
+                            ->whereBetween('created_at', [$lastMonth, $today]);
         } else {
-            $query = StandUp::with('user','project','presence');
+            $query = StandUp::with('user', 'project', 'presence')
+                            ->whereDate('created_at', $today);
         }
         $standUps = $query->orderBy('updated_at', 'desc')->get()
         ->map(function ($standUp) {
@@ -1215,7 +1221,7 @@ $statusCommit = StatusCommit::findOrFail($id);
         });
     
         if ($standUps->isEmpty()) {
-            return response()->json(['message' => 'Belum stand up']);
+            return response()->json(['message' => 'Belum ada yang stand up']);
         } else {
             return response()->json(['message' => 'Success', 'data' => $standUps]);
         }
