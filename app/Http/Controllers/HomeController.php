@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\StandupExport;
 use App\Models\Division;
 use App\Models\Employee;
 use App\Models\Leave;
@@ -11,6 +12,7 @@ use App\Models\Telework;
 use App\Models\WorkTrip;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class HomeController extends Controller
 {
@@ -214,20 +216,19 @@ class HomeController extends Controller
         'telework_data_month_rejected','workTrip_data_month_rejected','leave_data_month_rejected'));
     }
 
-    // public function kehadiran()
-    // {
-    //     return view('kehadiran');
-    // }
-
-
     public function standup()
     {
         $today = Carbon::today();
         $standup_today = StandUp::whereHas('presence', function ($query) use ($today) {
             $query->whereDate('date', $today);
-        })->paginate(5);
+        })->orderBy('created_at','asc')->paginate(5);
 
-        return view('standup',compact('standup_today'));
+        return view('standup',compact('standup_today','today'));
+    }
+
+    public function exportStandup($year)
+    {
+        return Excel::download(new StandupExport($year), "Standup $year.xlsx");
     }
     public function back()
     {

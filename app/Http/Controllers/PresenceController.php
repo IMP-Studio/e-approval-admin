@@ -17,8 +17,8 @@ class PresenceController extends Controller
     public function index()
     {
         $today = Carbon::today();
-        $absensi_today = Presence::whereDate('date', $today)->paginate(5);
-        return view('kehadiran',compact('absensi_today'));
+        $absensi_today = Presence::whereDate('date', $today)->orderBy('entry_time','asc')->paginate(5);
+        return view('kehadiran',compact('absensi_today','today'));
     }
 
     public function exportExcel($year)

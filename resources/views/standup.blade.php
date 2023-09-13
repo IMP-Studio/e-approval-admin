@@ -14,13 +14,10 @@
                 <div class="dropdown-menu w-40">
                     <ul class="dropdown-content">
                         <li>
-                            <a href="" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export to Excel </a>
+                            <a href="{{ route('standup.excel',['year' => $today->year]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Excel {{ $today->year }} </a>
                         </li>
                         <li>
-                            <a href="" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Export to PDF </a>
-                        </li>
-                        <li>
-                            <a href="javascript:;" class="dropdown-item" data-tw-target="#import-modal" data-tw-toggle="modal"><i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel </a>
+                            <a href="{{ route('standup.excel',['year' => $today->subyear()->year ]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Excel {{ $today->year }} </a>
                         </li>
                     </ul>
                 </div>
@@ -76,7 +73,7 @@
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                                    <h1 class="font-medium text-base mx-auto">Detail Standup {{ $item->user->name }}</h1>
                                 </div>
                                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                     <div class="col-span-12">
