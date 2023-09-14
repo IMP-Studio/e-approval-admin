@@ -41,10 +41,10 @@ class PresenceSeeder extends Seeder
             } elseif ($category === 'leave') {
                 $entry_time = '00:00:00';
             }
-            $pea_id = $faker->numberBetween(2,51);
+            $users_id = $faker->numberBetween(2,51);
 
             $presenceId = Presence::insertGetId([
-                'user_id' => $pea_id,
+                'user_id' => $users_id,
                 'category' => $category,
                 'entry_time' => $entry_time,
                 'temporary_entry_time' => $faker->time('H:i:s'),
@@ -63,7 +63,7 @@ class PresenceSeeder extends Seeder
                 }
 
                 $telework = Telework::create([
-                    'user_id' => $pea_id,
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'telework_category' => $teleworkCategory,
                     'category_description' => $categoryDescription,
@@ -86,7 +86,7 @@ class PresenceSeeder extends Seeder
                 $entry_date = $presenceDate->addDays(random_int(1,2))->toDateString();
 
                 $workTrip = WorkTrip::create([
-                    'user_id' => $pea_id,
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'file' => 'contoh_file',
                     'start_date' => $start_date,
@@ -112,7 +112,7 @@ class PresenceSeeder extends Seeder
                 $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
 
                 $leave = Leave::create([
-                    'user_id' => $pea_id,
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'submission_date' => $date,
                     'type' => $faker->randomElement(['yearly','exclusive','emergency']),
@@ -136,7 +136,7 @@ class PresenceSeeder extends Seeder
             }
             if ($category !== 'leave') {
                 StandUp::create([
-                    'user_id' => $pea_id,
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'project_id' => $faker->numberBetween(1,7),
                     'done' => $faker->sentence(3),
@@ -205,7 +205,7 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
-                $start_date = $date->addDays(2)->toDateString();
+                $start_date = Carbon::now();
                 $end_date = $date->addDays(random_int(1, 3))->toDateString();
                 $entry_date = $date->addDays(random_int(1, 2))->toDateString();
 
@@ -230,15 +230,16 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             } elseif ($category === 'leave') {
-                $start_date = $date->addDays(2)->toDateString();
+                $start_date = Carbon::now()->setTimezone('Asia/Jakarta');
+                $submission_date = Carbon::now()->setTimezone('Asia/Jakarta')->subDays($faker->numberBetween(1,2));
                 $end_date = $date->addDays(random_int(2, 4))->toDateString();
                 $entry_date = $date->addDays(random_int(1, 2))->toDateString();
-                $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
+                $total_leave_days = $start_date->diffInDays($end_date) + 2;
 
                 $leave = Leave::create([
                     'user_id' => $user_id,
                     'presence_id' => $presenceId,
-                    'submission_date' => $date,
+                    'submission_date' => $submission_date,
                     'type' => $faker->randomElement(['yearly', 'exclusive', 'emergency']),
                     'start_date' => $start_date,
                     'end_date' => $end_date,

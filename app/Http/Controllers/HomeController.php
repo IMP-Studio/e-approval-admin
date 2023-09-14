@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Leave;
 use App\Models\Presence;
 use App\Models\StandUp;
+use App\Models\StatusCommit;
 use App\Models\Telework;
 use App\Models\WorkTrip;
 use Carbon\Carbon;
@@ -37,8 +38,34 @@ class HomeController extends Controller
         $year = $now->format('Y');
         $total_employee = Employee::count();
 
-        // START PRESENCE TODAY
-            $presence_today = Presence::whereDate('date',$now)->get()->count();
+        $allowedStatusCheck = function ($query) {
+            $query->where('status', 'allowed');
+        };
+
+        $presenceDataCount = Presence::whereDate('date', $now)
+            ->whereIn('category', ['WFO', 'telework', 'leave', 'work_trip'])
+            ->where(function ($query) use ($allowedStatusCheck) {
+                $query->where('category', 'WFO')
+                    ->orWhere(function($query) use ($allowedStatusCheck) {
+                        $query->where('category', 'work_trip')
+                                ->whereHas('worktrip.statusCommit', $allowedStatusCheck);
+                    })
+                    ->orWhere(function($query) use ($allowedStatusCheck) {
+                        $query->where('category', 'leave')
+                                ->whereHas('leave.statusCommit', $allowedStatusCheck);
+                    })
+                    ->orWhere(function($query) use ($allowedStatusCheck) {
+                        $query->where('category', 'telework')
+                                ->whereHas('telework.statusCommit', $allowedStatusCheck);
+                    });
+            })
+            ->with([
+                'worktrip.statusCommit' => $allowedStatusCheck,
+                'leave.statusCommit' => $allowedStatusCheck,
+                'telework.statusCommit' => $allowedStatusCheck,
+            ])
+            ->count();
+
             $wfo_today = Presence::whereDate('date', $now)->where('category','WFO')->get();
 
             $telework_today = Telework::whereHas('presence',
@@ -204,13 +231,13 @@ class HomeController extends Controller
         // END PRESENCE YEARLY STATUS REJECTED
 
         // PERSENTASE
-        $attendance_percentage = $total_employee > 0 ? round(($presence_today / $total_employee) * 100, 1) : 0;
+        $attendance_percentage = $total_employee > 0 ? round(($presenceDataCount / $total_employee) * 100, 1) : 0;
         $telework_percentage = $total_employee > 0 ? round(($telework_today->count() / $total_employee) * 100, 1) : 0;
         $workTrip_percentage = $total_employee > 0 ? round(($workTrip_today->count() / $total_employee) * 100, 1) : 0;
         $leave_percentage = $total_employee > 0 ? round(($leave_today->count() / $total_employee) * 100, 1) : 0;
 
 
-        return view('home',compact('presence_today','wfo_today','telework_today','workTrip_today','leave_today','attendance_percentage',
+        return view('home',compact('presenceDataCount','wfo_today','telework_today','workTrip_today','leave_today','attendance_percentage',
         'telework_percentage','workTrip_percentage','leave_percentage','wfo_data','telework_data','workTrip_data','leave_data',
         'wfo_yearly','telework_yearly','workTrip_yearly','leave_yearly','telework_rejected','workTrip_rejected','leave_rejected',
         'telework_data_month_rejected','workTrip_data_month_rejected','leave_data_month_rejected'));
@@ -219,11 +246,33 @@ class HomeController extends Controller
     public function standup()
     {
         $today = Carbon::today();
-        $standup_today = StandUp::whereHas('presence', function ($query) use ($today) {
-            $query->whereDate('date', $today);
-        })->orderBy('created_at','asc')->paginate(5);
+        $allowedStatusCheck = function ($query) {
+            $query->where('status', 'allowed');
+        };
+        $standup_today = StandUp::whereHas('presence', function ($query) use ($today, $allowedStatusCheck) {
+            $query->whereDate('date', $today)
+                ->whereIn('category', ['WFO', 'telework', 'leave', 'work_trip'])
+                ->where(function ($query) use ($allowedStatusCheck) {
+                    $query->where('category', 'WFO')
+                        ->orWhere(function ($query) use ($allowedStatusCheck) {
+                            $query->where('category', 'work_trip')
+                                ->whereHas('worktrip.statusCommit', $allowedStatusCheck);
+                        })
+                        ->orWhere(function ($query) use ($allowedStatusCheck) {
+                            $query->where('category', 'leave')
+                                ->whereHas('leave.statusCommit', $allowedStatusCheck);
+                        })
+                        ->orWhere(function ($query) use ($allowedStatusCheck) {
+                            $query->where('category', 'telework')
+                                ->whereHas('telework.statusCommit', $allowedStatusCheck);
+                        });
+                });
+        })
+        ->paginate(5);
 
-        return view('standup',compact('standup_today','today'));
+        return view('standup', compact('standup_today', 'today'));
+
+
     }
 
     public function exportStandup($year)
