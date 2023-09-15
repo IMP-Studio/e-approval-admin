@@ -61,6 +61,8 @@ class EmployeeSeeder extends Seeder
         ];
         // COBA DATA FAKER
         $faker = Faker::create('id_ID');
+        $hrCount = 0;
+        $headOfTribeCount = 0;
 
         for($i = 1; $i <= 50; $i++){
 
@@ -88,8 +90,14 @@ class EmployeeSeeder extends Seeder
             $userId = $user->id;
             $user->assignRole('employee');
 
-            if (isset($permissionMap[$username])) {
-                $user->givePermissionTo($permissionMap[$username]);
+            if ($divisionId == 3 && $hrCount < 2) { 
+                $user->givePermissionTo('human_resource');
+                $hrCount++;
+            } elseif (($divisionId == 1 || $divisionId == 2) && $headOfTribeCount < 3) { 
+                $user->givePermissionTo('head_of_tribe');
+                $headOfTribeCount++;
+            } else {
+                $user->givePermissionTo('ordinary_employee');
             }
 
             Employee::insert([

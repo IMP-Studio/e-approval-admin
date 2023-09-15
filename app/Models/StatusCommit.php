@@ -10,7 +10,7 @@ class StatusCommit extends Model
 {
     use HasFactory,SoftDeletes;
     protected $table = 'status_commits';
-    protected $guarded = ['id'];
+    protected $guarded = [];
 
     public function statusable()
     {
@@ -18,7 +18,13 @@ class StatusCommit extends Model
     }
 
     public function approver()
-{
-    return $this->belongsTo(User::class, 'approver_id');
-}
+    {
+        return $this->belongsTo(User::class, 'approver_id');
+    }
+
+    public function presence()
+    {
+        return $this->hasOne(presence::class);
+    }
+
 }

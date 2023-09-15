@@ -9,7 +9,7 @@
 
 <body>
     <h3 style="font-weight: bold">Data Employee IMP-Studio</h3>
-    <table class="table table-bordered">
+    <table class="table table-bordered">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Unde cum magnam soluta modi quisquam, rerum, provident nemo, quaerat autem fuga harum libero vero eum. Illum aperiam veniam accusamus natus assumenda.
         <thead>
             <tr></tr>
             <tr></tr>

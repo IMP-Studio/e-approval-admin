@@ -23,6 +23,7 @@ return new class extends Migration
             $table->date('date');
             $table->decimal('latitude')->nullable();
             $table->decimal('longitude')->nullable();
+            $table->text('emergency_description')->nullable();
             $table->timestamps();
             $table->datetime('deleted_at')->nullable();
         });

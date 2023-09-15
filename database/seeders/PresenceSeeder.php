@@ -36,9 +36,15 @@ class PresenceSeeder extends Seeder
             }
             $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
             $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
+            if ($category === 'telework' || $category === 'work_trip') {
+                $entry_time = '08:30:00';
+            } elseif ($category === 'leave') {
+                $entry_time = '00:00:00';
+            }
+            $users_id = $faker->numberBetween(2,51);
 
             $presenceId = Presence::insertGetId([
-                'user_id' => $faker->numberBetween(2,51),
+                'user_id' => $users_id,
                 'category' => $category,
                 'entry_time' => $entry_time,
                 'temporary_entry_time' => $faker->time('H:i:s'),
@@ -57,7 +63,7 @@ class PresenceSeeder extends Seeder
                 }
 
                 $telework = Telework::create([
-                    'user_id' => $faker->numberBetween(2,51),
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'telework_category' => $teleworkCategory,
                     'category_description' => $categoryDescription,
@@ -67,11 +73,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $telework->id;
                 $statusableType = Telework::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
@@ -80,7 +90,7 @@ class PresenceSeeder extends Seeder
                 $entry_date = $presenceDate->addDays(random_int(1,2))->toDateString();
 
                 $workTrip = WorkTrip::create([
-                    'user_id' => $faker->numberBetween(2,51),
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'file' => 'contoh_file',
                     'start_date' => $start_date,
@@ -92,11 +102,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $workTrip->id;
                 $statusableType = WorkTrip::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'leave') {
@@ -106,7 +120,7 @@ class PresenceSeeder extends Seeder
                 $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
 
                 $leave = Leave::create([
-                    'user_id' => $faker->numberBetween(2,51),
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'submission_date' => $date,
                     'type' => $faker->randomElement(['yearly','exclusive','emergency']),
@@ -120,17 +134,21 @@ class PresenceSeeder extends Seeder
                 $statusableId = $leave->id;
                 $statusableType = Leave::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             }
             if ($category !== 'leave') {
                 StandUp::create([
-                    'user_id' => $faker->numberBetween(2,51),
+                    'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'project_id' => $faker->numberBetween(1,7),
                     'done' => $faker->sentence(3),
@@ -140,7 +158,7 @@ class PresenceSeeder extends Seeder
             }
         }
         // PRESENCE TODAY
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 20; $i++) {
             $category = $faker->randomElement([
                 'WFO', 'WFO', 'WFO',
                 'telework', 'work_trip', 'leave'
@@ -155,10 +173,15 @@ class PresenceSeeder extends Seeder
             }
 
             $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
-            $date = Carbon::now()->setTimezone('Asia/Jakarta'); // Menggunakan Carbon untuk mendapatkan tanggal hari ini
-
+            $date = Carbon::now()->setTimezone('Asia/Jakarta');
+            if ($category === 'telework' || $category === 'work_trip') {
+                $entry_time = '08:30:00';
+            } elseif ($category === 'leave') {
+                $entry_time = '00:00:00';
+            }
+            $user_id = $faker->numberBetween(2,51);
             $presenceId = Presence::insertGetId([
-                'user_id' => $faker->numberBetween(2, 51),
+                'user_id' => $user_id,
                 'category' => $category,
                 'entry_time' => $entry_time,
                 'temporary_entry_time' => $faker->time('H:i:s'),
@@ -176,7 +199,7 @@ class PresenceSeeder extends Seeder
                 }
 
                 $telework = Telework::create([
-                    'user_id' => $faker->numberBetween(2, 51),
+                    'user_id' => $user_id,
                     'presence_id' => $presenceId,
                     'telework_category' => $teleworkCategory,
                     'category_description' => $categoryDescription,
@@ -186,20 +209,24 @@ class PresenceSeeder extends Seeder
                 $statusableId = $telework->id;
                 $statusableType = Telework::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
-                $start_date = $date->addDays(2)->toDateString();
+                $start_date = Carbon::now();
                 $end_date = $date->addDays(random_int(1, 3))->toDateString();
                 $entry_date = $date->addDays(random_int(1, 2))->toDateString();
 
                 $workTrip = WorkTrip::create([
-                    'user_id' => $faker->numberBetween(2, 51),
+                    'user_id' => $user_id,
                     'presence_id' => $presenceId,
                     'file' => 'contoh_file',
                     'start_date' => $start_date,
@@ -211,23 +238,28 @@ class PresenceSeeder extends Seeder
                 $statusableId = $workTrip->id;
                 $statusableType = WorkTrip::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'leave') {
-                $start_date = $date->addDays(2)->toDateString();
+                $start_date = Carbon::now()->setTimezone('Asia/Jakarta');
+                $submission_date = Carbon::now()->setTimezone('Asia/Jakarta')->subDays($faker->numberBetween(1,2));
                 $end_date = $date->addDays(random_int(2, 4))->toDateString();
                 $entry_date = $date->addDays(random_int(1, 2))->toDateString();
-                $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
+                $total_leave_days = $start_date->diffInDays($end_date) + 2;
 
                 $leave = Leave::create([
-                    'user_id' => $faker->numberBetween(2, 51),
+                    'user_id' => $user_id,
                     'presence_id' => $presenceId,
-                    'submission_date' => $date,
+                    'submission_date' => $submission_date,
                     'type' => $faker->randomElement(['yearly', 'exclusive', 'emergency']),
                     'start_date' => $start_date,
                     'end_date' => $end_date,
@@ -239,17 +271,21 @@ class PresenceSeeder extends Seeder
                 $statusableId = $leave->id;
                 $statusableType = Leave::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             }
             if ($category !== 'leave') {
                 StandUp::create([
-                    'user_id' => $faker->numberBetween(2,51),
+                    'user_id' => $user_id,
                     'presence_id' => $presenceId,
                     'project_id' => $faker->numberBetween(1,7),
                     'done' => $faker->sentence(3),

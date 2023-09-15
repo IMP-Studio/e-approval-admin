@@ -25,4 +25,5 @@ class WorkTrip extends Model
     {
         return $this->morphMany(StatusCommit::class, 'statusable');
     }
+
 }

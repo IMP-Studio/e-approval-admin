@@ -22,14 +22,14 @@
                                         <i data-lucide="shopping-cart" class="report-box__icon text-primary"></i>
                                         <div class="ml-auto">
                                             <div class="report-box__indicator {{ $attendance_percentage < 50 ? 'bg-danger' : ($attendance_percentage < 70 ? 'bg-pending' : 'bg-success') }} tooltip cursor-pointer"
-                                                title="{{ $attendance_percentage < 50 ? '50% Lower than last month' : ($attendance_percentage < 70 ? 'Below 70%' : '33% Higher than last month') }}">
+                                                title="{{ $attendance_percentage < 50 ? '50% Based on employees' : ($attendance_percentage < 70 ? 'Below 70% Based on employees' : '70% Based on employees') }}">
                                                 {{ $attendance_percentage }}% <i
                                                     data-lucide="chevron-{{ $attendance_percentage < 50 ? 'down' : 'up' }}"
                                                     class="w-4 h-4 ml-0.5"></i>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="text-3xl font-medium leading-8 mt-6">{{ $presence_today }}</div>
+                                    <div class="text-3xl font-medium leading-8 mt-6">{{ $presenceDataCount }}</div>
                                     <div class="text-base text-slate-500 mt-1">Check In</div>
                                 </div>
                             </div>
@@ -42,7 +42,7 @@
                                         <i data-lucide="credit-card" class="report-box__icon text-pending"></i>
                                         <div class="ml-auto">
                                             <div class="report-box__indicator {{ $telework_percentage < 50 ? 'bg-success' : ($telework_percentage < 70 ? 'bg-pending' : 'bg-danger') }} tooltip cursor-pointer"
-                                                title="{{ $telework_percentage < 50 ? '50% Lower than last month' : ($telework_percentage < 70 ? 'Below 70%' : '33% Higher than last month') }}">
+                                                title="{{ $telework_percentage < 50 ? '50% Lower based on check-in' : ($telework_percentage < 70 ? 'Below 70% based on check-in' : '70% Higher based on check-in') }}">
                                                 {{ $telework_percentage }}% <i
                                                     data-lucide="chevron-{{ $telework_percentage < 50 ? 'down' : 'up' }}"
                                                     class="w-4 h-4 ml-0.5"></i>
@@ -62,7 +62,7 @@
                                         <i data-lucide="monitor" class="report-box__icon text-warning"></i>
                                         <div class="ml-auto">
                                             <div class="report-box__indicator {{ $workTrip_percentage < 50 ? 'bg-success' : ($workTrip_percentage < 70 ? 'bg-pending' : 'bg-danger') }} tooltip cursor-pointer"
-                                                title="{{ $workTrip_percentage < 50 ? '50% Lower than last month' : ($workTrip_percentage < 70 ? 'Below 70%' : '33% Higher than last month') }}">
+                                                title="{{ $workTrip_percentage < 50 ? '50% Lower Based on check-in' : ($workTrip_percentage < 70 ? 'Below 70%' : '70% Higher based on check-in') }}">
                                                 {{ $workTrip_percentage }}% <i
                                                     data-lucide="chevron-{{ $workTrip_percentage < 50 ? 'down' : 'up' }}"
                                                     class="w-4 h-4 ml-0.5"></i>
@@ -82,7 +82,7 @@
                                         <i data-lucide="user" class="report-box__icon text-success"></i>
                                         <div class="ml-auto">
                                             <div class="report-box__indicator {{ $leave_percentage < 50 ? 'bg-success' : ($leave_percentage < 70 ? 'bg-pending' : 'bg-danger') }} tooltip cursor-pointer"
-                                                title="{{ $leave_percentage < 50 ? '50% Lower than last month' : ($leave_percentage < 70 ? 'Below 70%' : '33% Higher than last month') }}">
+                                                title="{{ $leave_percentage < 50 ? '50% Lower based on check-in' : ($leave_percentage < 70 ? 'Below 70%' : '70% Higher based on check-in') }}">
                                                 {{ $leave_percentage }}% <i
                                                     data-lucide="chevron-{{ $leave_percentage < 50 ? 'down' : 'up' }}"
                                                     class="w-4 h-4 ml-0.5"></i>
@@ -526,7 +526,7 @@
                         <div class="col-span-12 md:col-span-6 xl:col-span-4 2xl:col-span-12 mt-3">
                             <div class="intro-y">
                                 <h2 class="text-lg font-medium truncate mr-5">
-                                    List WFO
+                                    Work From Office
                                 </h2>
                             </div>
                             <div class="intro-y chat grid grid-cols-12 gap-5 mt-5">

@@ -28,6 +28,7 @@ Route::post('/loginApi', [ApiController::class, 'loginApi']);
 Route::get('/fetchPoint', [ApiController::class, 'fetchFacePoint']);
 Route::get('/presence', [ApiController::class, 'getPresence']);
 Route::get('/presence/checkout', [ApiController::class, 'checkOut']);
+Route::post('/presence/emergency', [ApiController::class, 'emergencyCheckOut']);
 Route::get('/presence/{id}', [ApiController::class, 'presenceToday']);
 Route::get('/presence/today/{id}', [ApiController::class, 'getPresenceToday']);
 Route::post('/presence/store', [ApiController::class, 'storePresence']);
@@ -55,3 +56,6 @@ Route::get('/profile', [ApiController::class, 'getProfile']);
 Route::post('/sendotp', [ApiController::class, 'getOtp']);
 Route::post('/verifyotp', [ApiController::class, 'verifyotp']);
 route::post('/resetPasswordOtp', [ApiController::class, 'changePasswordAfterOtpVerification']);
+
+// change password withoutotp
+Route::post('/resetPasswordWithoutOtp', [ApiController::class, 'changePasswordWithoutOtpVerification']);

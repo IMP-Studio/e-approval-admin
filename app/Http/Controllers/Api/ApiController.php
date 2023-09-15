@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -30,10 +31,53 @@ use Illuminate\Support\Facades\Validator;
 class ApiController extends Controller
 {
 
+    ///----- Send Notification bar ------\\\\\
+
+    public function sendCheckinNotification()
+    {
+        $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
+        $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
+
+
+        // Kirim notifikasi ke OneSignal
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $onesignalApiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://onesignal.com/api/v1/notifications', [
+            'app_id' => $appId,
+            'included_segments' => ['All'],
+            'template_id' => "b30d717a-2ab7-459c-8a33-a6a78bfac405",
+        ]);
+
+        return response()->json(['message' => 'Notification sent']);
+    }
+
+    // belum fix
+    public function sendCheckOutNotification()
+    {
+        $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
+        $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
+
+
+        // Kirim notifikasi ke OneSignal
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $onesignalApiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://onesignal.com/api/v1/notifications', [
+            'app_id' => $appId,
+            'included_segments' => ['All'],
+            'template_id' => "b30d717a-2ab7-459c-8a33-a6a78bfac405",
+        ]);
+
+        return response()->json(['message' => 'Notification sent']);
+    }
+    ///----- Send Notification bar end ------\\\\\
+
+
       //---- ForgetPassword otp FUNCTION ----\\ 
 
     //change password..
-    
+
       public function changePasswordWithoutOtpVerification(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -434,9 +478,11 @@ class ApiController extends Controller
         return response()->json(['status' => 'pendingStatus', 'message' => 'Your request is still pending. Wait for a moment for a response.', 'carbon_date' => $currentDate]);
     } elseif (($teleworkStatus && $teleworkStatus == 'rejected') || ($worktripStatus && $worktripStatus == 'rejected') || ($leaveStatus && $leaveStatus == 'rejected')) {
         return response()->json(['status' => 'canReAttend', 'message' => 'You can mark your attendance again', 'carbon_date' => $currentDate]);
-    } elseif ($attendance->exit_time == '00:00:00') {
+    } elseif ($attendance->category == 'work_trip' && $worktripStatus == 'allowed' && $attendance->entry_time ==  '00:00:00' && $attendance->exit_time == '17:30:00'){
+        return response()->json(['status' => 'Perjadin', 'message' => 'Kamu sedang perjadinn', 'carbon_date' => $currentDate]);
+    }elseif ($attendance->exit_time == '00:00:00') {
         return response()->json(['status' => 'checkedIn', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
-    } else {
+    }else {
         return response()->json(['status' => 'checkedOut', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
     }
 }
@@ -447,23 +493,61 @@ class ApiController extends Controller
     //FUNCTION GET PRESENCE TODAY //BISAA
     public function getPresenceToday($id) {
         $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
+        $belum = '00:00:00';
+        
     
         $attendanceToday = Presence::where('user_id', $id)
                                   ->whereDate('date', $currentDate)
                                   ->first();
+
+        $category = $attendanceToday->category ?? null;
+
+        if($category != null){
+            if($category == 'WFO'){
+                 $category = 'Work From Office';
+            }elseif($category == 'telework'){
+                 $category = 'Work From Anywhere';
+            }elseif($category == 'work_trip'){
+                 $category = 'Perjalanan Dinas';
+            }
+        }
+        
     
         if ($attendanceToday) {
-            return response()->json([
-                'status' => 'attended',
-                'category' => $attendanceToday->category,
-                'entry_time'     => $attendanceToday->entry_time,
-                'exit_time'    => $attendanceToday->exit_time,
-                'date'         => $attendanceToday->date
-            ]);
-        } else {
+            
+            if ($attendanceToday->entry_time == '00:00:00' 
+                && $attendanceToday->category == 'work_trip' 
+                && $attendanceToday->exit_time == '17:30:00'
+            ) {
+                return response()->json([
+                    'status' => 'attended (Khusus Perjadin)',
+                    'category' => $category,
+                    'entry_time' => $attendanceToday->entry_time,
+                    'exit_time' => $attendanceToday->exit_time,
+                    'date' => $attendanceToday->date
+                ]);
+            } else {
+                return response()->json([
+                    'status' => 'attended',
+                    'category' => $category,
+                    'entry_time' => $attendanceToday->entry_time,
+                    'exit_time' => $attendanceToday->exit_time,
+                    'date' => $attendanceToday->date,
+                    'system_date' => $currentDate,
+                    'carbon_date' => $currentDate,
+                    'user_id' => $id
+                ]);
+            }
+        }
+        
+        else {
             // Return more detailed information for debugging:
             return response()->json([
                 'status' => 'notAttended',
+                'category' => 'Belum check in',
+                'entry_time' => '00:00 AM',
+                'exit_time'    =>'00:00 AM',
+                'date'         => $currentDate,
                 'system_date' => $currentDate,
                 'carbon_date' => $currentDate,
                 'user_id' => $id  // Confirming the user_id used in the query
@@ -563,6 +647,7 @@ class ApiController extends Controller
                     'date' => $presence->date,
                     'latitude' => $presence->latitude,
                     'longitude' => $presence->longitude,
+                    'emergency_description' => $presence->emergency_description,
                     'created_at' => $presence->created_at,
                     'updated_at' => $presence->updated_at,
                 ];
@@ -590,19 +675,34 @@ class ApiController extends Controller
                         
                     }
                 } elseif ($presence->category === 'work_trip') {
-                    $data['file'] = $presence->worktrip->file;
-                    $data['start_date'] = $presence->worktrip->start_date;
-                    $data['end_date'] = $presence->worktrip->end_date;
-                    $data['entry_date'] = $presence->worktrip->entry_date;
-                    if ($presence->worktrip) {
-                        $mostRecentStatus = $presence->worktrip->statusCommit->sortByDesc('created_at')->first();
+                    $worktripDetails = $presence->worktrip;
                     
+                    if (!$worktripDetails) {
+                        $primaryPresence = Presence::where('user_id', $presence->user_id)
+                                                   ->where('category', 'work_trip')
+                                                   ->whereDate('date', '<=', $presence->date)
+                                                   ->orderBy('date', 'asc')
+                                                   ->first();
+                
+                        if ($primaryPresence) {
+                            $worktripDetails = $primaryPresence->worktrip;
+                        }
+                    }
+                
+                    if ($worktripDetails) {
+                        $data['file'] = $worktripDetails->file ?? 'null';
+                        $data['start_date'] = $worktripDetails->start_date ?? 'null';
+                        $data['end_date'] = $worktripDetails->end_date ?? 'null';
+                        $data['entry_date'] = $worktripDetails->entry_date ?? 'null';
+                
+                        $mostRecentStatus = $worktripDetails->statusCommit->sortByDesc('created_at')->first();
+                        
                         if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
                             $approver = $mostRecentStatus->approver;
-                        
+                            
                             if ($approver) { // Check if approver exists
                                 $approverPermission = $approver->getPermissionNames()->first();
-                        
+                            
                                 if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
                                     $data['approver_id'] = $approver->id;
                                     $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
@@ -610,10 +710,9 @@ class ApiController extends Controller
                                 }
                             }
                         }
-                        
                     }
-                    
-                } elseif ($presence->category === 'leave') {
+                }
+                 elseif ($presence->category === 'leave') {
                     $relevantLeave = $presence->leave ?? Leave::where('user_id', $presence->user_id)
                         ->where('start_date', '<=', $presence->date)
                         ->where('end_date', '>=', $presence->date)
@@ -704,6 +803,7 @@ class ApiController extends Controller
             'entry_time' => $presence->entry_time,
             'exit_time' => $presence->exit_time,
             'date' => $presence->date,
+            'emergency_description' => $presence->emergency_description,
             'latitude' => $presence->latitude,
             'longitude' => $presence->longitude,
             'created_at' => $presence->created_at,
@@ -895,13 +995,10 @@ class ApiController extends Controller
                         throw new \Exception('File is required.', 400);
                     }
 
-                    // Assuming face_point is received as a list from the client
                     $facePointList = $request->input('face_point');
 
-                    // Convert the list to JSON
                     $facePointJson = json_encode($facePointList);
 
-                    // Convert the JSON to Base64
                     $facePointBase64 = base64_encode($facePointJson);
             
                     $file = $request->file('file');
@@ -927,6 +1024,8 @@ class ApiController extends Controller
                     if (!$workTrip->statusCommit()->create(['status' => 'pending'])) {
                         throw new \Exception("Error creating status for WorkTrip.");
                     }
+
+                    /// bikin notifikasi untuk ht.
                     break;
     
                 case 'telework':
@@ -947,6 +1046,9 @@ class ApiController extends Controller
                     if (!$telework->statusCommit()->create(['status' => 'pending'])) {
                         throw new \Exception("Error creating status for Telework.");
                     }
+
+                    /// bikin notifikasi untuk ht.
+                    
                     break;
             }
     
@@ -1041,6 +1143,14 @@ class ApiController extends Controller
                     $worktrip->delete();
                 }
                 break;
+
+            case 'leave':
+                $worktrip = Leave::where('presence_id', $id)->first();
+                if ($worktrip) {
+                    $worktrip->statusCommit()->delete();
+                    $worktrip->delete();
+                }
+                break;
     
             case 'WFO':
 
@@ -1082,6 +1192,33 @@ class ApiController extends Controller
     }
 }
 
+//EMERGENCY //BISA
+
+    public function emergencyCheckOut(Request $request)
+{
+    $userId = $request->input('user_id');
+    $currentDate = Carbon::now()->toDateString();  
+
+    $presence = Presence::where('user_id', $userId)
+                            ->where('date', $currentDate)
+                            ->first();
+    
+    if (!$presence) {
+        return response()->json(['message' => 'No presence record found for today.'], 404);
+    }
+    
+    $wasUpdated = $presence->update([
+        'exit_time' => Carbon::now()->toTimeString(),
+        'emergency_description' => $request->input('emergency_description')
+    ]);
+
+    if ($wasUpdated) {
+        return response()->json(['message' => 'Checked out successfully.', 'data' => $presence], 200);
+    } else {
+        return response()->json(['message' => 'Failed to check out.'], 500);
+    }
+}
+
 // APPROVE AND REJECT FUNCTION //BISA
 public function approveReject(Request $request, $id)
 {
@@ -1107,38 +1244,71 @@ public function approveReject(Request $request, $id)
         return response()->json(['errors' => $errors], 400);
     }
 
+    DB::table('status_commits')->where('id', $id)->update([
+        'approver_id' => $request->input('approver_id'),
+        'status' => $request->input('status'),
+        'description' => $request->input('description')
+    ]);
+
     $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
     $statusable = $statusCommit->statusable;
 
-    if ($statusable instanceof Presence) {
-        $statusable->update($request->only(['status', 'description', 'approver_id']));
-        if (in_array($statusable->category, ['work_trip', 'telework']) && 
-            $request->input('status') === 'allowed' && 
-            $statusable->entry_time === '00:00:00') {
-            $statusable->entry_time = $statusable->temporary_entry_time;
-            $statusable->save();
-        }
 
-        $categoryUpdateMap = [
-            'work_trip' => WorkTrip::class,
-            'telework' => Telework::class,
-        ];
-    
-        if (array_key_exists($statusable->category, $categoryUpdateMap)) {
-            $modelClass = $categoryUpdateMap[$statusable->category];
-            $modelInstance = $modelClass::where('presence_id', $statusable->id)->first();
-            if ($modelInstance) {
-                $latestStatusCommit = $modelInstance->statusCommit->sortByDesc('created_at')->first();
-                if ($latestStatusCommit) {
-                    $latestStatusCommit->update($request->only(['status', 'description', 'approver_id']));
-                } else {
-                    $modelInstance->statusCommit()->create($request->only(['status', 'description', 'approver_id']));
+
+    if ($statusable->presence) {
+        $statusable->update($request->only(['status', 'description', 'approver_id','entry_time']));
+        
+        if ($statusable->presence->category == 'work_trip' && $request->input('status') === 'allowed') {
+            
+            $startDate = Carbon::parse($statusable->start_date);
+            $endDate = Carbon::parse($statusable->end_date);
+            $submissionDate = Carbon::parse($statusable->presence->date); 
+        
+            if (!$startDate->equalTo($submissionDate)) {
+                $statusable->presence->delete();
+            }
+            
+            $currentDate = clone $startDate;
+            while ($currentDate->lte($endDate)) {
+                
+                $presenceForCurrentDate = Presence::firstOrNew([
+                    'user_id' => $statusable->user_id,
+                    'date' => $currentDate->toDateString()
+                ]);
+                
+                $presenceForCurrentDate->entry_time = '00:00:00';
+                $presenceForCurrentDate->exit_time = '17:30:00';
+                $presenceForCurrentDate->category = 'work_trip';
+                
+                $presenceForCurrentDate->save();
+                
+                if ($currentDate->equalTo($startDate)) {
+                    $statusable->presence_id = $presenceForCurrentDate->id;
+                    $statusable->save();
                 }
+                
+                $currentDate->addDay();
+            }
+            
+        } elseif ($statusable->presence->category == 'telework' && $request->input('status') === 'allowed') {
+            $submissionDate = Carbon::parse($statusable->presence->date); 
+            $attendanceToday = Presence::where('user_id', $statusable->user_id)
+                                       ->whereDate('date', $submissionDate->toDateString())
+                                       ->first();
+
+            // dd($attendanceToday);
+        
+            if($attendanceToday) {
+                $attendanceToday->update([
+                    'entry_time' => '08:30:00',
+                    'exit_time' => '00:00:00',
+                    'category' => 'telework'
+                ]);
             }
         }
+        
     }
-
-    return response()->json(['message' => 'Approval status saved successfully.'], 200);
+    return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh(), 'absensi' => $statusable->fresh(), 'presence' => $attendanceToday->fresh()], 200);
 }
 
     //---- STAND UP FUNCTION ----\\
@@ -1146,20 +1316,25 @@ public function approveReject(Request $request, $id)
     //FUNCTION GET STAND UP //BISA
 
     public function getStandUp(Request $request){
-        // If an ID is provided and is valid, fetch that user
-        if($request->has('id')) {
-            $user = User::with('employee','standups')->where('id', $request->id)->first();
-            
+        $today = Carbon::today();
+        $lastMonth = Carbon::today()->subMonth();
+    
+        if ($request->has('id')) {
+            $user = User::with('employee', 'standups')->where('id', $request->id)->first();
+    
             if (!$user || !$user->hasRole('employee')) {
                 return response()->json([
                     'status' => 500,
                     'message' => 'Anda tidak memiliki akses sebagai employees.',
                 ]);
             }
-            
-            $query = StandUp::with('user','project','presence')->where('user_id', $request->id);
+    
+            $query = StandUp::with('user', 'project', 'presence')
+                            ->where('user_id', $request->id)
+                            ->whereBetween('created_at', [$lastMonth, $today]);
         } else {
-            $query = StandUp::with('user','project','presence');
+            $query = StandUp::with('user', 'project', 'presence')
+                            ->whereDate('created_at', $today);
         }
         $standUps = $query->orderBy('updated_at', 'desc')->get()
         ->map(function ($standUp) {
@@ -1188,7 +1363,7 @@ public function approveReject(Request $request, $id)
         });
     
         if ($standUps->isEmpty()) {
-            return response()->json(['message' => 'Belum stand up']);
+            return response()->json(['message' => 'Belum ada yang stand up']);
         } else {
             return response()->json(['message' => 'Success', 'data' => $standUps]);
         }
@@ -1369,6 +1544,8 @@ public function storeLeave(Request $request) {
 
         DB::commit();  // Commit the transaction
 
+        /// bikin notifikasi untuk ht.
+
         return response()->json(['message' => 'Success', 'data' => $leave]);
 
     } catch (\Exception $e) {
@@ -1426,8 +1603,11 @@ public function storeLeave(Request $request) {
                 }
                 $leave->presence_id = $presence->id;
                 $leave->save();
+                /// bikin notifikasi untuk ht.
             }
         }
+
+        
     
         return response()->json(['message' => 'Update successful', 'data' => $leave]);
     }

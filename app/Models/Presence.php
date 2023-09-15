@@ -36,4 +36,8 @@ class Presence extends Model
     {
         return $this->hasOne(Leave::class);
     }
+    public function statusCommit()
+    {
+        return $this->morphMany(StatusCommit::class, 'statusable');
+    }
 }
