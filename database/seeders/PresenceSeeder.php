@@ -73,11 +73,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $telework->id;
                 $statusableType = Telework::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
@@ -98,11 +102,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $workTrip->id;
                 $statusableType = WorkTrip::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'leave') {
@@ -126,11 +134,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $leave->id;
                 $statusableType = Leave::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             }
@@ -197,11 +209,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $telework->id;
                 $statusableType = Telework::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
@@ -222,11 +238,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $workTrip->id;
                 $statusableType = WorkTrip::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             } elseif ($category === 'leave') {
@@ -251,11 +271,15 @@ class PresenceSeeder extends Seeder
                 $statusableId = $leave->id;
                 $statusableType = Leave::class;
                 $status = $faker->randomElement(['allowed', 'rejected', 'allowed']);
+                $description = '';
+                if ($status === 'rejected') {
+                    $description = $faker->sentence(1);
+                }
 
                 StatusCommit::create([
                     'statusable_id' => $statusableId,
                     'statusable_type' => $statusableType,
-                    'description' => $faker->sentence,
+                    'description' => $description,
                     'status' => $status,
                 ]);
             }

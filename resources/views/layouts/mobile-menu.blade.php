@@ -13,9 +13,9 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('kehadiran') }}" class="menu {{ Request::is('attendance*') ? 'menu--active' : '' }}">
+            <a href="{{ route('presence') }}" class="menu {{ Request::is('presence*') ? 'menu--active' : '' }}">
                 <div class="menu__icon"> <i data-lucide="users"></i> </div>
-                <div class="menu__title"> Absensi Kehadiran </div>
+                <div class="menu__title"> Presence </div>
             </a>
         </li>
         <li>

@@ -34,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/standup', [HomeController::class, 'standup'])->name('standup');
     Route::get('/standup/export/{year}', [HomeController::class, 'exportStandup'])->name('standup.excel');
 
-    Route::get('/attendance', [PresenceController::class, 'index'])->name('kehadiran');
+    Route::get('/presence', [PresenceController::class, 'index'])->name('presence');
     Route::get('/attendance/export/{year}', [PresenceController::class, 'exportExcel'])->name('presence.excel');
 
     Route::prefix('division')->group(function () {

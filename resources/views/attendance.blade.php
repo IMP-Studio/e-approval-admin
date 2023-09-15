@@ -65,7 +65,7 @@
                             {{ $item->user->name }}
                         </td>
                         <td class="text-center capitalize">
-                            {{ $item['user']['employee']['position']['name'] }}
+                            {{ $item->entry_time }}
                         </td>
                         <td class="text-center capitalize">
                             {{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}
