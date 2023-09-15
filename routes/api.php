@@ -56,3 +56,6 @@ Route::get('/profile', [ApiController::class, 'getProfile']);
 Route::post('/sendotp', [ApiController::class, 'getOtp']);
 Route::post('/verifyotp', [ApiController::class, 'verifyotp']);
 route::post('/resetPasswordOtp', [ApiController::class, 'changePasswordAfterOtpVerification']);
+
+// change password withoutotp
+Route::post('/resetPasswordWithoutOtp', [ApiController::class, 'changePasswordWithoutOtpVerification']);

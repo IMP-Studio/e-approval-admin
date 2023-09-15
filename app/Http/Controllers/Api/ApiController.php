@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -29,6 +30,49 @@ use Illuminate\Support\Facades\Validator;
 
 class ApiController extends Controller
 {
+
+    ///----- Send Notification bar ------\\\\\
+
+    public function sendCheckinNotification()
+    {
+        $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
+        $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
+
+
+        // Kirim notifikasi ke OneSignal
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $onesignalApiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://onesignal.com/api/v1/notifications', [
+            'app_id' => $appId,
+            'included_segments' => ['All'],
+            'template_id' => "b30d717a-2ab7-459c-8a33-a6a78bfac405",
+        ]);
+
+        return response()->json(['message' => 'Notification sent']);
+    }
+
+    // belum fix
+    public function sendCheckOutNotification()
+    {
+        $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
+        $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
+
+
+        // Kirim notifikasi ke OneSignal
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . $onesignalApiKey,
+            'Content-Type' => 'application/json',
+        ])->post('https://onesignal.com/api/v1/notifications', [
+            'app_id' => $appId,
+            'included_segments' => ['All'],
+            'template_id' => "b30d717a-2ab7-459c-8a33-a6a78bfac405",
+        ]);
+
+        return response()->json(['message' => 'Notification sent']);
+    }
+    ///----- Send Notification bar end ------\\\\\
+
 
       //---- ForgetPassword otp FUNCTION ----\\ 
 
