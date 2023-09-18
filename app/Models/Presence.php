@@ -22,7 +22,7 @@ class Presence extends Model
     }
     public function standup()
     {
-        return $this->belongsTo(Standup::class);
+        return $this->hasMany(Standup::class);
     }
     public function telework()
     {
