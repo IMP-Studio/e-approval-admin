@@ -560,7 +560,7 @@ class ApiController extends Controller
     public function getPresence(Request $request) {
         $loggedInUserId = $request->id;
         $scope = $request->query('scope');
-
+        $requestedPermissions = $request->has('permission') ? explode(',', $request->permission) : [];
     
         $user = User::with('employee', 'standups')->where('id', $loggedInUserId)->first();
         $permissionName = $user->getPermissionNames()->first();
@@ -619,14 +619,24 @@ class ApiController extends Controller
             });
         }
 
-        function getLevelDescription($level) {
-            switch ($level) {
-                case 1  :
+        if (!empty($requestedPermissions)) {
+            $presenceQuery->whereHas('user', function ($query) use ($requestedPermissions) {
+                $query->whereHas('permissions', function ($innerQuery) use ($requestedPermissions) {
+                    $innerQuery->whereIn('name', $requestedPermissions);
+                });
+            });
+        }        
+
+        function getLevelDescription($permission_level) {
+            switch ($permission_level) {
+                case 'head_of_tribe':
                     return 'Head of Tribe';
-                case 2:
+                case 'human_resource':
                     return 'Human Resource';
-                case 3:
+                case 'president':
                     return 'President';
+                default:
+                    return 'Unknown'; 
             }
         }
     
@@ -639,8 +649,9 @@ class ApiController extends Controller
                 $data = [
                     'id' => $presence->id,
                     'user_id' => $presence->user_id,
-                    'nama_lengkap' => $nama_lengkap,
+                    'nama_lengkap' => $nama_lengkap,    
                     'posisi' => $presence->user->employee->position->name,
+                    'permission' => $presence->user->getPermissionNames()->first() ?? null,
                     'category' => $presence->category,
                     'entry_time' => $presence->entry_time,
                     'exit_time' => $presence->exit_time,
@@ -1315,10 +1326,12 @@ public function approveReject(Request $request, $id)
 
     //FUNCTION GET STAND UP //BISA
 
-    public function getStandUp(Request $request){
+    public function getStandUp(Request $request) {
+        $endOfToday = Carbon::today()->endOfDay();
         $today = Carbon::today();
-        $lastMonth = Carbon::today()->subMonth();
+        $startOfLastMonth = Carbon::today()->subMonth()->startOfDay();
     
+        // Query to fetch StandUp data for a specific user
         if ($request->has('id')) {
             $user = User::with('employee', 'standups')->where('id', $request->id)->first();
     
@@ -1330,14 +1343,17 @@ public function approveReject(Request $request, $id)
             }
     
             $query = StandUp::with('user', 'project', 'presence')
-                            ->where('user_id', $request->id)
-                            ->whereBetween('created_at', [$lastMonth, $today]);
+            ->where('user_id', $request->id)
+            ->whereBetween('created_at', [$startOfLastMonth, $endOfToday]);
         } else {
             $query = StandUp::with('user', 'project', 'presence')
                             ->whereDate('created_at', $today);
         }
-        $standUps = $query->orderBy('updated_at', 'desc')->get()
-        ->map(function ($standUp) {
+    
+        $standUps = $query->orderBy('updated_at', 'desc')->get();
+    
+        // Process the standups
+        $processedStandUps = $standUps->map(function ($standUp) {
             $dateTime = new \DateTime($standUp->created_at);
             $jam = $dateTime->format('H:m A');
             $nama_lengkap = '';
@@ -1362,12 +1378,13 @@ public function approveReject(Request $request, $id)
             ];
         });
     
-        if ($standUps->isEmpty()) {
+        if ($processedStandUps->isEmpty()) {
             return response()->json(['message' => 'Belum ada yang stand up']);
         } else {
-            return response()->json(['message' => 'Success', 'data' => $standUps]);
+            return response()->json(['message' => 'Success', 'data' => $processedStandUps]);
         }
     }
+    
     
 
     public function getProject(Request $request){
@@ -1641,17 +1658,8 @@ public function storeLeave(Request $request) {
     //---- PROFILE FUNCTION ----\\
 
     public function getProfile(Request $request){
-        $user = User::with('employee','standups')->where('id', $request->id)->first();
-      
-    
-        if (!$user) {
-            return response()->json([
-                'status' => 400,
-                'message' => 'User not found.',
-            ]);
-        }
 
-            $employee = employee::with('user','division','position')->where('user_id', $request->id)->orderBy('updated_at', 'desc')->get()
+            $employee = Employee::with('user','division','position')->where('user_id', $request->user_id)->orderBy('updated_at', 'desc')->get()
             ->map(function ($employee) {
                 $nama_lengkap = $employee->first_name .' '. $employee->last_name;
     
@@ -1687,7 +1695,7 @@ public function storeLeave(Request $request) {
             });
     
             if ($employee->isEmpty()) {
-                return response()->json(['message' => 'Belum absensi atau status absensi belum diterima']);
+                return response()->json(['message' => 'Bukan employee']);
             } else {
                 return response()->json(['message' => 'Success', 'data' => $employee]);
             }
