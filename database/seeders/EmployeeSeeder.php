@@ -84,7 +84,7 @@ class EmployeeSeeder extends Seeder
 
             $user = User::create([
               'name' => $username,
-              'email' => $faker->unique()->safeEmail(),
+              'email' =>  strtolower($firstName . $lastName) . '@gmail.com',
               'password' => bcrypt('password@123')
             ]);
             $userId = $user->id;
