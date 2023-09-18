@@ -911,14 +911,23 @@ class ApiController extends Controller
                     }
         }
     
-        if ($presence->standup) {
-            $data['standup_id'] = $presence->standup->id;
-                    $data['done'] = $presence->standup->done;
-                    $data['doing'] = $presence->standup->doing;
-                    $data['blocker'] = $presence->standup->blocker;
-                    $data['project'] = $presence->standup->project_id;
-                    $data['project_name'] = $presence->standup->project->name;
-                    $data['partner'] = $presence->standup->project->partnername;
+        $standups = $presence->standup->map(function ($standup) {
+            return [
+                'standup_id' => $standup->id,
+                'presence_id' => $standup->presence_id, // Assuming this exists
+                'done' => $standup->done,
+                'doing' => $standup->doing,
+                'blocker' => $standup->blocker,
+                'project' => $standup->project_id,
+                'project_name' => $standup->project->name,
+                'partner' => $standup->project->partnername, // Assuming this exists
+            ];
+        })->toArray();
+        
+        if (count($standups) == 1) {
+            $data['standups'] = $standups[0];
+        } else {
+            $data['standups'] = $standups;
         }
 
         if (isset($mostRecentStatus) && $mostRecentStatus) {
