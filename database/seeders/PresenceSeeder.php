@@ -5,16 +5,17 @@ namespace Database\Seeders;
 use DateTimeZone;
 use Carbon\Carbon;
 use App\Models\Leave;
+use App\Models\StandUp;
 use App\Models\Perjadin;
 use App\Models\Presence;
 use App\Models\Telework;
 use App\Models\WorkTrip;
+use App\Models\LeaveDetail;
 use App\Models\LeaveStatus;
-use App\Models\StandUp;
+use Faker\Factory as Faker;
 use App\Models\StatusCommit;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Faker\Factory as Faker;
 
 
 class PresenceSeeder extends Seeder
@@ -114,22 +115,24 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             } elseif ($category === 'leave') {
-                $start_date = $presenceDate->addDays(2)->toDateString();
-                $end_date = $presenceDate->addDays(random_int(2, 4))->toDateString();
-                $entry_date = $presenceDate->addDays(random_int(1, 2))->toDateString();
-                $total_leave_days = Carbon::parse($start_date)->diffInDays($end_date) + 1;
+                $start_date = Carbon::now()->setTimezone('Asia/Jakarta');
+                    $submission_date = Carbon::now()->setTimezone('Asia/Jakarta')->subDays($faker->numberBetween(1,2));
 
-                $leave = Leave::create([
-                    'user_id' => $users_id,
-                    'presence_id' => $presenceId,
-                    'submission_date' => $date,
-                    'type' => $faker->randomElement(['yearly','exclusive','emergency']),
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'total_leave_days' => $total_leave_days,
-                    'type_description' => $faker->sentence(random_int(3,5)),
-                    'entry_date' => $entry_date,
-                ]);
+                    $randomLeaveDetail = LeaveDetail::inRandomOrder()->first();
+                    
+                    $end_date = $start_date->copy()->addDays($randomLeaveDetail->days - 1); 
+                    $entry_date = $end_date->copy()->addDays(random_int(1, 2));
+                
+                    $leave = Leave::create([
+                        'user_id' => $users_id,
+                        'presence_id' => $presenceId,
+                        'submission_date' => $submission_date,
+                        'leave_detail_id' => $randomLeaveDetail->id,
+                        'start_date' => $start_date,
+                        'end_date' => $end_date,
+                        'total_leave_days' => $randomLeaveDetail->days,
+                        'entry_date' => $entry_date,
+                    ]);
 
                 $statusableId = $leave->id;
                 $statusableType = Leave::class;
@@ -249,24 +252,26 @@ class PresenceSeeder extends Seeder
                     'description' => $description,
                     'status' => $status,
                 ]);
+                
             } elseif ($category === 'leave') {
                 $start_date = Carbon::now()->setTimezone('Asia/Jakarta');
-                $submission_date = Carbon::now()->setTimezone('Asia/Jakarta')->subDays($faker->numberBetween(1,2));
-                $end_date = $date->addDays(random_int(2, 4))->toDateString();
-                $entry_date = $date->addDays(random_int(1, 2))->toDateString();
-                $total_leave_days = $start_date->diffInDays($end_date) + 2;
-
-                $leave = Leave::create([
-                    'user_id' => $user_id,
-                    'presence_id' => $presenceId,
-                    'submission_date' => $submission_date,
-                    'type' => $faker->randomElement(['yearly', 'exclusive', 'emergency']),
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'total_leave_days' => $total_leave_days,
-                    'type_description' => $faker->sentence(random_int(3, 5)),
-                    'entry_date' => $entry_date,
-                ]);
+                    $submission_date = Carbon::now()->setTimezone('Asia/Jakarta')->subDays($faker->numberBetween(1,2));
+                
+                    $randomLeaveDetail = LeaveDetail::inRandomOrder()->first();
+                    
+                    $end_date = $start_date->copy()->addDays($randomLeaveDetail->days - 1); // Adjust this as necessary
+                    $entry_date = $end_date->copy()->addDays(random_int(1, 2));
+                
+                    $leave = Leave::create([
+                        'user_id' => $user_id,
+                        'presence_id' => $presenceId,
+                        'submission_date' => $submission_date,
+                        'leave_detail_id' => $randomLeaveDetail->id,
+                        'start_date' => $start_date,
+                        'end_date' => $end_date,
+                        'total_leave_days' => $randomLeaveDetail->days,
+                        'entry_date' => $entry_date,
+                    ]);
 
                 $statusableId = $leave->id;
                 $statusableType = Leave::class;

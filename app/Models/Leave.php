@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Leave extends Model
 {
-    use HasFactory,SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $guarded = ['id'];
 
@@ -21,6 +21,10 @@ class Leave extends Model
     {
         return $this->belongsTo(Presence::class);
     }
+    public function leavedetail()
+{
+    return $this->belongsTo(LeaveDetail::class, 'leave_detail_id', 'id');
+}
     public function statusCommit()
     {
         return $this->morphMany(StatusCommit::class, 'statusable');
