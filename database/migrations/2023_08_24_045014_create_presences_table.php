@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->enum('category',['telework','WFO','work_trip','leave']);
+            $table->enum('category',['telework','WFO','work_trip','leave','skip']);
             $table->time('entry_time');
             $table->time('temporary_entry_time')->nullable();
             $table->time('exit_time')->default('00:00:00');
