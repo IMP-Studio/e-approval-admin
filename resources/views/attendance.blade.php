@@ -25,7 +25,7 @@
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
-                    <input type="text" class="form-control w-56 box pr-10" placeholder="Search...">
+                    <input type="text" class="form-control w-56 box pr-10" id="search" placeholder="Search...">
                     <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                 </div>
             </div>
@@ -43,7 +43,7 @@
                         <th class="text-center whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody> 
                     @foreach ($presenceData as $item)
 
                     <tr class="intro-x h-16">
@@ -74,6 +74,10 @@
                             <div class="flex justify-center items-center">
                                 <a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-{{$item->id}}-modal">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                </a>
+                                
+                                <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
+                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
                                 </a>
                             </div>
                         </td>
@@ -191,6 +195,30 @@
                         </div>
                     </div>
 
+                    <div id="delete-confirmation-modal-{{ $item->id }}" class="modal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form id="delete-form" method="POST" action="{{ route('presence.destroy',$item->id) }}">
+                                    @csrf
+                                    @method('delete')
+                                    <div class="modal-body p-0">
+                                        <div class="p-5 text-center">
+                                            <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                                            <div class="text-3xl mt-5">Are you sure?</div>
+                                            <div class="text-slate-500 mt-2">
+                                                Please type the username "{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}" of the data to confrim.
+                                            </div>
+                                             <input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
+                                        </div>
+                                        <div class="px-5 pb-8 text-center">
+                                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                                            <button type="submit" class="btn btn-danger w-24">Delete</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     @endforeach
 
 
@@ -212,4 +240,21 @@
         </div>
     </div>
 </div>
+
+
+<script type="text/javascript">
+   jQuery(document).ready(function($) {
+            $('#search').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('presence') }}',
+                    data: { query: query },
+                    success: function(data) {
+                        $('tbody').html(data);
+                    }
+                });
+            });
+        });
+</script>
 @endsection

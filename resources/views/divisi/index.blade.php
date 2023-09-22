@@ -33,7 +33,7 @@
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
-                    <input type="text" class="form-control w-56 box pr-10" placeholder="Search...">
+                    <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="search">
                     <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                 </div>
             </div>
@@ -66,9 +66,18 @@
                                     <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                 </a>
 
+                                <a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="{{ $item->id }}" data-DivisiName="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
+                                    <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit search
+                                </a>
+
                                 <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
                                 </a>
+
+                                <a class="flex items-center text-danger delete-divisi-modal-search" data-DeleteDivisiId="{{ $item->id }}" data-DeleteDivisiName="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
+                                    Delete search
+                                </a>
+                                
                             </div>
                         </td>
                     </tr>
@@ -107,10 +116,9 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->name }}?
-                                                <br>
-                                                This process cannot be undone.
+                                                Please type the Divisi name "{{ $item->name }}" of the data to confrim.
                                             </div>
+                                             <input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="Divisi name" required>
                                         </div>
                                         <div class="px-5 pb-8 text-center">
                                             <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
@@ -190,7 +198,99 @@
         </div>
     </div>
 
+    {{-- delete modal search--}}
+    <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="delete-form-search" method="POST" action="">
+                    @csrf
+                    @method('delete')
+                    <div class="modal-body p-0">
+                        <div class="p-5 text-center">
+                            <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                            <div class="text-3xl mt-5">Are you sure?</div>
+                            <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            </div>
+                            <input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
+                        </div>
+                        <div class="px-5 pb-8 text-center">
+                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                            <button type="submit" class="btn btn-danger w-24">Delete</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{-- delete modal search end --}}
 
+    {{-- edit modal search --}}
+    <div id="modal-edit-divisi-search" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                </div>
+                <form id="edit-form-divisi-search" method="POST" action="">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                        <div class="col-span-12">
+                            <label class="form-label">Nama Divisi</label>
+                            <input id="edit-modal-DivisiName"  value="" name="divisi" type="text" class="form-control" placeholder="nama divisi">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-primary w-20">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{-- Modal edit search end --}}
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+                $('#search').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                type: 'GET',
+                url: '{{ route('divisi') }}',
+                data: { query: query },
+                success: function(data) {
+                $('tbody').html(data);
+                }
+            });
+        });
+    });
+
+    $(document).on("click", ".edit-modal-divisi-search-class", function () {
+            var EditModalid = $(this).attr('data-Divisiid');
+            var EditModalDivisiName = $(this).attr('data-DivisiName');
+
+
+    
+            console.log(EditModalDivisiName);
+            var formAction;
+            formAction = '{{ route("divisi.update",":id") }}'.replace(':id', EditModalid);
+            
+            $("#edit-modal-DivisiName").attr('value', EditModalDivisiName);
+            $("#edit-form-divisi-search").attr('action', formAction);
+    });
+
+    $(document).on("click", ".delete-divisi-modal-search", function () {
+            var DeleteDivisiModalid = $(this).attr('data-DeleteDivisiId');
+            var DeleteDivisiModalName = $(this).attr('data-DeleteDivisiName');
+
+
+    
+            var formAction;
+            formAction = '{{ route("divisi.destroy",":id") }}'.replace(':id', DeleteDivisiModalid);
+
+            $("#subjuduldelete-confirmation").text('Please type the Divisi name "'+ DeleteDivisiModalName +'" of the data to confrim.');
+            $("#delete-form-search").attr('action', formAction);
+        });
+</script>
 @endsection
 
 

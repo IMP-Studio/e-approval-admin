@@ -37,6 +37,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/presence', [PresenceController::class, 'index'])->name('presence');
     Route::get('/attendance/export/{year}', [PresenceController::class, 'exportExcel'])->name('presence.excel');
 
+    Route::prefix('presence')->group(function () {
+        Route::delete('/destroy/{id}', [PresenceController::class, 'destroy'])->name('presence.destroy');
+    });
+
+    Route::prefix('standup')->group(function(){
+        Route::delete('/destroy/{id}', [HomeController::class, 'destroy'])->name('standup.destroy');
+    });
+
     Route::prefix('division')->group(function () {
         Route::get('/', [DivisionController::class, 'index'])->name('divisi');
         Route::get('/create', [DivisionController::class, 'create'])->name('divisi.create');

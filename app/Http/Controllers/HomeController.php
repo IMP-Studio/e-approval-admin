@@ -255,6 +255,123 @@ class HomeController extends Controller
         $perPage = 5;
         $currentPage = $request->input('page', 1);
 
+        if ($request->ajax()) {
+            $query = $request->input('query');
+            $gabungData = $gabungData->filter(function ($item) use ($query) {
+                return stripos($item->user->name, $query) !== false;
+            });
+
+            $perPage = 5;
+            $currentPage = $request->input('page', 1);
+            
+
+            $standup_today = new LengthAwarePaginator(
+                $gabungData->forPage($currentPage, $perPage),
+                $gabungData->count(),
+                $perPage,
+                $currentPage
+            );
+            
+            $standup_today->setPath('');
+
+            $output = '';
+            $iteration = 0; 
+
+            foreach ($standup_today as $item) {
+                $iteration++;
+        
+                $output .= '<tr class="intro-x h-16">' .
+                    '<td class="w-4 text-center">' .
+                    $iteration .
+                    '</td>' .
+                    '<td class="w-50 text-center">' .
+                    $item->user->name .
+                    '</td>' .
+                    '<td class="text-center capitalize">' .
+                    $item->user->employee->position->name .
+                    '</td>' .
+                    '<td class="text-start">' .
+                    $item->project->name .
+                    '</td>' .
+                    '<td class="text-center">' .
+                    $item->doing .
+                    '</td>' .
+                    '<td class="w-40 text-center text-warning">' .
+                    ($item->blocker ? $item->blocker : "-") .
+                    '</td>' .
+                    '<td class="table-report__action w-56">' .
+                    '<div class="flex justify-center items-center">' .
+                    '<a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-' . $item->id . '-modal">' .
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail' .
+                    '</a>' .
+                    '<a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-' . $item->id . '">' .
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Delete' .
+                    '</a>' .        
+                    '</div>' .
+                    '</td>' .
+                    '</tr>' .
+                    
+                    '<div id="detail-' . $item->id . '-modal" class="modal" tabindex="-1" aria-hidden="true">' .
+                    '<div class="modal-dialog modal-lg">' .
+                    '<div class="modal-content">' .
+                    '<div class="modal-header">' .
+                    '<h1 class="font-medium text-base mx-auto">Detail Standup ' . $item->user->name . '</h1>' .
+                    '</div>' .
+                    '<div class="modal-body grid grid-cols-12 gap-4 gap-y-3">' .
+                    '<div class="col-span-12">' .
+                    '<label for="modal-form-1" class="form-label">Done :</label>' .
+                    '<textarea disabled name="" class="form-control" id="" rows="3">' . $item->done . '</textarea>' .
+                    '</div>' .
+                    '<div class="col-span-12">' .
+                    '<label for="modal-form-2" class="form-label">Doing :</label>' .
+                    '<textarea disabled name="" class="form-control" id="" rows="3">' . $item->doing . '</textarea>' .
+                    '</div>';
+        
+                if ($item->blocker) {
+                    $output .=
+                        '<div class="col-span-12">' .
+                        '<label for="modal-form-2" class="form-label">Blocker :</label>' .
+                        '<textarea disabled name="" class="form-control" id="" rows="3">' . $item->blocker . '</textarea>' .
+                        '</div>';
+                }
+        
+                $output .=
+                    '</div>' .
+                    '</div>' .
+                    '</div>' .
+                    '</div>' .
+                    
+                    '<div id="delete-confirmation-modal-' . $item->id . '" class="modal" tabindex="-1" aria-hidden="true">' .
+                    '<div class="modal-dialog">' .
+                    '<div class="modal-content">' .
+                    '<form id="delete-form" method="POST" action="' . route('standup.destroy', $item->id) . '">' .
+                    csrf_field() .
+                    method_field('delete') .
+                    '<div class="modal-body p-0">' .
+                    '<div class="p-5 text-center">' .
+                    '<i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>' .
+                    '<div class="text-3xl mt-5">Are you sure?</div>' .
+                    '<div class="text-slate-500 mt-2">' .
+                    'Please type the username "' . $item->user->employee->first_name . ' ' . $item->user->employee->last_name . '" of the data to confirm.' .
+                    '</div>' .
+                    '<input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>' .
+                    '</div>' .
+                    '<div class="px-5 pb-8 text-center">' .
+                    '<button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>' .
+                    '<button type="submit" class="btn btn-danger w-24">Delete</button>' .
+                    '</div>' .
+                    '</div>' .
+                    '</form>' .
+                    '</div>' .
+                    '</div>' .
+                    '</div>';
+            }
+
+
+            return response($output);
+
+        }
+
         $standup_today = new LengthAwarePaginator(
             $gabungData->forPage($currentPage, $perPage),
             $gabungData->count(),
@@ -280,5 +397,20 @@ class HomeController extends Controller
     {
         $divisi = Division::all();
         return view('divisi.boy', compact('divisi'));
+    }
+
+    public function destroy($id, Request $request)
+    {
+        $standup = StandUp::findOrFail($id);
+
+        $inputName= $request->input('validName');
+
+        if($inputName === $standup->user->name){
+            $standup->delete();
+            $namapresence = $standup->user->name;
+            return redirect()->back()->with(['delete' => "$namapresence deleted successfully"]);
+        }else{
+            return redirect()->back()->with(['error' => 'Username salah']);
+        }
     }
 }

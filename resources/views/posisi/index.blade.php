@@ -33,7 +33,7 @@
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
-                    <input type="text" class="form-control w-56 box pr-10" placeholder="Search...">
+                    <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchPosition">
                     <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                 </div>
             </div>
@@ -117,10 +117,9 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->name }}?
-                                                <br>
-                                                This process cannot be undone.
+                                                Please type the username "{{ $item->name }}" of the data to confrim.
                                             </div>
+                                             <input name="validNamePosisi" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
                                         </div>
                                         <div class="px-5 pb-8 text-center">
                                             <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
@@ -209,7 +208,110 @@
         </div>
     </div>
 
+    {{-- edit modal live search --}}
+    <div id="modal-edit-position-search" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                </div>
+                <form id="edit-form-search" method="POST" action="">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                        <div class="col-span-12">
+                            <label for="modal-form-1" class="form-label">Nama Divisi</label>
+                            <select name="division_id" class="tom-select w-full" id="modal-form-1">
+                                @foreach ($divisi as $itemDivisi)
+                                <option value="{{ $itemDivisi->id }}" {{ $itemDivisi->id == $item->division_id ? 'selected' : '' }}>
+                                    {{ $itemDivisi->name }}
+                                </option>
+                               @endforeach
+                            </select>
+                        </div>
+                        <div class="col-span-12">
+                            <label class="form-label">Nama Posisi</label>
+                            <input id="edit-modal-PositionName" value="" name="name" type="text" class="form-control" placeholder="nama divisi">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-primary w-20">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{-- edit modal live search end --}}
 
+    {{-- delete modal live search --}}
+    <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="delete-form-search" method="POST" action="">
+                    @csrf
+                    @method('delete')
+                    <div class="modal-body p-0">
+                        <div class="p-5 text-center">
+                            <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                            <div class="text-3xl mt-5">Are you sure?</div>
+                            <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            </div>
+                            <input name="validNameEmployee" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
+                        </div>
+                        <div class="px-5 pb-8 text-center">
+                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                            <button type="submit" class="btn btn-danger w-24">Delete</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {{-- delete modal live search end --}}
+
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+                    $('#searchPosition').on('keyup', function() {
+                    var query = $(this).val();
+                    $.ajax({
+                    type: 'GET',
+                    url: '{{ route('position') }}',
+                    data: { query: query },
+                    success: function(data) {
+                    $('tbody').html(data);
+                    }
+                });
+            });
+        });
+
+        $(document).on("click", ".edit-modal-search-class", function () {
+            var EditModalid = $(this).attr('data-Positionid');
+            var EditModalPositionName = $(this).attr('data-PositionName');
+
+
+    
+            console.log(EditModalPositionName);
+            var formAction;
+            formAction = '{{ route("position.update",":id") }}'.replace(':id', EditModalid);
+            
+            $("#edit-modal-PositionName").attr('value', EditModalPositionName);
+            $("#edit-form-search").attr('action', formAction);
+        });
+        
+        $(document).on("click", ".delete-modal-search", function () {
+            var DeleteModalid = $(this).attr('data-id');
+            var DeleteModalName = $(this).attr('data-name');
+
+
+    
+            var formAction;
+            formAction = '{{ route("position.destroy",":id") }}'.replace(':id', DeleteModalid);
+
+            $("#subjuduldelete-confirmation").text('Please type the username "'+ DeleteModalName +'" of the data to confrim.');
+            $("#delete-form-search").attr('action', formAction);
+        });
+    </script>
 @endsection
 
 

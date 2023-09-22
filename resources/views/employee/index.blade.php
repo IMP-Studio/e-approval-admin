@@ -33,7 +33,7 @@
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
-                    <input type="text" id="search" class="form-control w-56 pr-10" placeholder="Search...">
+                    <input type="text" class="form-control w-56 pr-10" placeholder="Search..." id="searchEmployee">
                     <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                 </div>
             </div>
@@ -53,8 +53,10 @@
                     </tr>
                 </thead>
                 <tbody id="result">
+                    @if(request()->has('searchEmployee'))
+                    @else
                     @foreach ($employee as $item)
-                    <tr class="intro-x h-16" id="data-search">
+                    <tr class="intro-x h-16" id="data-search-{{ $item->id }}">
                         <td class="w-4 text-center">
                             {{ $loop->iteration }}.
                         </td>
@@ -116,10 +118,9 @@
                                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                             <div class="text-3xl mt-5">Are you sure?</div>
                                             <div class="text-slate-500 mt-2">
-                                                Do you really want to delete {{ $item->first_name }}?
-                                                <br>
-                                                This process cannot be undone.
+                                                Please type the username "{{ $item->first_name }} {{ $item->last_name }}" of the data to confrim.
                                             </div>
+                                            <input name="validNameEmployee" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
                                         </div>
                                         <div class="px-5 pb-8 text-center">
                                             <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
@@ -150,42 +151,43 @@
                                         </div>
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->first_name }}">
+                                        <label  class="text-xs">Firstname :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->first_name }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->last_name }}">
+                                        <label class="text-xs">Lastname :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->last_name }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Staff Id :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->id_number }}">
+                                        <label  class="text-xs">Staff Id :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->id_number }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Gender :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->gender }}">
+                                        <label class="text-xs">Gender :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->gender }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Divisi :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->division->name }}">
+                                        <label  class="text-xs">Divisi :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->division->name }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Posisi :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{$item->position->name}}">
+                                        <label class="text-xs">Posisi :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{$item->position->name}}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Address :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->address }}">
+                                        <label  class="text-xs">Address :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->address }}">
                                     </div>
                                     <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Date of Birth :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->birth_date }}">
+                                        <label class="text-xs">Date of Birth :</label>
+                                        <input disabled id="" type="text" class="form-control" value="{{ $item->birth_date }}">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     @endforeach
+                    @endif
                 </tbody>
             </table>
             @if ($employee->count() > 0)
@@ -232,6 +234,146 @@
     </div>
 </div>
 
+{{-- delete modal live search --}}
+<div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="delete-form-search" method="POST" action="">
+                @csrf
+                @method('delete')
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                        </div>
+                        <input name="validNameEmployee" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-danger w-24">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{-- delete modal live search end --}}
+
+{{-- show modallive search --}}
+<div id="show-modal-search" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="font-medium text-lg mx-auto" id="show-detailName"></h2>
+            </div>
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="col-span-12 mx-auto">
+                    <div class="w-24 h-24 image-fit zoom-in">
+                            <img id="show-modal-image" class="tooltip rounded-full" src="">
+                    </div>
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label  class="text-xs">Firstname :</label>
+                    <input disabled id="show-firstname" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Lastname :</label>
+                    <input disabled id="Show-LastName"" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label  class="text-xs">Staff Id :</label>
+                    <input disabled id="Show-StafId" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Gender :</label>
+                    <input disabled id="Show-Gender" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label  class="text-xs">Divisi :</label>
+                    <input disabled id="Show-Divisi" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Posisi :</label>
+                    <input disabled id="Show-Posisi" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label  class="text-xs">Address :</label>
+                    <input disabled id="Show-Address" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Date of Birth :</label>
+                    <input disabled id="Show-BirthDate" type="text" class="form-control" value="">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- end show modal --}}
+
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+                $('#searchEmployee').on('keyup', function() {
+                    var query = $(this).val();
+                    $.ajax({
+                        type: 'GET',
+                        url: '{{ route('employee') }}',
+                        data: { query: query },
+                        success: function(data) {
+                         $('#result').html(data);
+                        }
+                     });
+                 });
+    });
+
+    $(document).on("click", ".delete-modal-search", function () {
+        var DeleteModalid = $(this).attr('data-id');
+        var DeleteModalName = $(this).attr('data-name');
+
+
+    
+        var formAction;
+        formAction = '{{ route("employee.destroy", ":id") }}'.replace(':id', DeleteModalid);
+
+        $("#subjuduldelete-confirmation").text('Please type the username "'+ DeleteModalName +'" of the data to confrim.');
+        $("#delete-form-search").attr('action', formAction);
+    });
+
+    $(document).on("click", ".show-modal-search", function () {
+        var showitemid = $(this).attr('data-name');
+        var showAvatar = $(this).attr('data-avatar');
+        var ShowGender = $(this).attr('data-gender');
+        var ShowFirstname = $(this).attr('data-firstname');
+        var ShowLastName = $(this).attr('data-LastName');
+        var ShowStafId = $(this).attr('data-stafId');
+        var ShowDivisi = $(this).attr('data-Divisi');
+        var ShowPosisi = $(this).attr('data-Posisi');
+        var ShowAddress = $(this).attr('data-Address');
+        var ShowBirthDate = $(this).attr('data-BirthDate');
+
+
+        var imgSrc;
+        if(showAvatar){
+            imgSrc = '{{ asset('storage/'.$item->avatar) }}';
+        }else if(ShowGender == 'male'){
+            imgSrc = '{{ asset('images/default-boy.jpg') }}';
+        }else if(ShowGender == 'female'){
+            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        }
+
+        $("#show-detailName").text('Detail ' + showitemid);
+        $("#show-modal-image").attr('src', imgSrc);
+        $("#show-firstname").attr('value', ShowFirstname);
+        $("#Show-LastName").attr('value', ShowLastName);
+        $("#Show-StafId").attr('value', ShowStafId);
+        $("#Show-Gender").attr('value', ShowGender);
+
+        $("#Show-Divisi").attr('value', ShowDivisi);
+        $("#Show-Posisi").attr('value', ShowPosisi);
+        $("#Show-Address").attr('value', ShowAddress);
+        $("#Show-BirthDate").attr('value', ShowBirthDate);
+    });
+</script>
 @endsection
 
 
