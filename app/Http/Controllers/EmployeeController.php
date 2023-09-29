@@ -57,7 +57,7 @@ class EmployeeController extends Controller
             
                 $output .= '</div>
                     </td>
-                    <td class="w-50 text-center">' . $item->user->name . ' '. $item->id .'</td>
+                    <td class="w-50 text-center">' . $item->user->name . '</td>
                     <td class="text-center">' . $item->id_number . '</td>
                     <td class="text-center capitalize">' . ($item->position ? $item->position->name : '-') . '</td>
                     <td class="w-40">
@@ -95,7 +95,6 @@ class EmployeeController extends Controller
 
         }else {
             $employee = Employee::paginate(5);
-            
             return view('employee.index',compact('employee'));
         }
 
@@ -116,13 +115,19 @@ class EmployeeController extends Controller
     {
         try {
             $input = $request->all();
-
-            if ($image = $request->file('avatar')) {
+            
+            
+            if ($request->hasFile('avatar')) {
+                $image = $request->file('avatar');
                 $destinationPath = 'storage/';
                 $profileImage = $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
                 $input['avatar'] = $profileImage;
+            } else {
+                // Jika input 'avatar' tidak diisi, atur nilai 'avatar' menjadi null atau sesuai kebijakan Anda.
+                $input['avatar'] = null;
             }
+            
             $birthDate = Carbon::createFromFormat('d M, Y', $input['birth_date'])->format('Y-m-d');
             $user = User::create([
                 'name' => $input['first_name'] . ' ' . $input['last_name'],
@@ -143,7 +148,6 @@ class EmployeeController extends Controller
                 'birth_date' => $birthDate,
                 'is_active' => true
             ]);
-
             $user_name = $user->firstname;
             return redirect()->route('employee')->with(['success' => "$user_name added successfully"]);
         } catch (\Throwable $th) {

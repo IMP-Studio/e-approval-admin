@@ -66,9 +66,14 @@
                                     <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                 </a>
 
+                                <a data-presenceId="{{ $item->id }}" class="mr-3 flex items-center text-success detail-presence-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">
+                                    <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                </a>
+
                                 <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
                                 </a>
+
                             </div>
                         </td>
                     </tr>
@@ -208,6 +213,36 @@
         </div>
     </div>
 
+    {{-- detail modal position --}}
+    <div id="detail-division-modal" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-lg mx-auto">Detail Position</h2>
+                </div>
+                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                </div>
+                <table id="table" class="table table-report -mt-2">
+                    <thead>
+                        <tr>
+                            <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Id number</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Divisi</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Gender</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Address</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Birth Date</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Status</th>
+                        </tr>
+                    </thead>
+                        <tbody id="positionList">
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+    </div>
+    {{-- detail modal position end --}}
+
     {{-- edit modal live search --}}
     <div id="modal-edit-position-search" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -282,6 +317,39 @@
                     $('tbody').html(data);
                     }
                 });
+            });
+        });
+
+        $(document).on("click", ".detail-presence-modal-search", function () {
+            var divisionId = $(this).data('presenceId');
+            jQuery(document).ready(function($) {
+            $.ajax({
+                url: '{{ route('position.detail', ":id") }}'.replace(':id', divisionId),
+                type: 'GET',
+                success: function (response) {
+                    var positionList = $('#positionList');
+                    positionList.empty();
+                    
+                
+                    $.each(response.positionData, function(index, positionData) {
+                    var row = '<tr>' +
+                        '<td class="w-4 text-center">' + (index + 1) + '.</td>' +
+                        '<td class="w-50 text-center capitalize">' + positionData.id_number + '</td>' +
+                        '<td class="w-50 text-center capitalize">' + positionData.first_name + ' ' + positionData.last_name + '</td>' +
+                        '<td class="w-50 text-center capitalize">' + positionData.division.name + '</td>' +
+                        '<td class="w-50 text-center capitalize">' + positionData.gender + '</td>' +
+                        '<td class="w-50 text-center capitalize">' + positionData.address + '</td>' +
+                        '<td class="w-50 text-center capitalize">' + positionData.birth_date + '</td>' +
+                        '<td class="w-50 text-center capitalize">' + (positionData.is_active == '1' ? 'active' : 'non-active') + '</td>'
+                        '</tr>';
+                    positionList.append(row);
+                });
+
+
+                    
+                    // $('#detail-division-modal').modal('show')
+                }
+            });
             });
         });
 

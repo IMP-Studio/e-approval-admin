@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Division;
+use App\Models\Employee;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use App\Exports\DivisionExport;
 use App\Imports\DivisionImport;
-use App\Models\Division;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Contracts\Session\Session;
@@ -16,9 +17,36 @@ class DivisionController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function detailDivisi(Request $request)
+    {
+        $positions = Position::where('division_id', $request->id)->get();
+        $positionData = [];
+    
+        foreach ($positions as $position) {
+            $jumlah_pegawai = Employee::where('position_id', $position->id)->count();
+            
+            // Menambahkan data posisi dan jumlah pegawai ke dalam array
+            $positionData[] = [
+                'position' => $position,
+                'positionCount' => $jumlah_pegawai,
+            ];
+        }
+    
+        return response()->json(['positionData' => $positionData]);
+    }
+    
+
+
     public function index(Request $request)
     {
         $divisi = Division::paginate(5);
+        // $position = Position::all();
+        // foreach ($divisi as $item) {
+        //     $jumlah_posisi = Position::where('division_id', $item->id)->get();
+        //     $item->name_posisi = $jumlah_posisi;
+        // }
+        
         foreach ($divisi as $item) {
             $jumlah_posisi = Position::where('division_id', $item->id)->count();
             $item->jumlah_posisi = $jumlah_posisi;
@@ -44,11 +72,16 @@ class DivisionController extends Controller
                 <td class="w-50 text-center capitalize">' . $item->jumlah_posisi . ' Posisi</td>
                 <td class="table-report__action w-56">
                     <div class="flex justify-center items-center">
-                    <a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="'. $item->id .'" data-DivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit
+                        <a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="'. $item->id .'" data-DivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit
                         </a>
+
+                        <a data-divisionId="{{ $item->id }}" class="flex items-center text-success detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">
+                            <i data-lucide="trash-2" class="w-4 h-4 "></i> Detail
+                        </a>
+
                         <a class="flex items-center text-danger delete-divisi-modal-search" data-DeleteDivisiId="'. $item->id .'" data-DeleteDivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete
                         </a>
                     </div>
                 </td>

@@ -65,19 +65,14 @@
                                 <a class="flex items-center text-warning mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-{{ $item->id }}">
                                     <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                 </a>
-
-                                <a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="{{ $item->id }}" data-DivisiName="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
-                                    <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit search
+                                
+                                <a data-divisionId="{{ $item->id }}" class="mr-3 flex items-center text-success detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">
+                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
 
                                 <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
-                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
+                                    <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
                                 </a>
-
-                                <a class="flex items-center text-danger delete-divisi-modal-search" data-DeleteDivisiId="{{ $item->id }}" data-DeleteDivisiName="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
-                                    Delete search
-                                </a>
-                                
                             </div>
                         </td>
                     </tr>
@@ -198,6 +193,31 @@
         </div>
     </div>
 
+    {{-- detail modal divis --}}
+    <div id="detail-division-modal" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-lg mx-auto">Divisi</h2>
+                </div>
+                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                </div>
+                <table id="table" class="table table-report -mt-2">
+                    <thead>
+                        <tr>
+                            <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Position</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Pegawai</th>
+                        </tr>
+                    </thead>
+                        <tbody id="positionList">
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+    </div>
+    {{-- detail modal divis end --}}
+
     {{-- delete modal search--}}
     <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -263,6 +283,34 @@
             });
         });
     });
+
+    $(document).on("click", ".detail-division-modal-search", function () {
+        var divisionId = $(this).data('divisionId');
+        jQuery(document).ready(function($) {
+        $.ajax({
+            url: '{{ route('division.detail', ":id") }}'.replace(':id', divisionId),
+            type: 'GET',
+            success: function (response) {
+                var positionList = $('#positionList');
+                positionList.empty();
+                
+            
+            $.each(response.positionData, function(index, positionData) {
+                var row = '<tr>' +
+                    '<td class="w-4 text-center">' + (index + 1) + '.</td>' +
+                    '<td class="w-50 text-center capitalize">' + positionData.position.name + '</td>' +
+                    '<td class="w-50 text-center capitalize">' + positionData.positionCount + ' pegawai' + '</td>' +
+                    '</tr>';
+                positionList.append(row);
+            });
+
+                
+                // $('#detail-division-modal').modal('show')
+            }
+        });
+        });
+    });
+
 
     $(document).on("click", ".edit-modal-divisi-search-class", function () {
             var EditModalid = $(this).attr('data-Divisiid');

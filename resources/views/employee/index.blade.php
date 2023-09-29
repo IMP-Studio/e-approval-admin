@@ -96,7 +96,10 @@
                         </td>
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
-                                <a class="flex items-center text-pending mr-3" href="{{ route('employee.edit',$item->id) }}"> <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit </a>
+                                <a class="flex items-center text-pending mr-3" href="{{ route('employee.edit',$item->id) }}"> 
+                                    <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit 
+                                </a>
+
                                 <a class="flex items-center delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-{{ $item->id }}">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
                                 </a>

@@ -73,12 +73,6 @@
                                 <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
                                 </a>
-                                <a class="flex items-center text-danger delete-standup-modal-search" data-DeleteStandupId="{{ $item->id }}" data-DeleteStandupName="{{ $item->user->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
-                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete Search
-                                </a>
-                                <a class="flex items-center text-success  mr-3 detail-standup-modal-search" href="javascript:;" data-tw-toggle="modal" data-StandupDetailId="{{$item->id}}" data-StandupDetailName="{{ $item->user->name }}" data-StandupDetailDone="{{ $item->done }}" data-StandupDetailDoing="{{ $item->doing }}" data-StandupDetailBlocker="{{ $item->blocker }}" data-tw-target="#detail-modal-search">
-                                    <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail search
-                                </a>
                             </div>
                         </td>
                     </tr>
@@ -159,23 +153,20 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="font-medium text-base mx-auto">Detail Standup {{ $item->user->name }}</h1>
+                <h1 class="font-medium text-base mx-auto" id="show-name-standup-search"></h1>
             </div>
             <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 <div class="col-span-12">
                     <label for="modal-form-1" class="form-label">Done :</label>
-                    <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->done }}</textarea>
+                    <textarea disabled name="" class="form-control" id="show-done-standup-search" rows="3"></textarea>
                 </div>
                 <div class="col-span-12">
                     <label for="modal-form-2" class="form-label">Doing :</label>
-                    <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->doing }}</textarea>
+                    <textarea disabled name="" class="form-control" id="show-doing-standup-search" rows="3"></textarea>
                 </div>
-                @if ($item->blocker)
-                <div class="col-span-12">
-                    <label for="modal-form-2" class="form-label">Blocker :</label>
-                    <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->blocker }}</textarea>
+                <div class="col-span-12" id="show-blocker-standup-search">
+                    
                 </div>
-                @endif
             </div>
         </div>
     </div>
@@ -231,26 +222,15 @@
         var ShowBlocker = $(this).attr('data-StandupDetailBlocker');
 
 
-        var imgSrc;
-        if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->avatar) }}';
-        }else if(ShowGender == 'male'){
-            imgSrc = '{{ asset('images/default-boy.jpg') }}';
-        }else if(ShowGender == 'female'){
-            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        var BlockerContent;
+        if(ShowBlocker){
+            BlockerContent = '<label for="modal-form-2" class="form-label">Blocker :</label> <textarea disabled name="" class="form-control" id="" rows="3">'+ ShowBlocker +'</textarea>';
         }
 
-        $("#show-detailName").text('Detail ' + showitemid);
-        $("#show-modal-image").attr('src', imgSrc);
-        $("#show-firstname").attr('value', ShowFirstname);
-        $("#Show-LastName").attr('value', ShowLastName);
-        $("#Show-StafId").attr('value', ShowStafId);
-        $("#Show-Gender").attr('value', ShowGender);
-
-        $("#Show-Divisi").attr('value', ShowDivisi);
-        $("#Show-Posisi").attr('value', ShowPosisi);
-        $("#Show-Address").attr('value', ShowAddress);
-        $("#Show-BirthDate").attr('value', ShowBirthDate);
+        $("#show-blocker-standup-search").html(BlockerContent);
+        $("#show-name-standup-search").text('Detail Standup '+ showName);
+        $("#show-done-standup-search").text(ShowDone);
+        $("#show-doing-standup-search").text(ShowDoing);
     });
 
          $(document).on("click", ".delete-standup-modal-search", function () {

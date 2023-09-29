@@ -62,6 +62,12 @@ class PositionController extends Controller
         return view('posisi.index',compact('posisi','divisi'));
     }
 
+    public function detailPosition(Request $request)
+    {
+        $positions = Employee::where('position_id', $request->id) ->with('division')->get();
+    
+        return response()->json(['positionData' => $positions]);
+    }
     /**
      * Show the form for creating a new resource.
      */

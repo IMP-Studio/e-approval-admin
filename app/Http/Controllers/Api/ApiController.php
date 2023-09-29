@@ -48,7 +48,7 @@ class ApiController extends Controller
         ])->post('https://onesignal.com/api/v1/notifications', [
             'app_id' => $appId,
             'included_segments' => ['All'],
-            'template_id' => "b30d717a-2ab7-459c-8a33-a6a78bfac405",
+            'template_id' => "53105407-09f3-45c1-9902-344bc83505bd",
         ]);
 
         return response()->json(['message' => 'Notification sent']);

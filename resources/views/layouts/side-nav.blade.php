@@ -36,5 +36,17 @@
                 <div class="side-menu__title"> Pegawai </div>
             </a>
         </li>
+        <li>
+            <a href="{{ route('partner') }}" class="side-menu {{ Request::is('partner*') ? 'side-menu--active' : '' }}">
+                <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
+                <div class="side-menu__title"> Partner </div>
+            </a>
+        </li>
+        <li>
+            <a href="{{ route('project') }}" class="side-menu {{ Request::is('project*') ? 'side-menu--active' : '' }}">
+                <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
+                <div class="side-menu__title"> project </div>
+            </a>
+        </li>
     </ul>
 </nav>
