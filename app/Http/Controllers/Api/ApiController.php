@@ -342,7 +342,6 @@ class ApiController extends Controller
         return response()->json(['status' => 500, 'message' => 'SuperAdmin cannot log in.']);
     }
 
-    // Load employee relation if user has the role 'employee'
     if ($user->hasRole('employee')) {
         $user->load('employee');
     }
@@ -350,9 +349,6 @@ class ApiController extends Controller
     if (!$user->employee) {
         return response()->json(['status' => 500, 'message' => 'Employee data not found.']);
     }
-    // info('User permissions: ' . json_encode($user->getPermissionNames()));
-
-
 
     $userData = [
         'id' => $user->id,
@@ -372,7 +368,14 @@ class ApiController extends Controller
         'email' => $user->email,
         'email_verified_at' => $user->email_verified_at,
         'role' => $user->getRoleNames()->first(),
-        'permission' => $user->getPermissionNames()->first(),
+        'permission' => $user->getPermissionNames()->intersect([
+            'approve_preliminary', 
+            'approve_allowed', 
+            'reject_prensence', 
+            'view_request_pending', 
+            'view_request_preliminary', 
+            'can_access_mobile'
+        ])->values(),
         'password' => $user->password,
         'facepoint' => $user->facePoint,
         'remember_token' => $user->remember_token,
@@ -380,22 +383,18 @@ class ApiController extends Controller
         'updated_at' => $user->updated_at,
     ];
 
-    $permissionName = $user->getPermissionNames()->first();
-
-    
+    $permissionName = $user->getPermissionNames()->intersect([
+        'approve_preliminary', 
+        'approve_allowed', 
+        'reject_prensence', 
+        'view_request_pending', 
+        'view_request_preliminary', 
+        'can_access_mobile'
+    ])->values();
 
     if($user!='[]' && Hash::check($request->password, $user->password)){
         if ($user->hasRole('employee')) {
-                if ($permissionName == 'ordinary_employee') {
-                    $token = $user->createToken('Personal Acces Token')->plainTextToken;
-                    $response = [
-                        'status' => 200,
-                        'token' => $token,
-                        'user' => $userData,
-                        'message' => 'Successfully Login! Welcome Back Employee',
-                    ];
-                    return response()->json($response);
-                } elseif ($permissionName == 'head_of_tribe') {
+                if ($permissionName == 'approve_preliminary') {
                     $token=$user->createToken('Personal Acces Token')->plainTextToken;
                     $response = [
                         'status' => 200,
@@ -404,7 +403,7 @@ class ApiController extends Controller
                         'message' => 'Successfully Login! Welcome Back Head of Tribe',
                     ];
                     return response()->json($response);
-                } elseif ($permissionName == 'human_resource') {
+                } elseif ($permissionName == 'approve_allowed') {
                     $token=$user->createToken('Personal Acces Token')->plainTextToken;
                     $response = [
                         'status' => 200,
@@ -413,48 +412,33 @@ class ApiController extends Controller
                         'message' => 'Successfully Login! Welcome Back Human Resource',
                     ];
                     return response()->json($response);
-                } elseif ($permissionName == 'president') {
+                }else{
                     $token=$user->createToken('Personal Acces Token')->plainTextToken;
                     $response = [
                         'status' => 200,
                         'token' => $token,
                         'user' => $userData,
-                        'message' => 'Successfully Login! Welcome Back President',
+                        'message' => 'Successfully Login! Welcome Back Employee',
                     ];
                     return response()->json($response);
-                }
+                }  
         }
+    }elseif($user->hasRole('super-admin')){
+        $response = [
+            'status' => 500,
+            'message' => 'Kamu sedang login dengan akun admin tolong login sebagai pegawai',
+        ];
+        return response()->json($response);
+
     }else{
         $response = [
             'status' => 500,
             'message' => 'Please enter a valid data',
         ];
         return response()->json($response);
-
     }
 
 }
-
-
-    public function fetchFacePoint(Request $request) {
-        $user = User::with('employee')->where('id', $request->id)->first();
-
-        if ($user && $user->employee) {
-            $nama_lengkap = $user->employee->first_name .' '. $user->employee->last_name;
-    
-            $response = [
-                'name' => $nama_lengkap,
-                'facePoint' => json_decode($user->facePoint, true)
-            ];
-    
-            return response()->json($response);
-        } else {
-            return response()->json(['message' => 'Face point employee not found'], 404);
-        }
-    }
-
-    
-    
     
     //---- PRESENCE FUNCTION ----\\ 
 
@@ -584,7 +568,6 @@ class ApiController extends Controller
         }
         
         else {
-            // Return more detailed information for debugging:
             return response()->json([
                 'status' => 'notAttended',
                 'category' => 'Belum check in',
@@ -606,7 +589,14 @@ class ApiController extends Controller
         $requestedPermissions = $request->has('permission') ? explode(',', $request->permission) : [];
     
         $user = User::with('employee', 'standups')->where('id', $loggedInUserId)->first();
-        $permissionName = $user->getPermissionNames()->first();
+        $permissionName = $user->getPermissionNames()->intersect([
+            'approve_preliminary', 
+            'approve_allowed', 
+            'reject_prensence', 
+            'view_request_pending', 
+            'view_request_preliminary', 
+            'can_access_mobile'
+        ])->values();
         
     
         if (!$user || !$user->hasRole('employee')) {
@@ -623,13 +613,23 @@ class ApiController extends Controller
     
         $presenceQuery = Presence::with(['user', 'standup', 'worktrip', 'telework', 'leave']);
 
-        if ($request->has('start_date')) {
-            $startDate = Carbon::parse($request->start_date);
+        $daysBeforeToday = $request->input('day', null);
+
+        if ($daysBeforeToday !== null) {
+            $endDate = Carbon::now(); // End date is today
+            $startDate = $endDate->copy()->subDays($daysBeforeToday); // Subtract the specified number of days from the current date
+            
             $presenceQuery->whereDate('date', '>=', $startDate);
-        }
-        if ($request->has('end_date')) {
-            $endDate = Carbon::parse($request->end_date);
             $presenceQuery->whereDate('date', '<=', $endDate);
+        } else {
+            if ($request->has('start_date')) {
+                $startDate = Carbon::parse($request->start_date);
+                $presenceQuery->whereDate('date', '>=', $startDate);
+            }
+            if ($request->has('end_date')) {
+                $endDate = Carbon::parse($request->end_date);
+                $presenceQuery->whereDate('date', '<=', $endDate);
+            }
         }
 
         if ($request->has('type')) {
@@ -676,12 +676,10 @@ class ApiController extends Controller
 
         function getLevelDescription($permission_level) {
             switch ($permission_level) {
-                case 'head_of_tribe':
+                case 'approve_preliminary':
                     return 'Head of Tribe';
-                case 'human_resource':
+                case 'approve_allowed':
                     return 'Human Resource';
-                case 'president':
-                    return 'President';
                 default:
                     return 'Unknown'; 
             }
@@ -698,7 +696,14 @@ class ApiController extends Controller
                     'user_id' => $presence->user_id,
                     'nama_lengkap' => $nama_lengkap,    
                     'posisi' => $presence->user->employee->position->name,
-                    'permission' => $presence->user->getPermissionNames()->first() ?? null,
+                    'permission' => $presence->user->getPermissionNames()->intersect([
+                        'approve_preliminary', 
+                        'approve_allowed', 
+                        'reject_prensence', 
+                        'view_request_pending', 
+                        'view_request_preliminary', 
+                        'can_access_mobile'
+                    ])->values() ?? null,
                     'category' => $presence->category,
                     'entry_time' => $presence->entry_time,
                     'exit_time' => $presence->exit_time,
@@ -717,13 +722,20 @@ class ApiController extends Controller
                     if ($presence->telework) {
                         $mostRecentStatus = $presence->telework->statusCommit->sortByDesc('created_at')->first();
                     
-                        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
                             $approver = $mostRecentStatus->approver;
                         
                             if ($approver) { // Check if approver exists
-                                $approverPermission = $approver->getPermissionNames()->first();
+                                $approverPermission = $approver->getPermissionNames()->intersect([
+                                    'approve_preliminary', 
+                                    'approve_allowed', 
+                                    'reject_prensence', 
+                                    'view_request_pending', 
+                                    'view_request_preliminary', 
+                                    'can_access_mobile'
+                                ])->values();
                         
-                                if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                if ($approverPermission && in_array($approverPermission, ['approve_preliminary','approve_allowed'])) {
                                     $data['approver_id'] = $approver->id;
                                     $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                                     $data['permission_approver'] = $approverPermission;
@@ -752,16 +764,24 @@ class ApiController extends Controller
                         $data['start_date'] = $worktripDetails->start_date ?? 'null';
                         $data['end_date'] = $worktripDetails->end_date ?? 'null';
                         $data['entry_date'] = $worktripDetails->entry_date ?? 'null';
+                        $data['face_point'] = $worktripDetails->face_point;
                 
                         $mostRecentStatus = $worktripDetails->statusCommit->sortByDesc('created_at')->first();
                         
-                        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
                             $approver = $mostRecentStatus->approver;
                             
                             if ($approver) { // Check if approver exists
-                                $approverPermission = $approver->getPermissionNames()->first();
+                                $approverPermission = $approver->getPermissionNames()->intersect([
+                                    'approve_preliminary', 
+                                    'approve_allowed', 
+                                    'reject_prensence', 
+                                    'view_request_pending', 
+                                    'view_request_preliminary', 
+                                    'can_access_mobile'
+                                ])->values();
                             
-                                if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                if ($approverPermission && in_array($approverPermission, ['approve_preliminary','approve_allowed'])) {
                                     $data['approver_id'] = $approver->id;
                                     $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                                     $data['permission_approver'] = $approverPermission;
@@ -791,13 +811,20 @@ class ApiController extends Controller
 
                         if ($presence->leave) {
                             $mostRecentStatus = $presence->leave->statusCommit->sortByDesc('created_at')->first();
-                            if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                            if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
                                 $approver = $mostRecentStatus->approver;
                             
                                 if ($approver) { // Check if approver exists
-                                    $approverPermission = $approver->getPermissionNames()->first();
+                                    $approverPermission = $approver->getPermissionNames()->intersect([
+                                        'approve_preliminary', 
+                                        'approve_allowed', 
+                                        'reject_prensence', 
+                                        'view_request_pending', 
+                                        'view_request_preliminary', 
+                                        'can_access_mobile'
+                                    ])->values();
                             
-                                    if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                    if ($approverPermission && in_array($approverPermission, ['approve_preliminary','approve_allowed'])) {
                                         $data['approver_id'] = $approver->id;
                                         $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                                         $data['permission_approver'] = $approverPermission;
@@ -891,13 +918,20 @@ class ApiController extends Controller
             if ($presence->telework) {
                 $mostRecentStatus = $presence->telework->statusCommit->sortByDesc('created_at')->first();
             
-                if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
                     $approver = $mostRecentStatus->approver;
                 
                     if ($approver) { // Check if approver exists
-                        $approverPermission = $approver->getPermissionNames()->first();
+                        $approverPermission = $approver->getPermissionNames()->intersect([
+                            'approve_preliminary', 
+                            'approve_allowed', 
+                            'reject_prensence', 
+                            'view_request_pending', 
+                            'view_request_preliminary', 
+                            'can_access_mobile'
+                        ])->values();
                 
-                        if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                        if ($approverPermission && in_array($approverPermission, ['approve_preliminary','approve_allowed'])) {
                             $data['approver_id'] = $approver->id;
                             $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                             $data['permission_approver'] = $approverPermission;
@@ -914,13 +948,20 @@ class ApiController extends Controller
             if ($presence->worktrip) {
                 $mostRecentStatus = $presence->worktrip->statusCommit->sortByDesc('created_at')->first();
             
-                if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
                     $approver = $mostRecentStatus->approver;
                 
                     if ($approver) { // Check if approver exists
-                        $approverPermission = $approver->getPermissionNames()->first();
+                        $approverPermission = $approver->getPermissionNames()->intersect([
+                            'approve_preliminary', 
+                            'approve_allowed', 
+                            'reject_prensence', 
+                            'view_request_pending', 
+                            'view_request_preliminary', 
+                            'can_access_mobile'
+                        ])->values();
                 
-                        if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                        if ($approverPermission && in_array($approverPermission, ['approve_preliminary','approve_allowed'])) {
                             $data['approver_id'] = $approver->id;
                             $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                             $data['permission_approver'] = $approverPermission;
@@ -948,13 +989,20 @@ class ApiController extends Controller
 
                         if ($presence->leave) {
                             $mostRecentStatus = $presence->leave->statusCommit->sortByDesc('created_at')->first();
-                            if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+                            if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
                                 $approver = $mostRecentStatus->approver;
                             
                                 if ($approver) { // Check if approver exists
-                                    $approverPermission = $approver->getPermissionNames()->first();
+                                    $approverPermission = $approver->getPermissionNames()->intersect([
+                                        'approve_preliminary', 
+                                        'approve_allowed', 
+                                        'reject_prensence', 
+                                        'view_request_pending', 
+                                        'view_request_preliminary', 
+                                        'can_access_mobile'
+                                    ])->values();
                             
-                                    if ($approverPermission && in_array($approverPermission, ['head_of_tribe','human_resource','president'])) {
+                                    if ($approverPermission && in_array($approverPermission, ['approve_preliminary','approve_allowed'])) {
                                         $data['approver_id'] = $approver->id;
                                         $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                                         $data['permission_approver'] = $approverPermission;
@@ -1023,13 +1071,20 @@ class ApiController extends Controller
         ];
     
         $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
-        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'allow_HT'])) {
+        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
             $approver = $mostRecentStatus->approver;
     
             if ($approver) { // Check if approver exists
-                $approverPermission = $approver->getPermissionNames()->first();
+                $approverPermission = $approver->getPermissionNames()->intersect([
+                    'approve_preliminary', 
+                    'approve_allowed', 
+                    'reject_prensence', 
+                    'view_request_pending', 
+                    'view_request_preliminary', 
+                    'can_access_mobile'
+                ])->values();
     
-                if ($approverPermission && in_array($approverPermission, ['head_of_tribe', 'human_resource', 'president'])) {
+                if ($approverPermission && in_array($approverPermission, ['approve_preliminary', 'approve_allowed'])) {
                     $data['approver_id'] = $approver->id;
                     $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
                     $data['permission_approver'] = $approverPermission;
@@ -1329,11 +1384,11 @@ class ApiController extends Controller
 // APPROVE AND REJECT FUNCTION //BISA
 public function approveReject(Request $request, $id)
 {
-    $attendanceToday = null;
+    $attendanceToday     = null;
     $errors = [];
     
-    if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'allow_HT'])) {
-        $errors['status'] = 'The status field is required and must be one of: rejected, allowed, allow_HT.';
+    if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'preliminary'])) {
+        $errors['status'] = 'The status field is required and must be one of: rejected, allowed, preliminary.';
     }
 
     if ($request->has('description') && !is_string($request->input('description'))) {
@@ -1518,6 +1573,8 @@ public function approveReject(Request $request, $id)
                 'partner_id' => $project->partner_id,
                 'project' => $project->name,
                 'partner' => $project->partner->name,
+                'partner_logo' => $standup->partner->logo,
+                'partner_description' => $standup->partner->description,
                 'start_date' => $project->start_date,
                 'end_date' => $project->end_date,
                 'durasi' => $totalDays,
@@ -1810,7 +1867,14 @@ public function storeLeave(Request $request) {
                     'address' => $employee->address,
                     'birth_date' => $employee->birth_date,
                     'is_active' => $employee->is_active,
-                    'permission' => $employee->user->getPermissionNames()->first(),
+                    'permission' => $employee->user->getPermissionNames()->intersect([
+                        'approve_preliminary', 
+                        'approve_allowed', 
+                        'reject_prensence', 
+                        'view_request_pending', 
+                        'view_request_preliminary', 
+                        'can_access_mobile'
+                    ])->values(),
                     'name' => $employee->user->name,
                     'email' => $employee->user->email,
                     'email_verified_at' => $employee->user->email_verified_at,

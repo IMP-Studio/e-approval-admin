@@ -41,6 +41,83 @@ class EmployeeSeeder extends Seeder
             ['division_id' => 3,'name' => 'Quality Assurance'],
             ['division_id' => 3,'name' => 'Finance Staff'],
         ];
+        
+        $htPermissions = [
+            'approve_preliminary', //khusus ht
+            'reject_prensence',
+            'view_request_pending',
+
+            //DIVISI
+            'view_divisions',
+            'export_divisions',
+
+            //POSISI
+            'view_positions',
+            'export_positions',
+
+            //EMPLOYEE
+            'view_employees',
+            'export_employees',
+
+            //PRESENCE
+            'view_presences',
+            'export_presences',
+
+            //PARTNER
+            'view_partners',
+            'export_partners',
+
+            //PROJECT
+            'view_projects',
+            'export_projects',
+
+            //STAND UP
+            'view_standups',
+            'export_standups',
+        ];
+
+        $hrPermissions = [
+            'approve_allowed', //khusus hr
+            'reject_prensence',
+            'view_request_preliminary',
+
+            //DIVISI
+            'view_divisions',
+            'export_divisions',
+
+            //POSISI
+            'view_positions',
+            'export_positions',
+
+            //EMPLOYEE
+            'view_employees',
+            'export_employees',
+
+            //PRESENCE
+            'view_presences',
+            'export_presences',
+
+            //PARTNER
+            'view_partners',
+            'add_partners',
+            'edit_partners',
+            'delete_partners',
+            'import_partners',
+            'export_partners',
+
+            //PROJECT
+            'view_projects',
+            'add_projects',
+            'edit_projects',
+            'delete_projects',
+            'import_projects',
+            'export_projects',
+
+            //STAND UP
+            'view_standups',
+            'export_standups',
+        ];
+        
         foreach ($data_divisi as $data) {
             Division::insert([
                 'name' => $data['name'],
@@ -48,73 +125,106 @@ class EmployeeSeeder extends Seeder
                 'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             ]);
         }
+    
         foreach ($data_position as $data) {
             Position::insert([
                 'division_id' => $data['division_id'],
                 'name' => $data['name'],
             ]);
         }
-        $permissionMap = [
-            'ordinary_employee',
-            'human_resource',
-            'head_of_tribe',
-        ];
-        // COBA DATA FAKER
+    
+        // Use Faker to create dummy employees
         $faker = Faker::create('id_ID');
-        $hrCount = 0;
-        $headOfTribeCount = 0;
 
-        for($i = 1; $i <= 50; $i++){
+$hrManagementCount = 0; // Counter for 'Human Resource Development' position
+$hrManagementLimit = 3; // The maximum allowed number of 'Human Resource Development' employees
+$createdEmployees = 0; // Counter for created employees
 
-            $divisionId = $faker->numberBetween(1, 3); // Pilih divisi secara acak
-            $positionsInDivision = array_filter($data_position, function ($position) use ($divisionId) {
-                return $position['division_id'] == $divisionId;
-            });
+while ($createdEmployees < 50) {
 
-            $positionKeys = array_keys($positionsInDivision); // Ambil kunci indeks posisi
+    $divisionId = $faker->numberBetween(1, 3); // Randomly choose a division
 
-            $positionIndex = $faker->numberBetween(0, count($positionKeys) - 1);
-            $positionKey = $positionKeys[$positionIndex]; // Ambil kunci indeks posisi yang dipilih secara acak
+    $positionsInDivision = array_filter($data_position, function ($position) use ($divisionId) {
+        return $position['division_id'] == $divisionId;
+    });
 
-            $positionId = $positionKey + 1;
+    $positionKeys = array_keys($positionsInDivision);
+    $positionIndex = $faker->numberBetween(0, count($positionKeys) - 1);
+    $positionKey = $positionKeys[$positionIndex];
+    $positionId = $positionKey + 1;
+    $positionName = $positionsInDivision[$positionKey]['name'];
 
-            $firstName = $faker->firstName;
-            $lastName = $faker->lastName;
-            $username = $firstName . ' ' . $lastName;
+    // Check if we reached the limit for 'Human Resource Development' position
+    if ($positionName == 'Human Resource Development' && $hrManagementCount >= $hrManagementLimit) {
+        continue;  // skip this iteration
+    } elseif ($positionName == 'Human Resource Development') {
+        $hrManagementCount++;
+    }
 
-            $user = User::create([
-              'name' => $username,
-              'email' =>  strtolower($firstName . $lastName) . '@gmail.com',
-              'password' => bcrypt('password@123')
-            ]);
-            $userId = $user->id;
-            $user->assignRole('employee');
+    $firstName = $faker->firstName;
+    $lastName = $faker->lastName;
+    $username = $firstName . ' ' . $lastName;
 
-            if ($divisionId == 3 && $hrCount < 2) { 
-                $user->givePermissionTo('human_resource');
-                $hrCount++;
-            } elseif (($divisionId == 1 || $divisionId == 2) && $headOfTribeCount < 3) { 
-                $user->givePermissionTo('head_of_tribe');
-                $headOfTribeCount++;
-            } else {
-                $user->givePermissionTo('ordinary_employee');
-            }
+    $user = User::create([
+        'name' => $username,
+        'email' => strtolower($firstName . $lastName) . '@gmail.com',
+        'password' => bcrypt('password@123')
+    ]);
 
-            Employee::insert([
-                'first_name' => $firstName,
-                'last_name' => $lastName,
-                'user_id' => $userId,
-                'id_number' => $faker->unique()->randomNumber(8),
-                'division_id' => $divisionId,
-                'position_id' => $positionId,
-                'gender' => $faker->randomElement(['male','female']),
-                'address' => $faker->address,
-                'birth_date' => $faker->date,
-                'is_active' => true,
-            ]);
+    $user->assignRole('employee');  // Assign "employee" role
+
+    Employee::insert([
+        'first_name' => $firstName,
+        'last_name' => $lastName,
+        'user_id' => $user->id,
+        'id_number' => $faker->unique()->randomNumber(8),
+        'division_id' => $divisionId,
+        'position_id' => $positionId,
+        'gender' => $faker->randomElement(['male', 'female']),
+        'address' => $faker->address,
+        'birth_date' => $faker->date,
+        'is_active' => true,
+    ]);
+
+    $createdEmployees++; // Increment created employees counter
+}
+
+
+        
+       // Randomly selecting 3 "HT" from "Product Engineering" and "Designer"
+        $desiredDivisions = ['Product Engineering', 'Designer'];
+
+        // Fetch all users from the specified divisions
+        $usersFromDesiredDivisions = User::whereHas('employee', function ($query) use ($desiredDivisions) {
+            $query->whereIn('division_id', Division::whereIn('name', $desiredDivisions)->pluck('id'));
+        })->get();
+
+        // Randomly select 3 users from that pool
+        $selectedUsers = $usersFromDesiredDivisions->random(3);
+
+        // Assign the "HT" permissions to the selected users
+        foreach ($selectedUsers as $user) {
+            $user->givePermissionTo($htPermissions);
         }
 
-        // $data_user = [
+        // Assigning HR permissions to all employees in Human Resource division
+        $hrUsers = User::whereHas('employee', function ($query) {
+            $query->whereHas('position', function ($subQuery) {
+                $subQuery->whereHas('division', function ($subSubQuery) {
+                    $subSubQuery->where('name', 'Human Resource');
+                });
+            });
+        })->get();
+
+        foreach ($hrUsers as $user) {
+            $user->givePermissionTo($hrPermissions);
+        }   
+
+            }
+        }
+
+
+// $data_user = [
         //     ['name' => 'Ibrahim Khalish','email' => 'ibrahim@gmail.com',],
         //     ['name' => 'Fathir Akmal','email' => 'fathir@gmail.com',],
         //     ['name' => 'Muhammad Arrafi','email' => 'arra@gmail.com',],
@@ -170,6 +280,3 @@ class EmployeeSeeder extends Seeder
         //         'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
         //     ]);
         // }
-
-    }
-}

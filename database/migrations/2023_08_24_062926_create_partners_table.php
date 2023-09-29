@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('partners', function (Blueprint $table) {
             $table->id();
+            $table->string('logo')->nullable();
             $table->string('name');
+            $table->text('description');
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();
         });

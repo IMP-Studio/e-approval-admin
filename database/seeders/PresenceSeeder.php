@@ -32,8 +32,8 @@ class PresenceSeeder extends Seeder
             $latitude = null;
             $longitude = null;
             if ($category === 'WFO') {
-                $latitude = $faker->latitude;
-                $longitude = $faker->longitude;
+                $latitude = -6.332835026352704;
+                $longitude =  106.86452087283757;
             }
             $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
             $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
