@@ -13,83 +13,86 @@ class PermissionSeeder extends Seeder
      * Run the database seeds.
      */
     public function run(): void
-    {
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+{
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $permissions = [
-            'view_users',
-            'add_users',
-            'edit_users',
-            'delete_users',
-            'import_users',
-            'export_users',
+    $permissions = [
 
-            'view_divisions',
-            'add_divisions',
-            'edit_divisions',
-            'delete_divisions',
-            'import_divisions',
-            'export_divisions',
+        // For Divisions (Already Given)
+        'view_divisions',
+        'add_divisions',
+        'edit_divisions',
+        'delete_divisions',
+        'import_divisions',
+        'export_divisions',
 
-            'view_positions',
-            'add_positions',
-            'edit_positions',
-            'delete_positions',
-            'import_positions',
-            'export_positions',
+        // For Positions (Already Given)
+        'view_positions',
+        'add_positions',
+        'edit_positions',
+        'delete_positions',
+        'import_positions',
+        'export_positions',
 
-            'view_employees',
-            'add_employees',
-            'edit_employees',
-            'delete_employees',
-            'import_employees',
-            'export_employees',
+        // For Employees
+        'view_employees',
+        'add_employees',
+        'edit_employees',
+        'delete_employees',
+        'import_employees',
+        'export_employees',
 
-            'view_presences',
-            'add_presences',
-            'edit_presences',
-            'delete_presences',
-            'import_presences',
-            'export_presences',
+        // For Presences
+        'view_presences',
+        'export_presences',
 
-            'view_partners',
-            'add_partners',
-            'edit_partners',
-            'delete_partners',
-            'import_partners',
-            'export_partners',
+        // For Partners
+        'view_partners',
+        'add_partners',
+        'edit_partners',
+        'delete_partners',
+        'import_partners',
+        'export_partners',
 
-            'view_projects',
-            'add_projects',
-            'edit_projects',
-            'delete_projects',
-            'import_projects',
-            'export_projects',
+        // For Projects
+        'view_projects',
+        'add_projects',
+        'edit_projects',
+        'delete_projects',
+        'import_projects',
+        'export_projects',
 
-            'view_leaves',
-            'add_leaves',
-            'edit_leaves',
-            'delete_leaves',
-            'import_leaves',
-            'export_leaves',
+        // For Standups
+        'view_standups',
+        'export_standups',
 
-            'view_standups',
-            'add_standups',
-            'edit_standups',
-            'delete_standups',
-            'import_standups',
-            'export_standups',
+        // For Roles
+        'view_roles',
+        'add_roles',
+        'edit_roles',
+        'delete_roles',
+        'import_roles',
+        'export_roles',
 
-            'view_teleworks',
-            'add_teleworks',
-            'edit_teleworks',
-            'delete_teleworks',
-            'import_teleworks',
-            'export_teleworks',
-        ];
-        foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
-        }
+        //Permission
+        'assign_permission',
 
+        // APPROVE
+        'approve_preliminary', //untuk ht (status berubah dari pending ke preliminary)
+        'approve_allowed', //untuk hr (status berbentuk prelminary ke allowed)
+        'reject_prensence',
+
+        //MOBILE||
+        'can_access_mobile',
+
+        //request 
+        'view_request_pending', // untuk status pending
+        'view_request_preliminary', // untuk status preliminary
+        
+    ];
+
+    foreach ($permissions as $permission) {
+        Permission::create(['name' => $permission]);
     }
+}
 }
