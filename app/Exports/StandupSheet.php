@@ -49,7 +49,8 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
                 'Username',
                 'Position',
                 'Date',
-                'Done',
+                'Project Name',
+                'Dong',
                 'Doing',
                 'Blocker',
             ]
@@ -65,6 +66,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             $standup->user->name,
             $standup->user->employee->position->name,
             $standup->presence->date,
+            $standup->project->name,
             $standup->done,
             $standup->doing,
             $standup->blocker,

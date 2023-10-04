@@ -4,13 +4,13 @@
 @section('content')
     <div class="content">
         <h2 class="intro-y text-lg font-medium mt-10">
-            Data Posisi
+            Data Partner
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
                 <div class="text-center">
-                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-position"
-                        class="btn btn-primary mr-2">Add New Position</a>
+                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-divisi"
+                        class="btn btn-primary mr-2">Add New Partner</a>
                 </div>
                 <div class="dropdown" data-tw-placement="bottom">
                     <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
@@ -20,7 +20,7 @@
                     <div class="dropdown-menu w-40">
                         <ul class="dropdown-content">
                             <li>
-                                <a href="{{ route('division.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
+                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
                                         class="w-4 h-4 mr-2"></i> Export to Excel </a>
                             </li>
                             <li>
@@ -39,7 +39,7 @@
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
                         <input type="text" class="form-control w-56 box pr-10" placeholder="Search..."
-                            id="searchPosition">
+                            id="searchPartner">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
@@ -48,14 +48,14 @@
                 <table id="table" class="table table-report -mt-2">
                     <thead>
                         <tr>
-                            <th class="whitespace-nowrap">No</th>
-                            <th class="text-center whitespace-nowrap">Posisi</th>
-                            <th class="text-center whitespace-nowrap">Total</th>
+                            <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
+                            <th class="text-center whitespace-nowrap">Total Project</th>
                             <th class="text-center whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach ($posisi as $item)
+                    <tbody id="tablePartner">
+                        @foreach ($partner as $item)
                             <tr class="intro-x h-16">
                                 <td class="w-4 text-center">
                                     {{ $loop->iteration }}.
@@ -64,35 +64,32 @@
                                     {{ $item->name }}
                                 </td>
                                 <td class="w-50 text-center capitalize">
-                                    {{ $item->jumlah_pegawai }} Pegawai
+                                    {{ $item->jumlah_project }}
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
                                         <a class="flex items-center text-warning mr-3" href="javascript:;"
-                                            data-tw-toggle="modal"
-                                            data-tw-target="#modal-edit-position-{{ $item->id }}">
+                                            data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-{{ $item->id }}">
                                             <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                         </a>
 
-                                        <a data-positionName="{{ $item->name }}" data-presenceId="{{ $item->id }}"
-                                            data-DivisionId="{{ $item->division_id }}"
-                                            class="mr-3 flex items-center text-success detail-presence-modal-search"
+                                        <a data-divisionId="{{ $item->id }}"
+                                            class="mr-3 flex items-center text-success detail-partner-modal-search"
                                             href="javascript:;" data-tw-toggle="modal"
-                                            data-tw-target="#detail-division-modal">
+                                            data-tw-target="#detail-partner-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                         </a>
 
                                         <a class="flex items-center text-danger delete-button" href="javascript:;"
                                             data-tw-toggle="modal"
                                             data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
-                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
+                                            <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
                                         </a>
-
                                     </div>
                                 </td>
                             </tr>
 
-                            <div id="modal-edit-position-{{ $item->id }}" class="modal" tabindex="-1"
+                            <div id="modal-edit-divisi-{{ $item->id }}" class="modal" tabindex="-1"
                                 aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -100,24 +97,13 @@
                                             <h2 class="font-medium text-base mr-auto">Edit Division</h2>
                                         </div>
                                         <form id="edit-form" method="POST"
-                                            action="{{ route('position.update', $item->id) }}">
+                                            action="{{ route('partner.update', $item->id) }}">
                                             @csrf
                                             @method('PUT')
                                             <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                                                 <div class="col-span-12">
-                                                    <label for="modal-form-1" class="form-label">Nama Divisi</label>
-                                                    <select name="division_id" class="tom-select w-full" id="modal-form-1">
-                                                        @foreach ($divisi as $itemDivisi)
-                                                            <option value="{{ $itemDivisi->id }}"
-                                                                {{ $itemDivisi->id == $item->division_id ? 'selected' : '' }}>
-                                                                {{ $itemDivisi->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-span-12">
-                                                    <label for="modal-form-2" class="form-label">Nama Posisi</label>
-                                                    <input id="modal-form-2" value="{{ $item->name }}" name="name"
+                                                    <label for="modal-form-2" class="form-label">Nama Divisi</label>
+                                                    <input id="modal-form-2" value="{{ $item->name }}" name="partner"
                                                         type="text" class="form-control" placeholder="nama divisi">
                                                 </div>
                                             </div>
@@ -135,7 +121,7 @@
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <form id="delete-form" method="POST"
-                                            action="{{ route('position.destroy', $item->id) }}">
+                                            action="{{ route('partner.destroy', $item->id) }}">
                                             @csrf
                                             @method('delete')
                                             <div class="modal-body p-0">
@@ -144,11 +130,11 @@
                                                         class="w-16 h-16 text-danger mx-auto mt-3"></i>
                                                     <div class="text-3xl mt-5">Are you sure?</div>
                                                     <div class="text-slate-500 mt-2">
-                                                        Please type the username "{{ $item->name }}" of the data to
+                                                        Please type the Partner name "{{ $item->name }}" of the data to
                                                         confrim.
                                                     </div>
-                                                    <input name="validNamePosisi" id="crud-form-2" type="text"
-                                                        class="form-control w-full" placeholder="User name" required>
+                                                    <input name="validName" id="crud-form-2" type="text"
+                                                        class="form-control w-full" placeholder="Divisi name" required>
                                                 </div>
                                                 <div class="px-5 pb-8 text-center">
                                                     <button type="button" data-tw-dismiss="modal"
@@ -163,10 +149,10 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($posisi->count() > 0)
+                @if ($partner->count() > 0)
                     <div class="flex justify-center items-center">
-                        {{ $posisi->links('pagination.custom', [
-                            'paginator' => $posisi,
+                        {{ $partner->links('pagination.custom', [
+                            'paginator' => $partner,
                             'prev_text' => 'Previous',
                             'next_text' => 'Next',
                             'slider_text' => 'Showing items from {start} to {end} out of {total}',
@@ -177,28 +163,20 @@
         </div>
     </div>
 
-    <div id="modal-store-position" class="modal" tabindex="-1" aria-hidden="true">
+    {{-- Create partner --}}
+    <div id="modal-store-divisi" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Create-position</h2>
+                    <h2 class="font-medium text-base mr-auto">Create-Division</h2>
                 </div>
-                <form action="{{ route('position.store') }}" method="post">
+                <form action="{{ route('partner.store') }}" method="post">
                     @csrf
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
-                            <label for="modal-form-1" class="form-label">Nama Divisi</label>
-                            <select name="division_id" class="tom-select w-full" id="">
-                                @foreach ($divisi as $item)
-                                    <option value="0" selected disabled>Choose Division</option>
-                                    <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-span-12">
-                            <label for="modal-form-2" class="form-label">Nama Posisi</label>
-                            <input id="modal-form-2" name="name" type="text" class="form-control capitalize"
-                                placeholder="nama divisi" autocomplete="off">
+                            <label for="modal-form-1" class="form-label">Nama Partner</label>
+                            <input id="modal-form-1" name="partner" type="text" class="form-control capitalize"
+                                placeholder="Name Partner" autocomplete="off">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -228,7 +206,7 @@
                         </div>
                     </div>
                 </div>
-                <form action="{{ route('division.import') }}" method="POST" enctype="multipart/form-data">
+                <form action="" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
@@ -247,24 +225,21 @@
         </div>
     </div>
 
-    {{-- detail modal position --}}
-    <div id="detail-division-modal" class="modal" tabindex="-1" aria-hidden="true">
+    {{-- detail modal Partner --}}
+    <div id="detail-partner-modal" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-lg mx-auto">Detail <span id="namaPosition"></span> Position</h2>
+                    <h2 class="font-medium text-lg mx-auto">Partner</h2>
                 </div>
                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 </div>
-                <table id="table" class="table table-striped" style="max-height: 10px; overflow-y: auto;">
+                <table id="table" class="table table-report -mt-2">
                     <thead>
                         <tr>
-                            <th class="whitespace-nowrap">#</th>
-                            <th class="whitespace-nowrap">Id number</th>
-                            <th class="whitespace-nowrap">Name</th>
-                            <th class="whitespace-nowrap">Divisi</th>
-                            <th class="whitespace-nowrap">Address</th>
-                            <th class="whitespace-nowrap">Status</th>
+                            <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Position</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Pegawai</th>
                         </tr>
                     </thead>
                     <tbody id="positionList">
@@ -273,56 +248,9 @@
             </div>
         </div>
     </div>
+    {{-- detail modal Partner end --}}
 
-    {{-- detail modal position end --}}
-
-    {{-- edit modal live search --}}
-    <div id="modal-edit-position-search" class="modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
-                </div>
-                <form id="edit-form-search" method="POST" action="">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                        <div class="col-span-12">
-                            <label class="form-label">Nama Posisi</label>
-                            <input id="edit-modal-PositionName" value="" name="name" type="text"
-                                class="form-control" placeholder="nama divisi">
-                        </div>
-                        <div class="col-span-12">
-                            <label for="modal-form-1" class="form-label">Nama Divisi</label>
-                            <select name="division_id" id="project-position-select" class="w-full"
-                                style="background-color: #1B253b;">
-                                @foreach ($divisi as $itemDivisi)
-                                    <option value="{{ $itemDivisi->id }}">
-                                        {{ $itemDivisi->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            {{-- <select name="division_id" class="tom-select w-full" id="modal-form-1">
-                                @foreach ($divisi as $itemDivisi)
-                                <option value="{{ $itemDivisi->id }}" {{ $itemDivisi->id == $item->division_id ? 'selected' : '' }}>
-                                    {{ $itemDivisi->name }}
-                                </option>
-                               @endforeach
-                            </select> --}}
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" data-tw-dismiss="modal"
-                            class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
-                        <button type="submit" class="btn btn-primary w-20">Update</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    {{-- edit modal live search end --}}
-
-    {{-- delete modal live search --}}
+    {{-- delete modal search --}}
     <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -335,7 +263,7 @@
                             <div class="text-3xl mt-5">Are you sure?</div>
                             <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
                             </div>
-                            <input name="validNameEmployee" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="validName" id="crud-form-2" type="text" class="form-control w-full"
                                 placeholder="User name" required>
                         </div>
                         <div class="px-5 pb-8 text-center">
@@ -348,100 +276,51 @@
             </div>
         </div>
     </div>
-    {{-- delete modal live search end --}}
+    {{-- delete modal search end --}}
+
+    {{-- edit modal search --}}
+    <div id="modal-edit-divisi-search" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                </div>
+                <form id="edit-form-divisi-search" method="POST" action="">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                        <div class="col-span-12">
+                            <label class="form-label">Nama Divisi</label>
+                            <input id="edit-modal-DivisiName" value="" name="divisi" type="text"
+                                class="form-control" placeholder="nama divisi">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-tw-dismiss="modal"
+                            class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-primary w-20">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script type="text/javascript">
         // search
         jQuery(document).ready(function($) {
-            $('#searchPosition').on('keyup', function() {
+            $('#searchPartner').on('keyup', function() {
                 var query = $(this).val();
                 $.ajax({
                     type: 'GET',
-                    url: '{{ route('position') }}',
+                    url: '{{ route('partner') }}',
                     data: {
                         query: query
                     },
                     success: function(data) {
-                        $('tbody').html(data);
+                        $('#tablePartner').html(data);
                     }
                 });
             });
-        });
-
-        $(document).on("click", ".detail-presence-modal-search", function() {
-            var divisionId = $(this).data('presenceId');
-            var positionName = $(this).attr('data-positionName');
-
-            jQuery(document).ready(function($) {
-                $.ajax({
-                    url: '{{ route('position.detail', ':id') }}'.replace(':id', divisionId),
-                    type: 'GET',
-                    success: function(response) {
-                        console.log(response)
-                        var positionList = $('#positionList');
-                        positionList.empty();
-
-                        $.each(response.positionData, function(index, positionData) {
-                            var row = '<tr>' +
-                                '<td class="w-4 text-center">' + (index + 1) +
-                                '.</td>' +
-                                '<td class="w-50 text-center capitalize">' +
-                                positionData.id_number + '</td>' +
-                                '<td class="w-50 text-left capitalize">' +
-                                positionData.first_name + ' ' + positionData.last_name +
-                                '</td>' +
-                                '<td class="w-50 text-center capitalize">' +
-                                positionData.division.name + '</td>' +
-                                '<td class="w-50 text-left capitalize">' +
-                                positionData.address + '</td>' +
-                                '<td class="w-50 text-center capitalize">' + (
-                                    positionData.is_active == '1' ? 'active' :
-                                    'non-active') + '</td>'
-                            '</tr>';
-                            positionList.append(row);
-                        });
-
-                        $("#namaPosition").text(positionName);
-                    }
-                });
-            });
-        });
-
-        $(document).on("click", ".edit-modal-search-class", function() {
-            var EditModalid = $(this).attr('data-Positionid');
-            var EditModalPositionName = $(this).attr('data-PositionName');
-            var EditModalDivisiID = $(this).attr('data-DivisionId');
-
-
-
-            console.log(EditModalDivisiID);
-            var formAction;
-            formAction = '{{ route('position.update', ':id') }}'.replace(':id', EditModalid);
-
-            $("#edit-modal-PositionName").attr('value', EditModalPositionName);
-            $("#edit-form-search").attr('action', formAction);
-
-            $("#project-position-select option").each(function() {
-                if ($(this).val() == EditModalDivisiID) {
-                    $(this).attr("selected", true);
-                } else {
-                    $(this).removeAttr("selected");
-                }
-            });
-        });
-
-        $(document).on("click", ".delete-modal-search", function() {
-            var DeleteModalid = $(this).attr('data-id');
-            var DeleteModalName = $(this).attr('data-name');
-
-
-
-            var formAction;
-            formAction = '{{ route('position.destroy', ':id') }}'.replace(':id', DeleteModalid);
-
-            $("#subjuduldelete-confirmation").text('Please type the username "' + DeleteModalName +
-                '" of the data to confrim.');
-            $("#delete-form-search").attr('action', formAction);
         });
     </script>
 @endsection

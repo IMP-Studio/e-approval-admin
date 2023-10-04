@@ -50,7 +50,7 @@
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-2" class="form-label">Lastname</label>
-                            <input name="last_name" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname" required>
+                            <input name="last_name" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname">
                         </div>
                         <div class="mt-3">
                             <label for="crud-form-3" class="form-label">ID Number</label>
@@ -88,7 +88,7 @@
                                     <i data-lucide="image" class="w-8 h-8 mr-2 text-success"></i> <span
                                         class="text-success text-bold font-medium mr-1">Upload a file</span>
                                     <input class="w-full h-full top-0 left-0 absolute opacity-0" type="file"
-                                        name="avatar" id="logoInput" onchange="previewImage(event)" required>
+                                        name="avatar" id="logoInput" onchange="previewImage(event)">
                                 </div>
                             </div>
                         </div>
