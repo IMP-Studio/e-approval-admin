@@ -483,10 +483,7 @@ class ApiController extends Controller
     }else {
         return response()->json(['status' => 'checkedOut', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
     }
-}
-
-
-    
+}  
 
     //FUNCTION GET PRESENCE TODAY //BISAA
     public function getPresenceToday($id) {
@@ -699,7 +696,6 @@ class ApiController extends Controller
                     'permission' => $presence->user->getPermissionNames()->intersect([
                         'approve_preliminary', 
                         'approve_allowed', 
-                        'reject_prensence', 
                         'view_request_pending', 
                         'view_request_preliminary', 
                         'can_access_mobile'
@@ -1045,56 +1041,28 @@ class ApiController extends Controller
     }
 
 
-    public function getLeaveById(Request $request, $id) {
-        $leave = Leave::with(['user', 'user.employee', 'statusCommit'])->find($id);
+   
+
+    //FUNCTION RESUME PRESENCE 
+
     
-        if (!$leave) {
-            return response()->json(['status' => 404, 'message' => 'Leave not found']);
-        }
+    public function getResumePresence(Request $request, $id) {
+        $userPresence = Presence::where('user_id', $id)->get();
     
-        $nama_lengkap = $leave->user ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name : '';
-        $data = [
-            'id' => $leave->id,
-            'user_id' => $leave->user_id,
-            'nama_lengkap' => $nama_lengkap,
-            'posisi' => $leave->user->employee->position->name,
-            'type' => $leave->leavedetail->typeofleave->leave_name,
-            'description_leave' => $leave->leavedetail->description_leave,
-            'file' => $leave->file,
-            'submission_date' => $leave->submission_date,
-            'total_leave_days' => $leave->total_leave_days,
-            'start_date' => $leave->start_date,
-            'end_date' => $leave->end_date,
-            'entry_date' => $leave->entry_date,
-            'created_at' => $leave->created_at,
-            'updated_at' => $leave->updated_at,
-        ];
+        $wfo = $userPresence->where('category', 'WFO');
+        $telework = $userPresence->where('category', 'telework');
+        $work_trip = $userPresence->where('category', 'work_trip');
+        $skip = $userPresence->where('category', 'skip');
+        $leave = $userPresence->where('category', 'leave');
     
-        $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
-        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
-            $approver = $mostRecentStatus->approver;
-    
-            if ($approver) { // Check if approver exists
-                $approverPermission = $approver->getPermissionNames()->intersect([
-                    'approve_preliminary', 
-                    'approve_allowed', 
-                    'reject_prensence', 
-                    'view_request_pending', 
-                    'view_request_preliminary', 
-                    'can_access_mobile'
-                ])->values();
-    
-                if ($approverPermission && in_array($approverPermission, ['approve_preliminary', 'approve_allowed'])) {
-                    $data['approver_id'] = $approver->id;
-                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
-                    $data['permission_approver'] = $approverPermission;
-                }
-            }
-            $data['status'] = $mostRecentStatus->status;
-            $data['status_description'] = $mostRecentStatus->description;
-        }
-    
-        return response()->json(['message' => 'Success', 'data' => $data]);
+        return response()->json([
+            'WFO' => $wfo->count(),
+            'telework' => $telework->count(),
+            'work_trip' => $work_trip->count(),
+            'skip' => $skip->count(),
+            'leave' => $leave->count(),
+            'totalPresence' => $wfo->count() + $telework->count() + $work_trip->count()
+        ]);
     }
     
     
@@ -1223,45 +1191,40 @@ class ApiController extends Controller
     
         if ($updateabsensi->category == 'work_trip') {
             $relatedModel = Worktrip::with('user')->where('presence_id', $updateabsensi->id)->first();
-    
             if (!$relatedModel) {
                 return response()->json(['message' => 'Related work_trip model not found'], 404);
             }
-
-            $userId = $relatedModel -> user_id;
+            $userId = $relatedModel->user_id;
             $user = User::with('employee')->where('id', $userId)->first();
+            
+            $fullPath = $relatedModel->file; 
+            
+
+                if ($request->hasFile('file')){
+                    // Delete the existing file if it exists
+                    if ($relatedModel->file) {
+                        Storage::disk('public')->delete($relatedModel->file); 
+                    }
+
+                    $file = $request->file('file');
+                    $originalFilename = $file->getClientOriginalName();
+                    $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : '';
+                    $directoryPath = 'files/presence/perjadin/' . $nama_lengkap;
                     
-            // Handle the file replacement
-            if ($request->hasFile('file')){
-                $file = $request->file('file');
-                $originalFilename = $file->getClientOriginalName();
-                $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : ''; // Note: added a space between first_name and last_name
-                $directoryPath = 'files/presence/perjadin/' . $nama_lengkap;
-            
-                // Delete the existing file if it exists
-                if ($relatedModel->file) {
-                    Storage::disk('public')->delete($directoryPath . '/' . $relatedModel->file); // Note: added a '/' between $directoryPath and $relatedModel->file
+                    // Store the new file
+                    $file->storeAs($directoryPath, $originalFilename, 'public');
+                    
+                    // Update the fullPath with the new path
+                    $fullPath = $directoryPath . '/' . $originalFilename;
                 }
+
             
-                // Store the new file
-                $file->storeAs($directoryPath, $originalFilename, 'public');
+            $relatedModel->file = $fullPath;
+            $relatedModel->save();
             
-                // Save the full path (directory + filename) in the related model
-                $fullPath = $directoryPath . '/' . $originalFilename;
-                $relatedModel->file = $fullPath;
-            
-                // Exception handling: It's more appropriate to check if the file exists after storage
-                if (!Storage::disk('public')->exists($fullPath)) {
-                    throw new \Exception("Error storing the file.");
-                }
-            
-                // Save the model with the updated file attribute
-                $relatedModel->save();
-            }
-            
-    
             $relatedModel->update($request->except('file'));
-        } 
+        }
+        
         elseif ($updateabsensi->category == 'telework') {
             $relatedModel = Telework::where('presence_id', $updateabsensi->id)->first();
     
@@ -1289,6 +1252,9 @@ class ApiController extends Controller
             return response()->json(['message' => 'Presence record not found'], 404);
         }
     
+        $startDate = null;
+        $endDate = null;
+    
         switch ($presence->category) {
             case 'telework':
                 $telework = Telework::where('presence_id', $id)->first();
@@ -1301,29 +1267,42 @@ class ApiController extends Controller
             case 'work_trip':
                 $worktrip = WorkTrip::where('presence_id', $id)->first();
                 if ($worktrip) {
-                    $worktrip->statusCommit()->delete();
-                    $worktrip->delete();
-                }
-                break;
-
-            case 'leave':
-                $worktrip = Leave::where('presence_id', $id)->first();
-                if ($worktrip) {
+                    $startDate = $worktrip->start_date;
+                    $endDate = $worktrip->end_date;
                     $worktrip->statusCommit()->delete();
                     $worktrip->delete();
                 }
                 break;
     
+            case 'leave':
+                $leave = Leave::where('presence_id', $id)->first();
+                if ($leave) {
+                    $startDate = $leave->start_date;
+                    $endDate = $leave->end_date;
+                    $leave->statusCommit()->delete();
+                    $leave->delete();
+                }
+                break;
+    
             case 'WFO':
-
+                // No specific action needed for WFO category
                 break;
     
             default:
                 return response()->json(['message' => 'Presence category not recognized'], 400);
         }
     
-        $presence->delete();
-        
+        // Delete all presence records that fall within the start and end dates of the leave/worktrip
+        if ($startDate && $endDate) {
+            Presence::where('user_id', $presence->user_id)
+                    ->where('category', $presence->category)
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->delete();
+        } else {
+            // If there's no start and end date, just delete the specific presence record
+            $presence->delete();
+        }
+    
         return response()->json(['message' => 'Presence and related records deleted successfully']);
     }
     
@@ -1453,6 +1432,36 @@ public function approveReject(Request $request, $id)
                 $currentDate->addDay();
             }
             
+        }  elseif ($statusable->presence->category == 'leave' && $request->input('status') === 'allowed') {
+            $startDate = Carbon::parse($statusable->start_date);
+            $endDate = Carbon::parse($statusable->end_date);
+            $currentDate = Carbon::today();
+    
+            if ($startDate->isToday()) {
+                // If leave starts today, update today's presence
+                $statusable->presence->update([
+                    'entry_time' => '08:30:00',
+                    'exit_time' => '17:30:00',
+                    'category' => 'leave'
+                ]);
+            } else if ($startDate->greaterThan($currentDate)) {
+                // If leave starts in future, delete today's presence (if exists)
+                $statusable->presence->delete();
+            }
+    
+            // Create or update presence records for the entire leave duration
+            $currentDate = clone $startDate;
+            while ($currentDate->lte($endDate)) {
+                Presence::updateOrCreate([
+                    'user_id' => $statusable->user_id,
+                    'date' => $currentDate->toDateString(),
+                    'category' => 'leave'
+                ], [
+                    'entry_time' => '08:30:00',
+                    'exit_time' => '17:30:00'
+                ]);
+                $currentDate->addDay();
+            }
         } elseif ($statusable->presence->category == 'telework' && $request->input('status') === 'allowed') {
             $submissionDate = Carbon::parse($statusable->presence->date); 
             $attendanceToday = Presence::where('user_id', $statusable->user_id)
@@ -1703,145 +1712,317 @@ public function approveReject(Request $request, $id)
             return response()->json(['message' => 'Success', 'data' => $leave]);
         }
     }
+
+    public function getLeaveById(Request $request, $id) {
+        $leave = Leave::with(['user', 'user.employee', 'statusCommit'])->find($id);
+    
+        if (!$leave) {
+            return response()->json(['status' => 404, 'message' => 'Leave not found']);
+        }
+    
+        $nama_lengkap = $leave->user ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name : '';
+        $data = [
+            'id' => $leave->id,
+            'user_id' => $leave->user_id,
+            'nama_lengkap' => $nama_lengkap,
+            'posisi' => $leave->user->employee->position->name,
+            'type' => $leave->leavedetail->typeofleave->leave_name,
+            'description_leave' => $leave->leavedetail->description_leave,
+            'file' => $leave->file,
+            'submission_date' => $leave->submission_date,
+            'total_leave_days' => $leave->total_leave_days,
+            'start_date' => $leave->start_date,
+            'end_date' => $leave->end_date,
+            'entry_date' => $leave->entry_date,
+            'created_at' => $leave->created_at,
+            'updated_at' => $leave->updated_at,
+        ];
+    
+        $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
+        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
+            $approver = $mostRecentStatus->approver;
+    
+            if ($approver) { // Check if approver exists
+                $approverPermission = $approver->getPermissionNames()->intersect([
+                    'approve_preliminary', 
+                    'approve_allowed', 
+                   
+                    'view_request_pending', 
+                    'view_request_preliminary', 
+                    'can_access_mobile'
+                ])->values();
+    
+                if ($approverPermission && in_array($approverPermission, ['approve_preliminary', 'approve_allowed'])) {
+                    $data['approver_id'] = $approver->id;
+                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
+                    $data['permission_approver'] = $approverPermission;
+                }
+            }
+            $data['status'] = $mostRecentStatus->status;
+            $data['status_description'] = $mostRecentStatus->description;
+        }
+    
+        return response()->json(['message' => 'Success', 'data' => $data]);
+    }
+
+    public function getLeaveCount(Request $request) {
+        $userId = $request->query('id');
+        $jenisleave = $request->query('type');
+        
+        $currentYear = now()->year;
+        
+        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit'])->orderBy('updated_at', 'desc');
+        
+        if ($userId) {
+            $leaveQuery = $leaveQuery->where('user_id', $userId);
+        }
+        
+        if ($jenisleave) {
+            $leaveQuery = $leaveQuery->where('type', $jenisleave);
+        }
+        
+        $leaves = $leaveQuery->get();
+        
+        $leaveCounts = [
+            'exclusive' => 0,
+            'yearly' => 0,
+            'emergency' => 0
+        ];
+    
+        foreach ($leaves as $leave) {
+            $type = $leave->leavedetail->typeofleave->leave_name;
+            $days = $leave->total_leave_days;
+            
+ 
+            $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
+            if (!$mostRecentStatus || $mostRecentStatus->status !== 'allowed') {
+                continue;
+            }
+    
+            if ($type === 'yearly' && Carbon::parse($leave->start_date)->year !== $currentYear) {
+                continue; 
+            }
+    
+            if (array_key_exists($type, $leaveCounts)) {
+                $leaveCounts[$type] += $days;
+            }
+        }
+        
+        return response()->json(['message' => 'Success', 'data' => $leaveCounts]);
+    }
+        
+    public function yearlyLeave(Request $request) {
+        $userId = $request->query('id');
+        
+        $currentYear = now()->year; 
+
+        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit'])
+                            ->whereHas('statusCommit', function($query) {
+                                $query->where('status', 'allowed');
+                            })
+                            ->orderBy('updated_at', 'desc');
+        
+        if ($userId) {
+            $leaveQuery = $leaveQuery->where('user_id', $userId);
+        }
+        
+        $leaveQuery = $leaveQuery->whereHas('leavedetail.typeofleave', function($query) {
+            $query->where('leave_name', 'yearly');
+        });
+        
+        $leaves = $leaveQuery->get();
+        
+        $yearlyLeaveDays = 0;
+    
+        foreach ($leaves as $leave) {
+            if (Carbon::parse($leave->start_date)->year === $currentYear) {
+                $yearlyLeaveDays += $leave->total_leave_days;
+            }
+        }
+        
+        return response()->json(['message' => 'Success', 'data' => $yearlyLeaveDays]);
+    }
+
+
+    public function getLeaveDetailOption(Request $request) {
+    
+        $type = $request->query('type');
+        $leaveQuery = LeaveDetail::with(['typeofleave'])->orderBy('updated_at', 'desc');
+
+        if($type){
+            $leaveQuery->where('type_of_leave_id' );
+        }else{
+            return response()->json(['message' => 'Tidak ada tipe cuti yang sama dengan yang anda minta']);
+        }
+    
+        $leavedesc = $leaveQuery->get()->map(function ($leavedesc) {
+           
+        
+            return [
+                'id' => $leavedesc->id,
+                'description_leave' => $leavedesc->description_leave,
+                'type_of_leave_id' => $leavedesc->type_of_leave_id,
+                'days' => $leavedesc->days,
+                'type_leave' => $leavedesc->typeofleave->leave_name,
+                'created_at' => $leavedesc->created_at,
+                'updated_at' => $leavedesc->updated_at,
+            ];
+        });
+        
+    
+        if ($leavedesc->isEmpty()) {
+            return response()->json(['message' => 'Data leave description kosong']);
+        } else {
+            return response()->json(['message' => 'Success', 'data' => $leavedesc]);
+        }
+    }
+
+
+    
     
     
     
     // FUNCTION STORE LEAVE //BISA
 
 
-public function storeLeave(Request $request) {
-    $currentDate = Carbon::now();
-    $submissionDate = Carbon::parse($request->input('submission_date'));
-    $startDate = Carbon::parse($request->input('start_date'));
-    $endDate = Carbon::parse($request->input('end_date'));
-    $totalDays = $startDate->diffInDays($endDate) + 1;
+    public function storeLeave(Request $request) {
+        $currentDate = Carbon::now();
+        $submissionDate = Carbon::parse($request->input('submission_date'));
+        $startDate = Carbon::parse($request->input('start_date'));
+        $endDate = Carbon::parse($request->input('end_date'));
+        $totalDays = $startDate->diffInDays($endDate) + 1;
 
-    if($request->has('file')){
-        $file = $request->file('file');
+        if($request->has('file')){
+            $file = $request->file('file');
 
+                $originalFilename = $file->getClientOriginalName();
+                $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : '';
+                
+                $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
+                $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
+
+                if (!$storedFilePath) {
+                    throw new \Exception("Error storing the file.");
+                }
+        }
+
+        DB::beginTransaction();  
+
+        try {
+            $leave = Leave::create([
+                'user_id' => $request->input('user_id'),
+                'leave_detail_id' => $request->input('leave_detail_id'),
+                'file' => $storedFilePath ?? null,
+                'submission_date' => $submissionDate,
+                'total_leave_days' => $totalDays,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'entry_date' => $request->input('entry_date'),
+            ]);
+
+            Presence::create([
+                'user_id' => $request->input('user_id'),
+                'category' => 'leave',
+                'entry_time' => '00:00:00',  // or any default entry time for leave
+                'exit_time' => '00:00:00',  // or any default exit time for leave
+                'date' => $startDate->toDateString(),
+            ]);
+
+            if (!$leave->statusCommit()->exists()) {
+                $leave->statusCommit()->create([
+                    'approver_id' => null,
+                    'status' => 'pending',
+                    'description' => null,
+                ]);
+            }
+
+            DB::commit();  
+            /// bikin notifikasi untuk ht.
+
+            return response()->json(['message' => 'Success', 'data' => $leave]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();  
+
+            return response()->json(['message' => 'Failed to create leave: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function updateLeave(Request $request, $id) {
+        $leave = Leave::find($id);
+    
+        if (!$leave) {
+            return response()->json(['message' => 'Record not found'], 404);
+        }
+    
+        // Fields that are allowed to be updated
+        $updatableFields = ['user_id', 'leave_detail_id', 'submission_date', 'start_date', 'end_date', 'entry_date'];
+        
+        // Get only the input data that corresponds to $updatableFields
+        $dataToUpdate = $request->only($updatableFields);
+    
+        // Handle the dates for computing total days
+        if(isset($dataToUpdate['start_date']) && isset($dataToUpdate['end_date'])) {
+            $startDate = Carbon::parse($dataToUpdate['start_date']);
+            $endDate = Carbon::parse($dataToUpdate['end_date']);
+            $dataToUpdate['total_leave_days'] = $startDate->diffInDays($endDate) + 1;
+        }
+    
+        // Handle file upload
+        if($request->has('file')) {
+            $file = $request->file('file');
+    
+            // Delete the old file if exists
+            if($leave->file && Storage::disk('public')->exists($leave->file)) {
+                Storage::disk('public')->delete($leave->file);
+            }
+    
             $originalFilename = $file->getClientOriginalName();
-            $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : '';
+            $nama_lengkap = $leave->user->employee ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name : '';
             
             $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
             $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
-
+    
             if (!$storedFilePath) {
                 throw new \Exception("Error storing the file.");
             }
-    }
-
-    DB::beginTransaction();  
-
-    try {
-        $leave = Leave::create([
-            'user_id' => $request->input('user_id'),
-            'leave_detail_id' => $request->input('leave_detail_id'),
-            'file' => $storedFilePath ?? null,
-            'submission_date' => $submissionDate,
-            'total_leave_days' => $totalDays,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'entry_date' => $request->input('entry_date'),
-        ]);
-
-        if (!$leave->statusCommit()->exists()) {
-            $leave->statusCommit()->create([
-                'approver_id' => null,
-                'status' => 'pending',
-                'description' => null,
-            ]);
+    
+            $dataToUpdate['file'] = $storedFilePath;
         }
-
-        DB::commit();  
-        /// bikin notifikasi untuk ht.
-
-        return response()->json(['message' => 'Success', 'data' => $leave]);
-
-    } catch (\Exception $e) {
-        DB::rollBack();  // Rollback the transaction
-
-        return response()->json(['message' => 'Failed to create leave: ' . $e->getMessage()], 500);
+    
+        DB::beginTransaction();  
+    
+        try {
+            $leave->update($dataToUpdate);
+            DB::commit();  
+            return response()->json(['message' => 'Update successful', 'data' => $leave]);
+        } catch (\Exception $e) {
+            DB::rollBack();  // Rollback the transaction
+            return response()->json(['message' => 'Failed to update leave: ' . $e->getMessage()], 500);
+        }
     }
-}
+    
+    
 
-    
-
-    
-    
-    
-    public function updateLeave(Request $request, $id) {
+    //FUNCTION DELETE LEAVE //BISA
+    public function destroyLeave($id) {
         $leave = Leave::with('statusCommit')->find($id);
     
         if (!$leave) {
             return response()->json(['message' => 'Record not found'], 404);
         }
     
-        $today = Carbon::now();
-        $startDate = Carbon::parse($request->input('start_date'));
-        // $differenceInDays = $today->diffInDays($startDate, false); 
-
+        // Delete all presence records linked to this leave
+        Presence::where('user_id', $leave->user_id)
+                ->where('category', 'leave')
+                ->whereBetween('date', [$leave->start_date, $leave->end_date])
+                ->delete();
     
-        $leave->update($request->all());
+        $leave->statusCommit()->delete();
+        $leave->delete();
     
-        if ($request->has('status')) {
-            $statusData = [
-                'status' => $request->input('status'),
-                'description' => $request->input('description', null),
-                'approver_id' => $request->input('approver_id'),
-            ];
-    
-            $existingStatus = $leave->statusCommit->first();
-    
-            if ($existingStatus) {
-                $existingStatus->update($statusData);
-            }
-    
-            if ($request->input('status') === 'allowed') {
-                $tanggalMulai = Carbon::parse($leave->start_date);
-                $tanggalAkhir = Carbon::parse($leave->end_date);
-    
-                while ($tanggalMulai->lte($tanggalAkhir)) {
-                    $presence = Presence::create([
-                        'user_id' => $leave->user_id,
-                        'category' => 'leave',
-                        'entry_time' => '08:30:00',
-                        'exit_time' => '17:30:00',
-                        'date' => $tanggalMulai->toDateString(),
-                    ]);
-                    $tanggalMulai->addDay();
-                }
-                $leave->presence_id = $presence->id;
-                $leave->save();
-                /// bikin notifikasi untuk ht.
-            }
-        }
-
-        
-    
-        return response()->json(['message' => 'Update successful', 'data' => $leave]);
+        return response()->json(['message' => 'Delete successful']);
     }
-    
-    
-    
-    
-
-
-
-    //FUNCTION DELETE LEAVE //BISA
-    public function destroyLeave($id) 
-{
-    $leave = Leave::with('statusCommit')->find($id);
-
-    if (!$leave) {
-        return response()->json(['message' => 'Record not found'], 404);
-    }
-
-    $leave->statusCommit()->delete();
-
-    $leave->delete();
-
-    return response()->json(['message' => 'Delete successful']);
-}
 
 
 
@@ -1888,6 +2069,51 @@ public function storeLeave(Request $request) {
                         'doing_count' => $employee->user->standups->where('doing', true)->count(),
                         'blocker_count' => $employee->user->standups->where('blocker', true)->count(),
                     ],
+                    'created_at' => $employee->created_at,
+                    'updated_at' => $employee->updated_at,
+                ];
+            });
+    
+            if ($employee->isEmpty()) {
+                return response()->json(['message' => 'Bukan employee']);
+            } else {
+                return response()->json(['message' => 'Success', 'data' => $employee]);
+            }
+    }
+    public function getProfileDivision(Request $request){
+        $division = $request->query('division');
+        $employeeQuery = Employee::with('user','division','position')->orderBy('updated_at', 'desc');
+                
+        if($division){
+            $employeeQuery->where('division_id', $division );
+        }else{
+            return response()->json(['message' => 'Tidak ada employee yang berada di divisi tersebut']);
+        }
+        $employee = $employeeQuery->get()
+            ->map(function ($employee) {
+                $nama_lengkap = $employee->first_name .' '. $employee->last_name;
+    
+                return [
+                    'id' => $employee->id,
+                    'user_id' => $employee->user_id,
+                    'nama_lengkap'=> $nama_lengkap,
+                    'divisi' => $employee->division->name,
+                    'posisi' => $employee->position->name,
+                    'avatar' => $employee->avatar,
+                    'id_number' => $employee->id_number,
+                    'gender' => $employee->gender,
+                    'address' => $employee->address,
+                    'birth_date' => $employee->birth_date,
+                    'is_active' => $employee->is_active,
+                    'permission' => $employee->user->getPermissionNames()->intersect([
+                        'approve_preliminary', 
+                        'approve_allowed', 
+                        'reject_prensence', 
+                        'view_request_pending', 
+                        'view_request_preliminary', 
+                        'can_access_mobile'
+                    ])->values(),
+                    'name' => $employee->user->name,
                     'created_at' => $employee->created_at,
                     'updated_at' => $employee->updated_at,
                 ];

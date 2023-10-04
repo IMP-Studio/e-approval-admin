@@ -22,7 +22,7 @@ class EmployeeSeeder extends Seeder
     {
 
         $data_divisi = [
-            ['name' => 'Product Engineering'],
+            ['name' => 'Product Engineer'],
             ['name' => 'Designer'],
             ['name' => 'Human Resource'],
         ];
