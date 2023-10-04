@@ -38,7 +38,8 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="search">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..."
+                            id="searchProject">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
@@ -54,7 +55,7 @@
                             <th class="text-center whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="tableProject">
                         @foreach ($project as $item)
                             <tr class="intro-x h-16">
                                 <td class="w-4 text-center">
@@ -76,17 +77,6 @@
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
-                                        <a class="flex items-center text-warning mr-3" href="javascript:;"
-                                            data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-{{ $item->id }}">
-                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
-                                        </a>
-
-                                        <a data-divisionId="{{ $item->id }}"
-                                            class="mr-3 flex items-center text-success detail-division-modal-search"
-                                            href="javascript:;" data-tw-toggle="modal"
-                                            data-tw-target="#detail-division-modal">
-                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Detail
-                                        </a>
 
                                         <a data-projectId="{{ $item->id }}" data-projectName="{{ $item->name }}"
                                             data-endDate="{{ $item->end_date }}" data-startDate="{{ $item->start_date }}"
@@ -95,12 +85,20 @@
                                             data-partnerName="{{ $item->partner->name }}"
                                             class="flex items-center text-warning mr-3 edit-modal-project-search"
                                             href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-project">
-                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit js
+                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                         </a>
 
+                                        <a data-projectId="{{ $item->id }}"
+                                            class="mr-3 flex items-center text-success detail-project-modal-search"
+                                            href="javascript:;" data-tw-toggle="modal"
+                                            data-tw-target="#detail-project-modal">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                        </a>
+
+                                        {{-- berfungsi --}}
                                         {{-- <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
                                         <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
-                                    </a> --}}
+                                        </a> --}}
                                     </div>
                                 </td>
                             </tr>
@@ -209,12 +207,12 @@
         </div>
     </div>
 
-    {{-- detail modal divis --}}
-    <div id="detail-division-modal" class="modal" tabindex="-1" aria-hidden="true">
+    {{-- detail modal Project --}}
+    <div id="detail-project-modal" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-lg mx-auto">Divisi</h2>
+                    <h2 class="font-medium text-lg mx-auto">Project</h2>
                 </div>
                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 </div>
@@ -222,17 +220,17 @@
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Position</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Pegawai</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Project Name</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Partner</th>
                         </tr>
                     </thead>
-                    <tbody id="positionList">
+                    <tbody>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    {{-- detail modal divis end --}}
+    {{-- detail modal Project end --}}
 
     {{-- delete modal search --}}
     <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
@@ -280,12 +278,13 @@
                         </div>
                         <div class="col-span-12">
                             <label for="modal-form-1" class="form-label">Partner</label>
-                            <select name="partner_id" class="tom-select w-full" id="project-partner-select">
-                                {{-- @foreach ($partnerall as $itemDivisi)
+                            <select name="partner_id" id="project-partner-select" class="w-full "
+                                style="background-color: #1B253b;">
+                                @foreach ($partnerall as $itemDivisi)
                                     <option value="{{ $itemDivisi->id }}">
                                         {{ $itemDivisi->name }}
                                     </option>
-                                @endforeach --}}
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-span-12 sm:col-span-6">
@@ -322,14 +321,31 @@
     </div>
 
     <script type="text/javascript">
+        // search
+        jQuery(document).ready(function($) {
+            $('#searchProject').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('project') }}',
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
+                        $('#tableProject').html(data);
+                    }
+                });
+            });
+        });
+
+        // edit-modal
         $(document).on("click", ".edit-modal-project-search", function() {
             var EditProjectid = $(this).attr('data-projectid');
             var editProjectName = $(this).attr('data-projectName');
             var editEnddateYMD = $(this).attr('data-endDate');
             var editStartdateYMD = $(this).attr('data-startDate');
-            var editPartnerSelectid = $(this).attr('data-partnerId');
+            var editPartnerSelectid = $(this).attr('data-projectpartnerId');
             var editPartnerSelectName = $(this).attr('data-partnerName');
-            var positionList = $('#project-partner-select');
 
 
             var formAction;
@@ -342,14 +358,18 @@
             $("#start-date-modal").val(editStartdateYMD); // bug!! di tampilan di haruskan menggunakan ini
             $("#start-date-modal").attr('value', editStartdateYMD);
             $("#name-project-modal").attr('value', editProjectName);
-            $("#project-partner-select").attr('value', editPartnerSelectid);
-            $("#project-partner-select").text(editPartnerSelectName);
 
-            @foreach ($partnerall as $partner)
-            var selected = ({{ $partner->id }} == editPartnerSelectid) ? 'selected' : '';
-            var row = '<option value="{{ $partner->id }}" ' + selected + '>{{ $partner->name }}</option>';
-            positionList.append(row);
-            @endforeach
+
+            // Cari option dengan value yang sesuai dan tandai sebagai yang dipilih
+            $("#project-partner-select option").each(function() {
+                if ($(this).val() == editPartnerSelectid) {
+                    $(this).attr("selected", true);
+                } else {
+                    $(this).removeAttr("selected");
+                }
+            });
+
+
 
         })
     </script>
