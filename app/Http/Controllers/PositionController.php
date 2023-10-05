@@ -73,7 +73,8 @@ class PositionController extends Controller
 
     public function detailPosition(Request $request)
     {
-        $positions = Employee::where('position_id', $request->id)->with('division')->get();
+        $perPage = 5; 
+        $positions = Employee::where('position_id', $request->id)->with('division')->paginate($perPage);
     
         return response()->json(['positionData' => $positions]);
     }

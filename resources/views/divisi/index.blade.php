@@ -178,17 +178,22 @@
                 </div>
                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 </div>
-                <table id="table" class="table table-striped">
+                <table id="table" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
-                            <th data-priority="2" class="text-left whitespace-nowrap">Position</th>
-                            <th data-priority="3" class="text-center whitespace-nowrap">Pegawai</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Position</th>
+                            <th data-priority="2" class="text-center whitespace-nowrap">Pegawai</th>
                         </tr>
                     </thead>
-                    <tbody id="divisiDetail">
+                    <tbody id="positionList">
                     </tbody>
                 </table>
+                <div id="pagination-controls" class="mt-4 text-center">
+                    <button id="prev-page" class="btn btn-primary">Prev</button>
+                    <span id="page-numbers">Page 1 of 1</span>  
+                    <button id="next-page" class="btn btn-primary">Next</button>    
+                </div>
             </div>
         </div>
     </div>
@@ -267,35 +272,69 @@
         });
 
         $(document).on("click", ".detail-division-modal-search", function() {
-            var divisionId = $(this).data('divisionId');
-            jQuery(document).ready(function($) {
-                $.ajax({
-                    url: '{{ route('division.detail', ':id') }}'.replace(':id', divisionId),
-                    type: 'GET',
-                    success: function(response) {
-                        var positionList = $('#divisiDetail');
-                        positionList.empty();
+    var divisionId = $(this).data('divisionId');
+    var totalPages = 0;
+    var currentPage = 1;
+    var perPage = 5;
 
+    jQuery(document).ready(function($) {
+        function updatePaginationInfo() {
+            // $("#pagination-info").text("Page " + currentPage + "/" + totalPages);
+            $("#page-numbers").text(currentPage + " / " + totalPages);
+        }
 
-                        $.each(response.positionData, function(index, positionData) {
-                            var row = '<tr>' +
-                                '<td class="w-4 text-center">' + (index + 1) +
-                                '.</td>' +
-                                '<td class="w-30 text-left capitalize">' +
-                                positionData.position.name +'</td>' +
-                                '<td class="w-50 text-center capitalize">' +
-                                positionData.positionCount + ' pegawai' + '</td>' +
-                                '</tr>';
+        function updatePaginationControls() {
+            $("#prev-page").prop('disabled', currentPage === 1);
+            $("#next-page").prop('disabled', currentPage === totalPages || totalPages === 0);
+        }
 
-                            positionList.append(row);
-                        });
+        function loadPage(page) {
+            $.ajax({
+                url: '{{ route('division.detail', ':id') }}'.replace(':id', divisionId),
+                type: 'GET',
+                data: { page: page },
+                success: function(response) {
+                    console.log(response);
+                    totalPages = response.lastPage;
+                    var positionList = $('#positionList');
+                    positionList.empty();
 
+                    var startIndex = (page - 1) * perPage;
 
-                        // $('#detail-division-modal').modal('show')
-                    }
-                });
+                    $.each(response.positionData, function(index, positionData) {
+                        var row = '<tr>' +
+                            '<td class="w-4 text-center">' + (startIndex + index + 1) +
+                            '.</td>' +
+                            '<td class="w-50 text-center capitalize">' +
+                            positionData.position.name + '</td>' +
+                            '<td class="w-50 text-center capitalize">' +
+                            positionData.positionCount + ' pegawai' + '</td>' +
+                            '</tr>';
+                        positionList.append(row);
+                    });
+
+                    currentPage = page;
+                    updatePaginationInfo();
+                    updatePaginationControls();
+                }
             });
+        }
+
+        loadPage(currentPage);
+
+        $("#next-page").click(function() {
+            if (currentPage < totalPages) {
+                loadPage(currentPage + 1);
+            }
         });
+
+        $("#prev-page").click(function() {
+            if (currentPage > 1) {
+                loadPage(currentPage - 1);
+            }
+        });
+    });
+});
 
 
         $(document).on("click", ".edit-modal-divisi-search-class", function() {

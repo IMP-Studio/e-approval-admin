@@ -18,23 +18,34 @@ class DivisionController extends Controller
      * Display a listing of the resource.
      */
 
-    public function detailDivisi(Request $request)
-    {
-        $positions = Position::where('division_id', $request->id)->get();
-        $positionData = [];
-    
-        foreach ($positions as $position) {
-            $jumlah_pegawai = Employee::where('position_id', $position->id)->count();
-            
-            // Menambahkan data posisi dan jumlah pegawai ke dalam array
-            $positionData[] = [
-                'position' => $position,
-                'positionCount' => $jumlah_pegawai,
-            ];
-        }
-    
-        return response()->json(['positionData' => $positionData]);
-    }
+public function detailDivisi(Request $request)
+     {
+         $divisionId = $request->id;
+         $perPage = 5; // Number of items per page
+     
+         // Get the requested page from the AJAX request
+         $page = $request->input('page', 1);
+     
+         $positions = Position::where('division_id', $divisionId)->paginate($perPage, ['*'], 'page', $page);
+     
+         $positionData = [];
+     
+         foreach ($positions as $position) {
+             $jumlah_pegawai = Employee::where('position_id', $position->id)->count();
+     
+             // Menambahkan data posisi dan jumlah pegawai ke dalam array
+             $positionData[] = [
+                 'position' => $position,
+                 'positionCount' => $jumlah_pegawai,
+             ];
+         }
+     
+         return response()->json([
+             'positionData' => $positionData,
+             'currentPage' => $positions->currentPage(),
+             'lastPage' => $positions->lastPage(),
+         ]);
+     }
     
 
 
