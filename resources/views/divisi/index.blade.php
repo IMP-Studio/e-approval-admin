@@ -231,15 +231,15 @@
                 </div>
                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 </div>
-                <table id="table" class="table table-report -mt-2">
+                <table id="table" class="table table-striped">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Position</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Pegawai</th>
+                            <th data-priority="2" class="text-left whitespace-nowrap">Position</th>
+                            <th data-priority="3" class="text-center whitespace-nowrap">Pegawai</th>
                         </tr>
                     </thead>
-                    <tbody id="positionList">
+                    <tbody id="divisiDetail">
                     </tbody>
                 </table>
             </div>
@@ -326,7 +326,7 @@
                     url: '{{ route('division.detail', ':id') }}'.replace(':id', divisionId),
                     type: 'GET',
                     success: function(response) {
-                        var positionList = $('#positionList');
+                        var positionList = $('#divisiDetail');
                         positionList.empty();
 
 
@@ -334,11 +334,12 @@
                             var row = '<tr>' +
                                 '<td class="w-4 text-center">' + (index + 1) +
                                 '.</td>' +
-                                '<td class="w-50 text-center capitalize">' +
-                                positionData.position.name + '</td>' +
+                                '<td class="w-30 text-left capitalize">' +
+                                positionData.position.name +'</td>' +
                                 '<td class="w-50 text-center capitalize">' +
                                 positionData.positionCount + ' pegawai' + '</td>' +
                                 '</tr>';
+
                             positionList.append(row);
                         });
 

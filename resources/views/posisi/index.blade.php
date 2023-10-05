@@ -302,13 +302,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            {{-- <select name="division_id" class="tom-select w-full" id="modal-form-1">
-                                @foreach ($divisi as $itemDivisi)
-                                <option value="{{ $itemDivisi->id }}" {{ $itemDivisi->id == $item->division_id ? 'selected' : '' }}>
-                                    {{ $itemDivisi->name }}
-                                </option>
-                               @endforeach
-                            </select> --}}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -335,7 +328,7 @@
                             <div class="text-3xl mt-5">Are you sure?</div>
                             <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
                             </div>
-                            <input name="validNameEmployee" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="validNamePartner" id="crud-form-2" type="text" class="form-control w-full"
                                 placeholder="User name" required>
                         </div>
                         <div class="px-5 pb-8 text-center">
@@ -368,6 +361,7 @@
             });
         });
 
+        //detail
         $(document).on("click", ".detail-presence-modal-search", function() {
             var divisionId = $(this).data('presenceId');
             var positionName = $(this).attr('data-positionName');
@@ -430,6 +424,7 @@
             });
         });
 
+        // delete
         $(document).on("click", ".delete-modal-search", function() {
             var DeleteModalid = $(this).attr('data-id');
             var DeleteModalName = $(this).attr('data-name');

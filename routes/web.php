@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/store', [PartnerController::class,'store'])->name('partner.store');
             Route::put('/update/{id}', [PartnerController::class,'update'])->name('partner.update');
             Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
+            Route::get('/detail/{id}', [PartnerController::class,'detailpartner'])->name('partner.detail');
         });
 
         Route::prefix('project')->group(function () {

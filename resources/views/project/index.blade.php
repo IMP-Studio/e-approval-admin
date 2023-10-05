@@ -88,7 +88,7 @@
                                             <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                         </a>
 
-                                        <a data-projectId="{{ $item->id }}"
+                                        <a data-projectnameD="{{ $item->name }}" data-partnerNameD="{{ $item->partner->name }}" data-startdateD="{{ $item->start_date }}" data-enddateD="{{ $item->end_date }}"
                                             class="mr-3 flex items-center text-success detail-project-modal-search"
                                             href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#detail-project-modal">
@@ -212,21 +212,29 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-lg mx-auto">Project</h2>
+                    <h2 class="font-medium text-lg mx-auto" id="show-detailName">Detail Partner</h2>
                 </div>
-                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="modal-body grid grid-cols-1 gap-4 gap-y-3">
+                    <div class="">
+                        <label class="form-label">name :</label>
+                        <input disabled id="show-projectname" type="text" class="form-control" value="">
+                    </div>
+
+                    <div class="">
+                        <label class="form-label">Partner name :</label>
+                        <input disabled id="show-partnername" type="text" class="form-control" value="">
+                    </div>
+
+                    <div class="">
+                        <label class="form-label">Start date :</label>
+                        <input disabled id="show-startdate" type="text" class="form-control" value="">
+                    </div>
+
+                    <div class="">
+                        <label class="form-label">End date :</label>
+                        <input disabled id="show-enddate" type="text" class="form-control" value="">
+                    </div>
                 </div>
-                <table id="table" class="table table-report -mt-2">
-                    <thead>
-                        <tr>
-                            <th data-priority="1" class="whitespace-nowrap">No</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Project Name</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Partner</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -313,7 +321,7 @@
                     <div class="modal-footer">
                         <button type="button" data-tw-dismiss="modal"
                             class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
-                        <button type="submit" class="kelas btn btn-primary w-20">Submit</button>
+                        <button type="submit" class="kelas btn btn-primary w-20">update</button>
                     </div>
                 </form>
             </div>
@@ -352,7 +360,8 @@
             formAction = '{{ route('project.update', ':id') }}'.replace(':id', EditProjectid);
 
 
-            $("#edit-project-modal").attr('value', formAction); // bug!! di tampilan di haruskan menggunakan ini
+
+            $("#edit-project-modal").attr('action', formAction); // bug!! di tampilan di haruskan menggunakan ini
             $("#end-date-modal").val(editEnddateYMD); // bug!! di tampilan di haruskan menggunakan ini
             $("#end-date-modal").attr('value', editEnddateYMD);
             $("#start-date-modal").val(editStartdateYMD); // bug!! di tampilan di haruskan menggunakan ini
@@ -372,5 +381,20 @@
 
 
         })
+
+         // detail
+         $(document).on("click", ".detail-project-modal-search", function() {
+            var projectnameD = $(this).attr('data-projectnameD');
+            var partnerNameD = $(this).attr('data-partnerNameD');
+            var startdateD = $(this).attr('data-startdateD');
+            var enddateD = $(this).attr('data-enddateD');
+
+
+
+            $("#show-projectname").attr('value', projectnameD);
+            $("#show-partnername").attr('value', partnerNameD);
+            $("#show-startdate").attr('value', startdateD);
+            $("#show-enddate").attr('value', enddateD);
+        });
     </script>
 @endsection
