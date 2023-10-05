@@ -8,10 +8,12 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
-                <div class="text-center">
-                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-position"
-                        class="btn btn-primary mr-2">Add New Position</a>
-                </div>
+                @can('add_positions')
+                    <div class="text-center">
+                        <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-position"
+                            class="btn btn-primary mr-2">Add New Position</a>
+                    </div>
+                @endcan
                 <div class="dropdown" data-tw-placement="bottom">
                     <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
                         <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i>
@@ -19,19 +21,23 @@
                     </button>
                     <div class="dropdown-menu w-40">
                         <ul class="dropdown-content">
-                            <li>
-                                <a href="{{ route('division.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to Excel </a>
-                            </li>
+                            @can('export_positions')
+                                <li>
+                                    <a href="{{ route('division.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to Excel </a>
+                                </li>
+                            @endcan
                             <li>
                                 <a href="" class="dropdown-item"> <i data-lucide="file-text"
                                         class="w-4 h-4 mr-2"></i> Export to PDF </a>
                             </li>
-                            <li>
-                                <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
-                                    class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
-                                </a>
-                            </li>
+                            @can('import_positions')
+                                <li>
+                                        <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
+                                            class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
+                                        </a>
+                                </li>
+                            @endcan
                         </ul>
                     </div>
                 </div>
@@ -68,11 +74,11 @@
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
-                                        <a class="flex items-center text-warning mr-3" href="javascript:;"
-                                            data-tw-toggle="modal"
-                                            data-tw-target="#modal-edit-position-{{ $item->id }}">
-                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
-                                        </a>
+                                        @can('edit_positions')
+                                            <a class="flex items-center text-warning mr-3 edit-modal-search-class" data-Positionid="{{ $item->id }}" data-PositionName="{{ $item->name }}" data-DivisionId="{{ $item->division_id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-position-search">
+                                                <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
+                                            </a>
+                                        @endcan
 
                                         <a data-positionName="{{ $item->name }}" data-presenceId="{{ $item->id }}"
                                             data-DivisionId="{{ $item->division_id }}"
@@ -81,85 +87,15 @@
                                             data-tw-target="#detail-division-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                         </a>
-
-                                        <a class="flex items-center text-danger delete-button" href="javascript:;"
-                                            data-tw-toggle="modal"
-                                            data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
-                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
-                                        </a>
-
+                                        
+                                        @can('delete_positions')
+                                            <a class="flex items-center text-danger delete-modal-search" data-id="{{  $item->id  }}" data-name="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
+                                                <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
+                                            </a>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
-
-                            <div id="modal-edit-position-{{ $item->id }}" class="modal" tabindex="-1"
-                                aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h2 class="font-medium text-base mr-auto">Edit Division</h2>
-                                        </div>
-                                        <form id="edit-form" method="POST"
-                                            action="{{ route('position.update', $item->id) }}">
-                                            @csrf
-                                            @method('PUT')
-                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                                <div class="col-span-12">
-                                                    <label for="modal-form-1" class="form-label">Nama Divisi</label>
-                                                    <select name="division_id" class="tom-select w-full" id="modal-form-1">
-                                                        @foreach ($divisi as $itemDivisi)
-                                                            <option value="{{ $itemDivisi->id }}"
-                                                                {{ $itemDivisi->id == $item->division_id ? 'selected' : '' }}>
-                                                                {{ $itemDivisi->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-span-12">
-                                                    <label for="modal-form-2" class="form-label">Nama Posisi</label>
-                                                    <input id="modal-form-2" value="{{ $item->name }}" name="name"
-                                                        type="text" class="form-control" placeholder="nama divisi">
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" data-tw-dismiss="modal"
-                                                    class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
-                                                <button type="submit" class="btn btn-primary w-20">Update</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="delete-confirmation-modal-{{ $item->id }}" class="modal" tabindex="-1"
-                                aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <form id="delete-form" method="POST"
-                                            action="{{ route('position.destroy', $item->id) }}">
-                                            @csrf
-                                            @method('delete')
-                                            <div class="modal-body p-0">
-                                                <div class="p-5 text-center">
-                                                    <i data-lucide="x-circle"
-                                                        class="w-16 h-16 text-danger mx-auto mt-3"></i>
-                                                    <div class="text-3xl mt-5">Are you sure?</div>
-                                                    <div class="text-slate-500 mt-2">
-                                                        Please type the username "{{ $item->name }}" of the data to
-                                                        confrim.
-                                                    </div>
-                                                    <input name="validNamePosisi" id="crud-form-2" type="text"
-                                                        class="form-control w-full" placeholder="User name" required>
-                                                </div>
-                                                <div class="px-5 pb-8 text-center">
-                                                    <button type="button" data-tw-dismiss="modal"
-                                                        class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                                                    <button type="submit" class="btn btn-danger w-24">Delete</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         @endforeach
                     </tbody>
                 </table>
@@ -328,7 +264,7 @@
                             <div class="text-3xl mt-5">Are you sure?</div>
                             <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
                             </div>
-                            <input name="validNamePartner" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="validNamePosition" id="crud-form-2" type="text" class="form-control w-full"
                                 placeholder="User name" required>
                         </div>
                         <div class="px-5 pb-8 text-center">

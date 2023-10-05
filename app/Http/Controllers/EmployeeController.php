@@ -76,19 +76,28 @@ class EmployeeController extends Controller
                 $output .= '</div>
                     </td>
                     <td class="table-report__action w-56">
-                        <div class="flex justify-center items-center">
-                            <a class="flex items-center text-pending mr-3" href="' . route('employee.edit', $item->id) . '">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit
-                            </a>
-                            <a class="flex items-center delete-button mr-3 show-modal-search" data-name="'. $item->user->name .'" data-avatar="'. $item->avatar .'" data-gender="'. $item->gender .'" data-firstname="'. $item->first_name .'" data-LastName="'. $item->last_name .'" data-stafId="'. $item->id_number .'" data-Divisi="'. $item->division->name .'" data-Posisi="'.$item->position->name .'" data-Address="'. $item->address .'" data-BirthDate="'. $item->birth_date .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Show
-                            </a>
-                            <a class="flex items-center text-danger delete-modal-search" data-id="'.  $item->id  .'" data-name="'. $item->first_name .' '. $item->last_name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>';
+                        <div class="flex justify-center items-center">';
+                        if (auth()->user()->can('edit_employees')) {
+                            $output .=
+                            '<a class="flex items-center text-pending mr-3" href="' . route('employee.edit', $item->id) . '">'.
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit '.
+                            '</a>';
+                        }
+
+                        $output .=
+                            '<a class="flex items-center delete-button mr-3 show-modal-search" data-name="'. $item->user->name .'" data-avatar="'. $item->avatar .'" data-gender="'. $item->gender .'" data-firstname="'. $item->first_name .'" data-LastName="'. $item->last_name .'" data-stafId="'. $item->id_number .'" data-Divisi="'. $item->division->name .'" data-Posisi="'.$item->position->name .'" data-Address="'. $item->address .'" data-BirthDate="'. $item->birth_date .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">'.
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Show '.
+                            '</a>';
+
+                        if (auth()->user()->can('delete_employees')) {
+                        $output .=
+                            '<a class="flex items-center text-danger delete-modal-search" data-id="'.  $item->id  .'" data-name="'. $item->first_name .' '. $item->last_name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">'.
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete '.
+                            '</a>';
+                        }
+                        $output .= '</div>';   
+                    '</td>'.
+               '</tr>';
             }
             
             return response($output);
@@ -135,6 +144,8 @@ class EmployeeController extends Controller
                 'password' => $request->password,
             ]);
 
+            $user->givePermissionTo('can_access_mobile');
+
             Employee::create([
                 'user_id' => $user->id,
                 'first_name' => $input['first_name'],
@@ -148,6 +159,8 @@ class EmployeeController extends Controller
                 'birth_date' => $birthDate,
                 'is_active' => true
             ]);
+
+            
             $user_name = $user->firstname;
             return redirect()->route('employee')->with(['success' => "$user_name added successfully"]);
         } catch (\Throwable $th) {

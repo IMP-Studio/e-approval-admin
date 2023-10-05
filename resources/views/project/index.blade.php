@@ -8,10 +8,12 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
-                <div class="text-center">
-                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-partner"
-                        class="btn btn-primary mr-2">Add New Poject</a>
-                </div>
+                @can('add_projects')
+                    <div class="text-center">
+                        <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-partner"
+                            class="btn btn-primary mr-2">Add New Poject</a>
+                    </div>
+                @endcan
                 <div class="dropdown" data-tw-placement="bottom">
                     <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
                         <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i>
@@ -19,19 +21,23 @@
                     </button>
                     <div class="dropdown-menu w-40">
                         <ul class="dropdown-content">
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to Excel </a>
-                            </li>
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to PDF </a>
-                            </li>
-                            <li>
-                                <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
-                                    class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
-                                </a>
-                            </li>
+                            @can('export_projects')
+                                <li>
+                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to Excel </a>
+                                </li>
+                                <li>
+                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to PDF </a>
+                                </li>
+                            @endcan
+                            @can('import_projects')
+                                <li>
+                                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
+                                        class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
+                                    </a>
+                                </li>
+                            @endcan
                         </ul>
                     </div>
                 </div>
@@ -78,15 +84,17 @@
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
 
-                                        <a data-projectId="{{ $item->id }}" data-projectName="{{ $item->name }}"
-                                            data-endDate="{{ $item->end_date }}" data-startDate="{{ $item->start_date }}"
-                                            data-projectpartnerId="{{ $item->partner_id }}"
-                                            data-partnerId="{{ $item->partner->id }}"
-                                            data-partnerName="{{ $item->partner->name }}"
-                                            class="flex items-center text-warning mr-3 edit-modal-project-search"
-                                            href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-project">
-                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
-                                        </a>
+                                        @can('edit_projects')
+                                            <a data-projectId="{{ $item->id }}" data-projectName="{{ $item->name }}"
+                                                data-endDate="{{ $item->end_date }}" data-startDate="{{ $item->start_date }}"
+                                                data-projectpartnerId="{{ $item->partner_id }}"
+                                                data-partnerId="{{ $item->partner->id }}"
+                                                data-partnerName="{{ $item->partner->name }}"
+                                                class="flex items-center text-warning mr-3 edit-modal-project-search"
+                                                href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-project">
+                                                <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
+                                            </a>
+                                        @endcan
 
                                         <a data-projectnameD="{{ $item->name }}" data-partnerNameD="{{ $item->partner->name }}" data-startdateD="{{ $item->start_date }}" data-enddateD="{{ $item->end_date }}"
                                             class="mr-3 flex items-center text-success detail-project-modal-search"

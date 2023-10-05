@@ -8,10 +8,12 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
-                <div class="text-center">
-                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-divisi"
-                        class="btn btn-primary mr-2">Add New Partner</a>
-                </div>
+                @can('add_partners')
+                    <div class="text-center">
+                        <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-divisi"
+                            class="btn btn-primary mr-2">Add New Partner</a>
+                    </div>
+                @endcan
                 <div class="dropdown" data-tw-placement="bottom">
                     <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
                         <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i>
@@ -19,19 +21,24 @@
                     </button>
                     <div class="dropdown-menu w-40">
                         <ul class="dropdown-content">
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to Excel </a>
-                            </li>
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to PDF </a>
-                            </li>
-                            <li>
-                                <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
-                                    class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
-                                </a>
-                            </li>
+                            @can('export_partners')
+                                <li>
+                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to Excel </a>
+                                </li>
+                                <li>
+                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to PDF </a>
+                                </li>
+                            @endcan
+                            
+                            @can('import_partners')
+                                <li>
+                                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
+                                        class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
+                                    </a>
+                                </li>
+                            @endcan
                         </ul>
                     </div>
                 </div>
@@ -68,9 +75,11 @@
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
-                                        <a class="flex items-center text-warning mr-3 edit-modal-partner-search-class" data-partnerName="{{ $item->name }}" data-descId="{{ $item->description }}" data-partnerId="{{ $item->id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">
-                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
-                                        </a>
+                                        @can('edit_partners')
+                                            <a class="flex items-center text-warning mr-3 edit-modal-partner-search-class" data-partnerName="{{ $item->name }}" data-descId="{{ $item->description }}" data-partnerId="{{ $item->id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">
+                                                <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
+                                            </a>
+                                        @endcan
 
                                         <a class="mr-3 flex items-center text-success detail-partner-modal-search"
                                             data-partnerId="{{ $item->id }}" data-partnerName="{{ $item->name }}"
@@ -79,9 +88,11 @@
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                         </a>
 
-                                        <a class="flex items-center text-danger deletepartnermodal" data-partnerid="{{ $item->id }}" data-partnername="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-partner-modal-search">
-                                            <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
-                                        </a>
+                                        @can('delete_partners')
+                                            <a class="flex items-center text-danger deletepartnermodal" data-partnerid="{{ $item->id }}" data-partnername="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-partner-modal-search">
+                                                <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
+                                            </a>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>

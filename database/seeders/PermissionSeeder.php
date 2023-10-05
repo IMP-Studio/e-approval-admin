@@ -18,7 +18,10 @@ class PermissionSeeder extends Seeder
 
     $permissions = [
 
-        // For Divisions (Already Given)
+        // For Web
+        'can_access_web',
+
+        // For Divisions 
         'view_divisions',
         'add_divisions',
         'edit_divisions',
@@ -26,7 +29,7 @@ class PermissionSeeder extends Seeder
         'import_divisions',
         'export_divisions',
 
-        // For Positions (Already Given)
+        // For Positions 
         'view_positions',
         'add_positions',
         'edit_positions',

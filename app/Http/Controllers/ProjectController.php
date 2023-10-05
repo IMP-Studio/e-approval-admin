@@ -93,7 +93,6 @@ class ProjectController extends Controller
     {
         try {
             $input = $request->all();
-            dd($input);
             $start_date = Carbon::createFromFormat('d M, Y', $input['start_date'])->format('Y-m-d');
             $end_date = Carbon::createFromFormat('d M, Y', $input['end_date'])->format('Y-m-d');
 
