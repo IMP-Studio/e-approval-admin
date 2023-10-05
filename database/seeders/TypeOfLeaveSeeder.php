@@ -82,25 +82,26 @@ class TypeOfLeaveSeeder extends Seeder
             [
                 'id' => 10,
                 'type_of_leave_id' => '3',
-                'description_leave' => 'Suami/istri meninggal', 
-                'days' => 2 
-            ],  
+                'description_leave' => 'Saudara dalam satu rumah meninggal dunia', 
+                'days' => 1 
+            ],
             [
                 'id' => 11,
                 'type_of_leave_id' => '3',
-                'description_leave' => 'Orangtua/mertua/anak/menantu meninggal', 
+                'description_leave' => 'Suami/Istri, Orangtua/Mertua/Anak/Menantu meninggal dunia', 
                 'days' => 2 
             ],  
+             
             [
                 'id' => 12,
                 'type_of_leave_id' => '3',
-                'description_leave' => 'Saudara meninggal', 
-                'days' => 1 
+                'description_leave' => 'Merawat anak karyawan yang sakit dengan ketentuan anak berusia maksimal 6 (enam) tahun', 
+                'days' => 3
             ],  
             [
                 'id' => 13,
                 'type_of_leave_id' => '3',
-                'description_leave' => 'Merawat anak yang sedang sakit', 
+                'description_leave' => 'Merawat anggota keluarga karyawan yang sakit',
                 'days' => 3
             ],  
         ];
