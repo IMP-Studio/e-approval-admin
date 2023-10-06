@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class PartnerController extends Controller
 {
+    public function detailpartner(Request $request)
+    {
+        $positions = Project::where('partner_id', $request->id)->get();
+        // dd($positions);
+    
+        return response()->json(['positionData' => $positions]);
+    }
+
     public function index(Request $request)
     {
         $partner = Partner::paginate(5);
@@ -41,21 +49,28 @@ class PartnerController extends Controller
                     <td class="w-50 text-center capitalize">
                         '. $item->jumlah_project .'                </td>
                     <td class="table-report__action w-56">
-                        <div class="flex justify-center items-center">
-                            <a class="flex items-center text-warning mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit
-                            </a>
-                            
-                            <a data-partnerId="'. $item->id .'" class="mr-3 flex items-center text-success detail-partner-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-partner-modal">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail
-                            </a>
+                        <div class="flex justify-center items-center">';
+                            if (auth()->user()->can('edit_partners')) {
+                            $output .=
+                                '<a class="flex items-center text-warning mr-3 edit-modal-partner-search-class" data-partnerName="'.$item->name.'" data-descId="'.$item->description.'" data-partnerId="'.$item->id.'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">'.
+                                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit '.
+                                '</a>';
+                            }
+
+                            $output .=
+                            '<a  class="mr-3 flex items-center text-success detail-partner-modal-search" data-partnerId="'. $item->id .'" data-partnerName="'. $item->name .'"  data-partnerDesc="'. $item->description .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-partner-modal">'.
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail '.
+                            '</a>';
     
-                            <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-'. $item->id .'">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>';
+                            if (auth()->user()->can('delete_partners')) {
+                            $output .=
+                            '<a class="flex items-center text-danger deletepartnermodal" data-partnerid="'. $item->id .'" data-partnername="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-partner-modal-search">'.
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete '.
+                            '</a>';
+                            }
+                        $output .= '</div>';  
+                    '</td>'.
+                '</tr>';
             }
             return response($output);
         }
@@ -68,7 +83,8 @@ class PartnerController extends Controller
     {
         try {
             Partner::create([
-                'name' => $request->partner
+                'name' => $request->partner,
+                'description' => $request->description
             ]);
             $nama_partner = $request->partner;
             // return redirect()->back()->with(['success' => 'Divisi Baru telah ditambahkan']);
@@ -83,13 +99,14 @@ class PartnerController extends Controller
         try {
             $partner = Partner::findOrFail($id);
             $partner->update([
-                'name' => $request->partner
+                'name' => $request->name,
+                'description' => $request->description
             ]);
-            $name_partner = $request->partner;
+            $name_partner = $request->name;
 
             return redirect()->route('partner')->with(['success' => "$name_partner updated successfully"]);
         } catch (\Throwable $th) {
-            return redirect()->route('partner')->with(['error' => "Failed to update division"]);
+            return redirect()->route('partner')->with(['error' => "Failed to update partner"]);
         }
     }
 
@@ -98,11 +115,13 @@ class PartnerController extends Controller
         try {
             $partner = Partner::findOrFail($id);
             $projects = Project::where('partner_id', $partner->id)->get();
-            $inputName = $request->input('validName');
+            $inputName = $request->input('validNamePartner');
 
             foreach ($projects as $projectItem) {
                 if ($projectItem->end_date > now()) {
                     return redirect()->back()->with(['error' => 'Cannot delete partner when project is not yet ended']);
+                } else {
+                    $projectItem->delete();
                 }
             }
 
@@ -114,8 +133,7 @@ class PartnerController extends Controller
             if ($inputName === $partner->name) {
                 $nama_partner = $partner->name;
                 $partner->delete();
-                $projectItem->delete();
-                return redirect()->back()->with(['delete' => "$nama_partner deleted successfully"]);
+                return redirect()->back()->with(['success' => "$nama_partner deleted successfully"]);
             } else {
                 return redirect()->back()->with(['error' => 'Wrong username']);
             };
@@ -123,4 +141,5 @@ class PartnerController extends Controller
             return redirect()->back()->with(['error' => "Failed to delete Partner"]);
         }
     }
+
 }

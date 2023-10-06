@@ -68,6 +68,7 @@ class Kernel extends HttpKernel
     ];
 
     protected $routeMiddleware = [
+        'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'superAdmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         'autologout' => AutoLogout::class
     ];

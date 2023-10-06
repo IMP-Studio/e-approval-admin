@@ -34,10 +34,10 @@ Route::get('/back', [HomeController::class, 'back'])->name('back');
 Auth::routes();
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
-    Route::get('/standup', [HomeController::class, 'standup'])->name('standup');
+    Route::get('/standup', [HomeController::class, 'standup'])->middleware('permission:view_standups')->name('standup');
     Route::get('/standup/export/{year}', [HomeController::class, 'exportStandup'])->name('standup.excel');
 
-    Route::get('/presence', [PresenceController::class, 'index'])->name('presence');
+    Route::get('/presence', [PresenceController::class, 'index'])->middleware('permission:view_presences')->name('presence');
     Route::get('/attendance/export/{year}', [PresenceController::class, 'exportExcel'])->name('presence.excel');
 
     Route::prefix('presence')->group(function () {
@@ -48,7 +48,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/destroy/{id}', [HomeController::class, 'destroy'])->name('standup.destroy');
     });
 
-    Route::prefix('division')->group(function () {
+    Route::prefix('division')->middleware('permission:view_divisions')->group(function () {
         Route::get('/', [DivisionController::class, 'index'])->name('divisi');
         Route::get('/create', [DivisionController::class, 'create'])->name('divisi.create');
         Route::post('/store', [DivisionController::class, 'store'])->name('divisi.store');
@@ -60,7 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/detail/{id}', [DivisionController::class,'detailDivisi'])->name('division.detail');
     });
 
-    Route::prefix('position')->group(function () {
+    Route::prefix('position')->middleware('permission:view_positions')->group(function () {
         Route::get('/', [PositionController::class, 'index'])->name('position');
         Route::post('/store', [PositionController::class, 'store'])->name('position.store');
         Route::put('/update/{id}', [PositionController::class, 'update'])->name('position.update');
@@ -68,7 +68,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/detail/{id}', [PositionController::class,'detailPosition'])->name('position.detail');
     });
 
-    Route::prefix('employee')->group(function () {
+    Route::prefix('employee')->middleware('permission:view_employees')->group(function () {
         Route::get('/', [EmployeeController::class,'index'])->name('employee');
         Route::get('/create', [EmployeeController::class,'create'])->name('employee.create');
         Route::post('/store', [EmployeeController::class,'store'])->name('employee.store');
@@ -81,14 +81,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/import_excel', [EmployeeController::class,'import_excel'])->name('employee.import');
         Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);    });
 
-        Route::prefix('partner')->group(function () {
+        Route::prefix('partner')->middleware('permission:view_partners')->group(function () {
             Route::get('/', [PartnerController::class,'index'])->name('partner');
             Route::post('/store', [PartnerController::class,'store'])->name('partner.store');
             Route::put('/update/{id}', [PartnerController::class,'update'])->name('partner.update');
             Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
+            Route::get('/detail/{id}', [PartnerController::class,'detailpartner'])->name('partner.detail');
         });
 
-        Route::prefix('project')->group(function () {
+        Route::prefix('project')->middleware('permission:view_projects')->group(function () {
             Route::get('/', [ProjectController::class,'index'])->name('project');
             Route::post('/store', [ProjectController::class,'store'])->name('project.store');
             Route::put('/update/{id}', [ProjectController::class,'update'])->name('project.update');

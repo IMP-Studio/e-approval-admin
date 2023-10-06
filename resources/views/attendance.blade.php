@@ -7,6 +7,7 @@
     </h2>
     <div class="grid grid-cols-12 gap-6 mt-5">
         <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+            @can('export_presences')
             <div class="dropdown" data-tw-placement="bottom-start">
                 <button class="dropdown-toggle btn btn-primary px-2" aria-expanded="false" data-tw-toggle="dropdown">
                     Export <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
@@ -22,6 +23,7 @@
                     </ul>
                 </div>
             </div>
+            @endcan
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
@@ -45,7 +47,6 @@
                 </thead>
                 <tbody> 
                     @foreach ($presenceData as $item)
-
                     <tr class="intro-x h-16">
                         <td class="w-4 text-center">
                             {{ $loop->iteration }}
@@ -72,153 +73,63 @@
                         </td>
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
-                                <a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-{{$item->id}}-modal">
+                                @if($item->category === 'WFO')
+                                <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-wfo"
+                                   data-avatar="{{ $item->user->employee->avatar }}"
+                                   data-gender="{{ $item->user->employee->gender }}"
+                                   data-firstname="{{ $item->user->employee->first_name }}"
+                                   data-LastName="{{ $item->user->employee->last_name }}"
+                                   data-stafId="{{ $item->user->employee->id_number }}"
+                                   data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                   data-Position="{{ $item->user->employee->position->name }}"
+                                   data-entryTime="{{ $item->entry_time }}"
+                                   data-exitTime="{{ $item->exit_time }}"
+                                   href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-wfo">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
-                                
-                                <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
+                                @elseif($item->category == 'telework')
+                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-telework"
+                                    data-avatar="{{ $item->user->employee->avatar }}"
+                                    data-gender="{{ $item->user->employee->gender }}"
+                                    data-firstname="{{ $item->user->employee->first_name }}"
+                                    data-LastName="{{ $item->user->employee->last_name }}"
+                                    data-stafId="{{ $item->user->employee->id_number }}"
+                                    data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                    data-Position="{{ $item->user->employee->position->name }}"
+                                    data-teleCategory="{{ $item->telework->telework_category }}"
+                                    data-tempoEntry="{{ $item->temporary_entry_time }}"
+                                    data-catDesc="{{ $item->telework->category_description }}"
+                                    href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-telework">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                    </a>
+                                @elseif($item->category == 'work_trip')
+                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-worktrip"
+                                    data-avatar="{{ $item->user->employee->avatar }}"
+                                    data-gender="{{ $item->user->employee->gender }}"
+                                    data-firstname="{{ $item->user->employee->first_name }}"
+                                    data-LastName="{{ $item->user->employee->last_name }}"
+                                    data-stafId="{{ $item->user->employee->id_number }}"
+                                    data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                    data-Position="{{ $item->user->employee->position->name }}"
+                                    data-startDate="{{ $item->start_date }}"
+                                    data-endDate="{{ $item->end_date }}"
+                                    data-enrtyDate="{{ $item->entry_date }}"
+                                    href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-worktrip">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                    </a>
+                                @elseif ($item->category == 'leave')
+                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->type }}" data-typeDesc="{{ $item->type_description }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                    </a>
+                                @endif
+                
+                                {{-- berfungsi --}}
+                                {{-- <a data-id="{{ $item->id }}" data-name="{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}"  class="flex items-center text-danger delete-modal-search-presence" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search-presence">
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
-                                </a>
+                                </a> --}}
                             </div>
                         </td>
                     </tr>
-
-                    <div id="detail-{{ $item->id }}-modal" class="modal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
-                                </div>
-                                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                    <div class="col-span-12 mx-auto">
-                                        <div class="w-24 h-24 image-fit zoom-in">
-                                            @if ($item->user->employee->avatar)
-                                                <img class="tooltip rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
-                                            @elseif($item->user->employee->gender == 'male')
-                                                <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($item->user->employee->gender == 'female')
-                                                <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label  class="text-xs">Firstname :</label>
-                                        <input disabled  type="text" class="form-control" value="{{ $item->user->employee->first_name }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label  class="text-xs">Lastname :</label>
-                                        <input disabled  type="text" class="form-control" value="{{ $item->user->employee->last_name }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label  class="text-xs">Staff Id :</label>
-                                        <input disabled  type="text" class="form-control" value="{{ $item->user->employee->id_number }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label  class="text-xs">Position :</label>
-                                        <input disabled  type="text" class="form-control" value="{{ $item->user->employee->position->name }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label  class="text-xs">Category :</label>
-                                        <input disabled  type="text" class="form-control capitalize" value="{{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}">
-                                    </div>
-                                    @if ($item->category == 'WFO')
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Entry Time  :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->entry_time }} WIB">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Exit Time  :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->exit_time }} WIB">
-                                        </div>
-                                    @endif
-                                    @if ($item->category == 'telework')
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Telework Category  :</label>
-                                            <input disabled  type="text" class="form-control capitalize" value="{{ $item->telework->telework_category }}">
-                                        </div>
-                                        @if ($item->telework->category_description)
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Category Description :</label>
-                                            <input disabled  type="text" class="form-control capitalize" value="{{ $item->telework->category_description }}">
-                                        </div>
-                                        @endif
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Temporary Entry Time  :</label>
-                                            <input disabled  type="text" class="form-control capitalize" value="{{ $item->temporary_entry_time }}">
-                                        </div>
-                                    @endif
-                                    @if ($item->category == 'work_trip' )
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Start Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->start_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">End Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->end_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Entry Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->entry_date }}">
-                                        </div>
-                                    @elseif ($item->category == 'leave')
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Type Leave :</label>
-                                            <input disabled  type="text" class="form-control capitalize" value="{{ $item->type }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Type Description :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->type_description }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Submission Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->submission_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Start Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->start_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">End Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->end_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Total Leave Days :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->total_leave_days }} Days">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label  class="text-xs">Entry Date :</label>
-                                            <input disabled  type="text" class="form-control" value="{{ $item->entry_date }}">
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="delete-confirmation-modal-{{ $item->id }}" class="modal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form id="delete-form" method="POST" action="{{ route('presence.destroy',$item->id) }}">
-                                    @csrf
-                                    @method('delete')
-                                    <div class="modal-body p-0">
-                                        <div class="p-5 text-center">
-                                            <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
-                                            <div class="text-3xl mt-5">Are you sure?</div>
-                                            <div class="text-slate-500 mt-2">
-                                                Please type the username "{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}" of the data to confrim.
-                                            </div>
-                                             <input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
-                                        </div>
-                                        <div class="px-5 pb-8 text-center">
-                                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                                            <button type="submit" class="btn btn-danger w-24">Delete</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     @endforeach
                 </tbody>
             </table>

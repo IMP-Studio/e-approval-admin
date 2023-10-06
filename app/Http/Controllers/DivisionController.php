@@ -18,23 +18,34 @@ class DivisionController extends Controller
      * Display a listing of the resource.
      */
 
-    public function detailDivisi(Request $request)
-    {
-        $positions = Position::where('division_id', $request->id)->get();
-        $positionData = [];
-    
-        foreach ($positions as $position) {
-            $jumlah_pegawai = Employee::where('position_id', $position->id)->count();
-            
-            // Menambahkan data posisi dan jumlah pegawai ke dalam array
-            $positionData[] = [
-                'position' => $position,
-                'positionCount' => $jumlah_pegawai,
-            ];
-        }
-    
-        return response()->json(['positionData' => $positionData]);
-    }
+public function detailDivisi(Request $request)
+     {
+         $divisionId = $request->id;
+         $perPage = 5; // Number of items per page
+     
+         // Get the requested page from the AJAX request
+         $page = $request->input('page', 1);
+     
+         $positions = Position::where('division_id', $divisionId)->paginate($perPage, ['*'], 'page', $page);
+     
+         $positionData = [];
+     
+         foreach ($positions as $position) {
+             $jumlah_pegawai = Employee::where('position_id', $position->id)->count();
+     
+             // Menambahkan data posisi dan jumlah pegawai ke dalam array
+             $positionData[] = [
+                 'position' => $position,
+                 'positionCount' => $jumlah_pegawai,
+             ];
+         }
+     
+         return response()->json([
+             'positionData' => $positionData,
+             'currentPage' => $positions->currentPage(),
+             'lastPage' => $positions->lastPage(),
+         ]);
+     }
     
 
 
@@ -63,6 +74,7 @@ class DivisionController extends Controller
 
         $output = '';
         $iteration = 0;
+        $caneditD = 'edit_divisions';
 
         foreach ($divisi as $item) {
         $iteration++;
@@ -71,21 +83,26 @@ class DivisionController extends Controller
                 <td class="w-50 text-center capitalize">' . $item->name . '</td>
                 <td class="w-50 text-center capitalize">' . $item->jumlah_posisi . ' Posisi</td>
                 <td class="table-report__action w-56">
-                    <div class="flex justify-center items-center">
-                        <a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="'. $item->id .'" data-DivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit
-                        </a>
-
-                        <a data-divisionId="{{ $item->id }}" class="mr-3 flex items-center text-success detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail
-                        </a>
-
-                        <a class="flex items-center text-danger delete-divisi-modal-search" data-DeleteDivisiId="'. $item->id .'" data-DeleteDivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete
-                        </a>
-                    </div>
-                </td>
-            </tr>';
+                    <div class="flex justify-center items-center">';
+                    if (auth()->user()->can('edit_divisions')) {
+                    $output .= '<a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="'. $item->id .'" data-DivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">'.
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit'.
+                    '</a>';
+                    }
+                    
+                    $output .= '<a data-divisionId="'. $item->id .'" class="mr-3 flex items-center text-success detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">'.
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail'.
+                    '</a>';
+                    
+                    if (auth()->user()->can('delete_divisions')) {
+                    $output .= '<a class="flex items-center text-danger delete-divisi-modal-search" data-DeleteDivisiId="'. $item->id .'" data-DeleteDivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">'.
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete'.
+                    '</a>';
+                    }
+                    
+                    $output .= '</div>';                    
+                '</td>'.
+            '</tr>';
         }
 
         return response($output);

@@ -8,10 +8,12 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
-                <div class="text-center">
-                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-divisi"
-                        class="btn btn-primary mr-2">Add New Partner</a>
-                </div>
+                @can('add_partners')
+                    <div class="text-center">
+                        <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-store-divisi"
+                            class="btn btn-primary mr-2">Add New Partner</a>
+                    </div>
+                @endcan
                 <div class="dropdown" data-tw-placement="bottom">
                     <button class="dropdown-toggle btn px-2 box" aria-expanded="false" data-tw-toggle="dropdown">
                         <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i>
@@ -19,19 +21,24 @@
                     </button>
                     <div class="dropdown-menu w-40">
                         <ul class="dropdown-content">
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to Excel </a>
-                            </li>
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to PDF </a>
-                            </li>
-                            <li>
-                                <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
-                                    class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
-                                </a>
-                            </li>
+                            @can('export_partners')
+                                <li>
+                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to Excel </a>
+                                </li>
+                                <li>
+                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to PDF </a>
+                                </li>
+                            @endcan
+                            
+                            @can('import_partners')
+                                <li>
+                                    <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
+                                        class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Import Excel
+                                    </a>
+                                </li>
+                            @endcan
                         </ul>
                     </div>
                 </div>
@@ -68,84 +75,27 @@
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
-                                        <a class="flex items-center text-warning mr-3" href="javascript:;"
-                                            data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-{{ $item->id }}">
-                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
-                                        </a>
+                                        @can('edit_partners')
+                                            <a class="flex items-center text-warning mr-3 edit-modal-partner-search-class" data-partnerName="{{ $item->name }}" data-descId="{{ $item->description }}" data-partnerId="{{ $item->id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">
+                                                <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
+                                            </a>
+                                        @endcan
 
-                                        <a data-divisionId="{{ $item->id }}"
-                                            class="mr-3 flex items-center text-success detail-partner-modal-search"
-                                            href="javascript:;" data-tw-toggle="modal"
-                                            data-tw-target="#detail-partner-modal">
+                                        <a class="mr-3 flex items-center text-success detail-partner-modal-search"
+                                            data-partnerId="{{ $item->id }}" data-partnerName="{{ $item->name }}"
+                                            data-partnerDesc="{{ $item->description }}" href="javascript:;"
+                                            data-tw-toggle="modal" data-tw-target="#detail-partner-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                         </a>
 
-                                        <a class="flex items-center text-danger delete-button" href="javascript:;"
-                                            data-tw-toggle="modal"
-                                            data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
-                                            <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
-                                        </a>
+                                        @can('delete_partners')
+                                            <a class="flex items-center text-danger deletepartnermodal" data-partnerid="{{ $item->id }}" data-partnername="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-partner-modal-search">
+                                                <i data-lucide="trash-2" class="w-4 h-4  mr-1"></i> Delete
+                                            </a>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
-
-                            <div id="modal-edit-divisi-{{ $item->id }}" class="modal" tabindex="-1"
-                                aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h2 class="font-medium text-base mr-auto">Edit Division</h2>
-                                        </div>
-                                        <form id="edit-form" method="POST"
-                                            action="{{ route('partner.update', $item->id) }}">
-                                            @csrf
-                                            @method('PUT')
-                                            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                                <div class="col-span-12">
-                                                    <label for="modal-form-2" class="form-label">Nama Divisi</label>
-                                                    <input id="modal-form-2" value="{{ $item->name }}" name="partner"
-                                                        type="text" class="form-control" placeholder="nama divisi">
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" data-tw-dismiss="modal"
-                                                    class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
-                                                <button type="submit" class="btn btn-primary w-20">Update</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <div id="delete-confirmation-modal-{{ $item->id }}" class="modal" tabindex="-1"
-                                aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <form id="delete-form" method="POST"
-                                            action="{{ route('partner.destroy', $item->id) }}">
-                                            @csrf
-                                            @method('delete')
-                                            <div class="modal-body p-0">
-                                                <div class="p-5 text-center">
-                                                    <i data-lucide="x-circle"
-                                                        class="w-16 h-16 text-danger mx-auto mt-3"></i>
-                                                    <div class="text-3xl mt-5">Are you sure?</div>
-                                                    <div class="text-slate-500 mt-2">
-                                                        Please type the Partner name "{{ $item->name }}" of the data to
-                                                        confrim.
-                                                    </div>
-                                                    <input name="validName" id="crud-form-2" type="text"
-                                                        class="form-control w-full" placeholder="Divisi name" required>
-                                                </div>
-                                                <div class="px-5 pb-8 text-center">
-                                                    <button type="button" data-tw-dismiss="modal"
-                                                        class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                                                    <button type="submit" class="btn btn-danger w-24">Delete</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                         @endforeach
                     </tbody>
                 </table>
@@ -176,6 +126,12 @@
                         <div class="col-span-12">
                             <label for="modal-form-1" class="form-label">Nama Partner</label>
                             <input id="modal-form-1" name="partner" type="text" class="form-control capitalize"
+                                placeholder="Name Partner" autocomplete="off">
+                        </div>
+
+                        <div class="col-span-12">
+                            <label for="modal-form-1" class="form-label">Description</label>
+                            <input id="modal-form-1" name="description" type="text" class="form-control capitalize"
                                 placeholder="Name Partner" autocomplete="off">
                         </div>
                     </div>
@@ -227,43 +183,47 @@
 
     {{-- detail modal Partner --}}
     <div id="detail-partner-modal" class="modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-lg mx-auto">Partner</h2>
+                    <h2 class="font-medium text-lg mx-auto" id="show-detailName">Detail Partner</h2>
                 </div>
-                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="modal-body grid grid-cols-1 gap-4 gap-y-3">
+                    <div class="">
+                        <label class="form-label">Partner name :</label>
+                        <input disabled id="show-partnername" type="text" class="form-control" value="">
+                    </div>
+
+                    <div class="">
+                        <label for="modal-form-2" class="form-label">Description :</label>
+                        <textarea disabled name="" id="show-partnerDesc" class="form-control" rows="3" value=""></textarea>
+                    </div>
+
+                    <div class="">
+                        <label class="form-label">Project :</label>
+                        <div id="partProjectList">
+                        </div>
+                    </div>
                 </div>
-                <table id="table" class="table table-report -mt-2">
-                    <thead>
-                        <tr>
-                            <th data-priority="1" class="whitespace-nowrap">No</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Position</th>
-                            <th data-priority="2" class="text-center whitespace-nowrap">Pegawai</th>
-                        </tr>
-                    </thead>
-                    <tbody id="positionList">
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
     {{-- detail modal Partner end --}}
 
-    {{-- delete modal search --}}
-    <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
+    {{-- delete modal partner --}}
+    <div id="delete-partner-modal-search" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="delete-form-search" method="POST" action="">
+                <form id="actionconfirmationpartner" method="POST" action="">
                     @csrf
                     @method('delete')
                     <div class="modal-body p-0">
                         <div class="p-5 text-center">
                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                             <div class="text-3xl mt-5">Are you sure?</div>
-                            <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            <div class="text-slate-500 mt-2" id="textconfirmationpartner">
                             </div>
-                            <input name="validName" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="validNamePartner" id="crud-form-2" type="text" class="form-control w-full"
                                 placeholder="User name" required>
                         </div>
                         <div class="px-5 pb-8 text-center">
@@ -276,23 +236,28 @@
             </div>
         </div>
     </div>
-    {{-- delete modal search end --}}
+    {{-- delete modal partner end --}}
 
-    {{-- edit modal search --}}
-    <div id="modal-edit-divisi-search" class="modal" tabindex="-1" aria-hidden="true">
+    {{-- edit modal partner search --}}
+    <div id="modal-edit-partner" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                    <h2 class="font-medium text-base mr-auto">Edit Partner</h2>
                 </div>
-                <form id="edit-form-divisi-search" method="POST" action="">
+                <form id="edit-partner-action" method="POST" action="">
                     @csrf
                     @method('PUT')
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
-                            <label class="form-label">Nama Divisi</label>
-                            <input id="edit-modal-DivisiName" value="" name="divisi" type="text"
-                                class="form-control" placeholder="nama divisi">
+                            <label class="form-label">Nama Partner</label>
+                            <input id="edit-partner-name" value="" name="name" type="text"
+                                class="form-control" placeholder="Nama Partner">
+                        </div>
+                        <div class="col-span-12">
+                            <label class="form-label">Description</label>
+                            <input id="edit-partnerDesc" value="" name="description" type="text"
+                                class="form-control" placeholder="Nama Partner">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -321,6 +286,74 @@
                     }
                 });
             });
+        });
+
+        // detail
+        $(document).on("click", ".detail-partner-modal-search", function() {
+            var partnerId = $(this).attr('data-partnerId');
+            var partnerName = $(this).attr('data-partnerName');
+            var partnerdesc = $(this).attr('data-partnerDesc');
+
+
+            $("#show-partnername").attr('value', partnerName);
+            $("#show-partnerDesc").text(partnerdesc);
+            jQuery(document).ready(function($) {
+                $.ajax({
+                    url: '{{ route('partner.detail', ':id') }}'.replace(':id', partnerId),
+                    type: 'GET',
+
+                    success: function(response) {
+                        var positionList = $('#partProjectList');
+                        positionList.empty();
+
+
+                        $.each(response.positionData, function(index, positionData) {
+                            var row =
+                                '<input disabled id="show-firstname" type="text" class="form-control mt-4" value="' +
+                                positionData.name + '">';
+
+                            positionList.append(row);
+                        });
+
+
+                        // $('#detail-division-modal').modal('show')
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+
+        // edit partner
+        $(document).on("click", ".edit-modal-partner-search-class", function() {
+            var EditModalid = $(this).attr('data-partnerId');
+            var EditModalPartnerDesch = $(this).attr('data-descId');
+            var EditPartnerName = $(this).attr('data-partnerName');
+
+
+
+            var formAction;
+            formAction = '{{ route('partner.update', ':id') }}'.replace(':id', EditModalid);
+
+            $("#edit-partnerDesc").attr('value', EditModalPartnerDesch);
+            $("#edit-partner-action").attr('action', formAction);
+            $("#edit-partner-name").attr('value', EditPartnerName);
+        });
+
+        //delete
+        $(document).on("click", ".deletepartnermodal", function() {
+            var DeletePartnerlid = $(this).attr('data-partnerid');
+            var DeletePartnerName = $(this).attr('data-partnername');
+
+
+
+            var formAction;
+            formAction = '{{ route('partner.destroy', ':id') }}'.replace(':id', DeletePartnerlid);
+
+            $("#textconfirmationpartner").text('Please type the username "' + DeletePartnerName +
+                '" of the data to confrim.');
+            $("#actionconfirmationpartner").attr('action', formAction);
         });
     </script>
 @endsection

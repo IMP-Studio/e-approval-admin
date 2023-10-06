@@ -21,12 +21,12 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        if ( auth()->user()->getPermissionNames()->first() == 'ordinary_employee') {
-            Auth::logout();
-            return redirect()->route('login')->withErrors(['role' => 'You are not authorized.']);
+        if ( auth()->user()->hasPermissionTo('can_access_web')) {
+            return redirect()->intended($this->redirectPath());
         }
-
-        return redirect()->intended($this->redirectPath());
+        
+        Auth::logout();
+        return redirect()->route('login')->withErrors(['role' => 'You are not authorized.']);
     }
 }
 

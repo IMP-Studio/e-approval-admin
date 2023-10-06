@@ -22,7 +22,7 @@
                     {{ $loop->iteration }}
                 </td>
                 <td>
-                    {{ $item->division }}
+                    {{ $item->name }}
                 </td>
             </tr>
             @endforeach

@@ -7,9 +7,10 @@
     </h2>
     <div class="grid grid-cols-12 gap-6 mt-5">
         <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+            @can('export_standups')
             <div class="dropdown" data-tw-placement="bottom-start">
                 <button class="dropdown-toggle btn btn-primary px-2" aria-expanded="false" data-tw-toggle="dropdown">
-                    More <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
+                    Export <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
                 </button>
                 <div class="dropdown-menu w-40">
                     <ul class="dropdown-content">
@@ -22,6 +23,7 @@
                     </ul>
                 </div>
             </div>
+            @endcan
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
@@ -67,40 +69,15 @@
                         </td>
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
-                                <a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-{{$item->id}}-modal">
+                                <a class="flex items-center text-success  mr-3 detail-standup-modal-search" href="javascript:;" data-tw-toggle="modal" data-StandupDetailId="{{ $item->id }}" data-StandupDetailName="{{ $item->user->name }}" data-StandupDetailDone="{{ $item->done }}" data-StandupDetailDoing="{{ $item->doing }}" data-StandupDetailBlocker="{{ $item->blocker }}" data-tw-target="#detail-modal-search">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
-                                <a class="flex items-center text-danger delete-button" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-{{ $item->id }}">
+                                <a class="flex items-center text-danger delete-standup-modal-search" data-DeleteStandupId="{{ $item->id }}" data-DeleteStandupName="{{ $item->user->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
                                 </a>
                             </div>
                         </td>
                     </tr>
-                    <div id="detail-{{$item->id}}-modal" class="modal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h1 class="font-medium text-base mx-auto">Detail Standup {{ $item->user->name }}</h1>
-                                </div>
-                                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                    <div class="col-span-12">
-                                        <label for="modal-form-1" class="form-label">Done :</label>
-                                        <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->done }}</textarea>
-                                    </div>
-                                    <div class="col-span-12">
-                                        <label for="modal-form-2" class="form-label">Doing :</label>
-                                        <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->doing }}</textarea>
-                                    </div>
-                                    @if ($item->blocker)
-                                    <div class="col-span-12">
-                                        <label for="modal-form-2" class="form-label">Blocker :</label>
-                                        <textarea disabled name="" class="form-control" id="" rows="3">{{ $item->blocker }}</textarea>
-                                    </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div id="delete-confirmation-modal-{{ $item->id }}" class="modal" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog">
