@@ -56,7 +56,7 @@ Route::get('/leave/yearly/days', [ApiController::class, 'yearlyLeave']);
 
 
 Route::get('/profile', [ApiController::class, 'getProfile']);
-Route::get('/profile/division', [ApiController::class, 'getProfileDivision']);
+Route::get('/user', [ApiController::class, 'getUser']);
 
 // otp
 Route::post('/sendotp', [ApiController::class, 'getOtp']);

@@ -26,29 +26,34 @@ class PresenceSeeder extends Seeder
 
         for ($i = 1; $i <= 200 ; $i++) {
             $category = $faker->randomElement([
-                'WFO', 'WFO','WFO',
-                'telework', 'work_trip', 'leave'
+                'WFO', 'WFO', 'WFO', 'telework', 'work_trip', 'leave', 'skip' // Added 'skip' here
             ]);
+        
             $latitude = null;
             $longitude = null;
+            $entry_time = '00:00:00';
+            $date = now()->format('Y-m-d');
+        
             if ($category === 'WFO') {
                 $latitude = -6.332835026352704;
                 $longitude =  106.86452087283757;
-            }
-            $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
-            $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
-            if ($category === 'telework' || $category === 'work_trip') {
+                $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
+                $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
+            } elseif ($category === 'telework' || $category === 'work_trip') {
                 $entry_time = '08:30:00';
+                $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
             } elseif ($category === 'leave') {
                 $entry_time = '00:00:00';
+                $date = $faker->dateTimeBetween('2023-01-01', '2023-12-31')->format('Y-m-d');
             }
+        
             $users_id = $faker->numberBetween(2,51);
-
+        
             $presenceId = Presence::insertGetId([
                 'user_id' => $users_id,
                 'category' => $category,
                 'entry_time' => $entry_time,
-                'temporary_entry_time' => $faker->time('H:i:s'),
+                'temporary_entry_time' => $category === 'skip' ? '00:00:00' : $faker->time('H:i:s'),
                 'date' => $date,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
@@ -164,34 +169,39 @@ class PresenceSeeder extends Seeder
         for ($i = 1; $i <= 20; $i++) {
             $category = $faker->randomElement([
                 'WFO', 'WFO', 'WFO',
-                'telework', 'work_trip', 'leave'
+                'telework', 'work_trip', 'leave', 'skip' // Added 'skip' here
             ]);
-
+        
             $latitude = null;
             $longitude = null;
-
+            $entry_time = '00:00:00';
+            $date = Carbon::now()->setTimezone('Asia/Jakarta');
+        
             if ($category === 'WFO') {
                 $latitude = $faker->latitude;
                 $longitude = $faker->longitude;
-            }
-
-            $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
-            $date = Carbon::now()->setTimezone('Asia/Jakarta');
-            if ($category === 'telework' || $category === 'work_trip') {
+                $entry_time = $faker->dateTimeBetween('07:30:00', '12:30:00')->format('H:i:s');
+            } elseif ($category === 'telework' || $category === 'work_trip') {
                 $entry_time = '08:30:00';
             } elseif ($category === 'leave') {
                 $entry_time = '00:00:00';
             }
+        
             $user_id = $faker->numberBetween(2,51);
+        
             $presenceId = Presence::insertGetId([
                 'user_id' => $user_id,
                 'category' => $category,
                 'entry_time' => $entry_time,
-                'temporary_entry_time' => $faker->time('H:i:s'),
+                'temporary_entry_time' => $category === 'skip' ? '00:00:00' : $faker->time('H:i:s'),
                 'date' => $date,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
             ]);
+        
+            if ($category === 'skip') {
+                continue; // Skip to the next iteration and don't create any associated data.
+            }
 
             if ($category === 'telework') {
                 $teleworkCategory = $faker->randomElement(['kesehatan', 'pendidikan', 'keluarga', 'other']);

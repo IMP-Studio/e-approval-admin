@@ -80,7 +80,7 @@ class PermissionSeeder extends Seeder
         // APPROVE
         'approve_preliminary', //untuk ht (status berubah dari pending ke preliminary)
         'approve_allowed', //untuk hr (status berbentuk prelminary ke allowed)
-        'reject_prensence',
+        'reject_presence',
 
         //MOBILE||
         'can_access_mobile',

@@ -44,7 +44,7 @@ class EmployeeSeeder extends Seeder
         
         $htPermissions = [
             'approve_preliminary', //khusus ht
-            'reject_prensence',
+            'reject_presence',
             'view_request_pending',
 
             //DIVISI
@@ -78,7 +78,7 @@ class EmployeeSeeder extends Seeder
 
         $hrPermissions = [
             'approve_allowed', //khusus hr
-            'reject_prensence',
+            'reject_presence',
             'view_request_preliminary',
 
             //DIVISI

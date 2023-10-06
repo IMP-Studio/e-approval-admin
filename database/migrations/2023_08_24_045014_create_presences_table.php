@@ -21,8 +21,8 @@ return new class extends Migration
             $table->time('temporary_entry_time')->nullable();
             $table->time('exit_time')->default('00:00:00');
             $table->date('date');
-            $table->decimal('latitude')->nullable();
-            $table->decimal('longitude')->nullable();
+            $table->decimal('latitude', 9, 6)->nullable();
+            $table->decimal('longitude', 10, 6)->nullable();            
             $table->text('emergency_description')->nullable();
             $table->timestamps();
             $table->datetime('deleted_at')->nullable();
