@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('projects', function (Blueprint $table) {
+        Schema::create('leave_detail', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('partner_id');
-            $table->foreign('partner_id')->references('id')->on('partners');
-            $table->string('name');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->text('description_leave');
+            $table->unsignedBigInteger('type_of_leave_id')->nullable();
+            $table->foreign('type_of_leave_id')->references('id')->on('type_of_leave');
+            $table->integer('days');
             $table->timestamps();
-            $table->dateTime('deleted_at')->nullable();
+            $table->softDeletes();
         });
     }
 
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('projects');
+        Schema::dropIfExists('leave_detail');
     }
 };

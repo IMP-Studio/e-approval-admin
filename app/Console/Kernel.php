@@ -26,6 +26,8 @@ class Kernel extends ConsoleKernel
         })->dailyAt('17:30')
         ->timezone('Asia/Jakarta');
 
+        $schedule->command('users:mark-skipped')->dailyAt('10:00')->timezone('Asia/Jakarta');
+
 }
 
     /**

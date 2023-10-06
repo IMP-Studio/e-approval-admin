@@ -36,6 +36,7 @@ Route::get('/presence/get/{id}', [ApiController::class, 'getPresenceById']);
 Route::put('/presence/update/{id}', [ApiController::class, 'updatePresence']);
 Route::delete('/presence/delete/{id}', [ApiController::class, 'destroyPresence']);
 Route::post('/presence/commit/{id}', [ApiController::class, 'approveReject']);
+Route::get('/presence/resume/{id}', [ApiController::class, 'getResumePresence']);
 
 
 Route::get('/standup', [ApiController::class, 'getStandUp']);
@@ -45,12 +46,17 @@ Route::put('/standup/update/{id}', [ApiController::class, 'updateStandUp']);
 Route::delete('/standup/delete/{id}',[ApiController::class, 'destroyStandUp']);
 
 Route::get('/leave', [ApiController::class, 'getLeave']);
+Route::get('/leave/option', [ApiController::class, 'getLeaveDetailOption']);
 Route::post('/leave/store', [ApiController::class, 'storeLeave']);
 Route::put('/leave/update/{id}', [ApiController::class, 'updateLeave']);
 Route::delete('/leave/delete/{id}', [ApiController::class, 'destroyLeave']);
 Route::get('/leave/get/{id}', [ApiController::class, 'getLeaveById']);
+Route::get('/leave/days', [ApiController::class, 'getLeaveCount']);
+Route::get('/leave/yearly/days', [ApiController::class, 'yearlyLeave']);
+
 
 Route::get('/profile', [ApiController::class, 'getProfile']);
+Route::get('/user', [ApiController::class, 'getUser']);
 
 // otp
 Route::post('/sendotp', [ApiController::class, 'getOtp']);

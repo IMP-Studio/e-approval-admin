@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\TypeOfLeaveSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,10 +15,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            PermissionSeeder::class,
             RoleSeeder::class,
             SuperAdminSeeder::class,
             EmployeeSeeder::class,
             ProjectSeeder::class,
+            TypeOfLeaveSeeder::class,
             PresenceSeeder::class
         ]);
         // \App\Models\User::factory(10)->create();

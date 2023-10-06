@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('approver_id')->references('id')->on('users');
             $table->unsignedBigInteger('statusable_id');
             $table->string('statusable_type');
-            $table->enum('status',['pending','allow_HT','allowed','rejected']);
+            $table->enum('status',['pending','preliminary','allowed','rejected']);
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

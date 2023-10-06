@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('partners', function (Blueprint $table) {
-            $table->id();
-            $table->string('logo')->nullable();
-            $table->string('name');
-            $table->text('description');
+        Schema::create('type_of_leave', function (Blueprint $table) {
+                       $table->id();
+            $table->string('leave_name');
             $table->timestamps();
-            $table->dateTime('deleted_at')->nullable();
         });
     }
 
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('partners');
+        Schema::dropIfExists('type_of_leave');
     }
 };

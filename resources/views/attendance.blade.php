@@ -7,6 +7,7 @@
     </h2>
     <div class="grid grid-cols-12 gap-6 mt-5">
         <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+            @can('export_presences')
             <div class="dropdown" data-tw-placement="bottom-start">
                 <button class="dropdown-toggle btn btn-primary px-2" aria-expanded="false" data-tw-toggle="dropdown">
                     Export <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
@@ -22,10 +23,11 @@
                     </ul>
                 </div>
             </div>
+            @endcan
             <div class="hidden md:block mx-auto text-slate-500"></div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
-                    <input type="text" class="form-control w-56 box pr-10" placeholder="Search...">
+                    <input type="text" class="form-control w-56 box pr-10" id="search" placeholder="Search...">
                     <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                 </div>
             </div>
@@ -43,9 +45,8 @@
                         <th class="text-center whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody> 
                     @foreach ($presenceData as $item)
-
                     <tr class="intro-x h-16">
                         <td class="w-4 text-center">
                             {{ $loop->iteration }}
@@ -72,129 +73,64 @@
                         </td>
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
-                                <a class="flex items-center text-success delete-button mr-3" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-{{$item->id}}-modal">
+                                @if($item->category === 'WFO')
+                                <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-wfo"
+                                   data-avatar="{{ $item->user->employee->avatar }}"
+                                   data-gender="{{ $item->user->employee->gender }}"
+                                   data-firstname="{{ $item->user->employee->first_name }}"
+                                   data-LastName="{{ $item->user->employee->last_name }}"
+                                   data-stafId="{{ $item->user->employee->id_number }}"
+                                   data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                   data-Position="{{ $item->user->employee->position->name }}"
+                                   data-entryTime="{{ $item->entry_time }}"
+                                   data-exitTime="{{ $item->exit_time }}"
+                                   href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-wfo">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
+                                @elseif($item->category == 'telework')
+                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-telework"
+                                    data-avatar="{{ $item->user->employee->avatar }}"
+                                    data-gender="{{ $item->user->employee->gender }}"
+                                    data-firstname="{{ $item->user->employee->first_name }}"
+                                    data-LastName="{{ $item->user->employee->last_name }}"
+                                    data-stafId="{{ $item->user->employee->id_number }}"
+                                    data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                    data-Position="{{ $item->user->employee->position->name }}"
+                                    data-teleCategory="{{ $item->telework->telework_category }}"
+                                    data-tempoEntry="{{ $item->temporary_entry_time }}"
+                                    data-catDesc="{{ $item->telework->category_description }}"
+                                    href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-telework">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                    </a>
+                                @elseif($item->category == 'work_trip')
+                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-worktrip"
+                                    data-avatar="{{ $item->user->employee->avatar }}"
+                                    data-gender="{{ $item->user->employee->gender }}"
+                                    data-firstname="{{ $item->user->employee->first_name }}"
+                                    data-LastName="{{ $item->user->employee->last_name }}"
+                                    data-stafId="{{ $item->user->employee->id_number }}"
+                                    data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                    data-Position="{{ $item->user->employee->position->name }}"
+                                    data-startDate="{{ $item->start_date }}"
+                                    data-endDate="{{ $item->end_date }}"
+                                    data-enrtyDate="{{ $item->entry_date }}"
+                                    href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-worktrip">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                    </a>
+                                @elseif ($item->category == 'leave')
+                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->type }}" data-typeDesc="{{ $item->type_description }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                    </a>
+                                @endif
+                
+                                {{-- berfungsi --}}
+                                {{-- <a data-id="{{ $item->id }}" data-name="{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}"  class="flex items-center text-danger delete-modal-search-presence" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search-presence">
+                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
+                                </a> --}}
                             </div>
                         </td>
                     </tr>
-
-                    <div id="detail-{{ $item->id }}-modal" class="modal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
-                                </div>
-                                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
-                                    <div class="col-span-12 mx-auto">
-                                        <div class="w-24 h-24 image-fit zoom-in">
-                                            @if ($item->user->employee->avatar)
-                                                <img class="tooltip rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
-                                            @elseif($item->user->employee->gender == 'male')
-                                                <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($item->user->employee->gender == 'female')
-                                                <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Firstname :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->user->employee->first_name }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Lastname :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->user->employee->last_name }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Staff Id :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->user->employee->id_number }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-2" class="text-xs">Position :</label>
-                                        <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->user->employee->position->name }}">
-                                    </div>
-                                    <div class="col-span-12 sm:col-span-6">
-                                        <label for="modal-form-1" class="text-xs">Category :</label>
-                                        <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}">
-                                    </div>
-                                    @if ($item->category == 'WFO')
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-2" class="text-xs">Entry Time  :</label>
-                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->entry_time }} WIB">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-2" class="text-xs">Exit Time  :</label>
-                                            <input disabled id="modal-form-2" type="text" class="form-control" value="{{ $item->exit_time }} WIB">
-                                        </div>
-                                    @endif
-                                    @if ($item->category == 'telework')
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-2" class="text-xs">Telework Category  :</label>
-                                            <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $item->telework->telework_category }}">
-                                        </div>
-                                        @if ($item->telework->category_description)
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Category Description :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->telework->category_description }}">
-                                        </div>
-                                        @endif
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-2" class="text-xs">Temporary Entry Time  :</label>
-                                            <input disabled id="modal-form-2" type="text" class="form-control capitalize" value="{{ $item->temporary_entry_time }}">
-                                        </div>
-                                    @endif
-                                    @if ($item->category == 'work_trip' )
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Start Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->start_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">End Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->end_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Entry Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->entry_date }}">
-                                        </div>
-                                    @elseif ($item->category == 'leave')
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Type Leave :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $item->type }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Type Description :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->type_description }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Submission Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->submission_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Start Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->start_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">End Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->end_date }}">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Total Leave Days :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->total_leave_days }} Days">
-                                        </div>
-                                        <div class="col-span-12 sm:col-span-6">
-                                            <label for="modal-form-1" class="text-xs">Entry Date :</label>
-                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $item->entry_date }}">
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     @endforeach
-
-
-
                 </tbody>
             </table>
             @if ($presenceData->count() > 0)
@@ -212,4 +148,433 @@
         </div>
     </div>
 </div>
+
+{{-- delete modal live search --}}
+<div id="delete-confirmation-modal-search-presence" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="delete-form-search-presence" method="POST" action="">
+                @csrf
+                @method('delete')
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation-presence">
+                        </div>
+                        <input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-danger w-24">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{-- delete modal live search end --}}
+
+{{-- detail modal attendance search wfo --}}
+<div id="show-modal-search-wfo" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
+            </div>
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="col-span-12 mx-auto">
+                    <div class="w-24 h-24 image-fit zoom-in">
+                        <img id="show-modal-image-wfo" class="tooltip rounded-full" src="">
+                    </div>
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Firstname :</label>
+                    <input disabled id="Show-firstname-wfo" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Lastname :</label>
+                    <input disabled id="Show-LastName-wfo" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Staff Id :</label>
+                    <input disabled id="Show-StafId-wfo" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Position :</label>
+                    <input disabled id="Show-Posisi-wfo" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Category :</label>
+                    <input disabled id="Show-Category-wfo" type="text" class="form-control capitalize" value="">
+                </div>
+                {{-- if wfo --}}
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Entry Time  :</label>
+                    <input disabled id="Show-EntryTime-wfo" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label  class="text-xs">Exit Time  :</label>
+                    <input disabled id="Show-categoryWfo2" type="text" class="form-control" value="">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- detail modal attendance search Wfo --}}
+
+{{-- detail modal attendance search TeleWork --}}
+<div id="show-modal-search-telework" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
+            </div>
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="col-span-12 mx-auto">
+                    <div class="w-24 h-24 image-fit zoom-in">
+                        <img id="show-modal-image-tele" class="tooltip rounded-full" src="">
+                    </div>
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Firstname :</label>
+                    <input disabled id="Show-firstname-tele" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Lastname :</label>
+                    <input disabled id="Show-LastName-tele" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Staff Id :</label>
+                    <input disabled id="Show-StafId-tele" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Position :</label>
+                    <input disabled id="Show-Posisi-tele" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Category :</label>
+                    <input disabled id="Show-Category-tele" type="text" class="form-control capitalize" value="">
+                </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Telework Category  :</label>
+                        <input disabled id="Show-Telecat-tele" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6" id="divCatDesc">
+                        <label class="text-xs">Category Description :</label>
+                        <input disabled id="Show-CatDesc" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Temporary Entry Time  :</label>
+                        <input disabled id="Show-TempoEntry-tele" type="text" class="form-control capitalize" value="">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- detail modal attendance search TeleWork end--}}
+
+{{-- detail modal attendance search work_trip --}}
+<div id="show-modal-search-worktrip" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
+            </div>
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="col-span-12 mx-auto">
+                    <div class="w-24 h-24 image-fit zoom-in">
+                        <img id="show-modal-image-work" class="tooltip rounded-full" src="">
+                    </div>
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Firstname :</label>
+                    <input disabled id="Show-firstname-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Lastname :</label>
+                    <input disabled id="Show-LastName-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Staff Id :</label>
+                    <input disabled id="Show-StafId-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Position :</label>
+                    <input disabled id="Show-Posisi-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Category :</label>
+                    <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
+                </div>
+                {{-- if work trip --}}
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Start Date :</label>
+                    <input disabled id="Show-StartDate-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">End Date :</label>
+                    <input disabled id="Show-EndDate-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Entry Date :</label>
+                    <input disabled id="Show-EntryDate-work" type="text" class="form-control" value="">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- detail modal attendance search work_trip end--}}
+
+{{-- detail modal attendance search leave --}}
+<div id="show-modal-search-leave" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
+            </div>
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                <div class="col-span-12 mx-auto">
+                    <div class="w-24 h-24 image-fit zoom-in">
+                        <img id="show-modal-image-leave" class="tooltip rounded-full" src="">
+                    </div>
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Firstname :</label>
+                    <input disabled id="Show-firstname-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Lastname :</label>
+                    <input disabled id="Show-LastName-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Staff Id :</label>
+                    <input disabled id="Show-StafId-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Position :</label>
+                    <input disabled id="Show-Posisi-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Category :</label>
+                    <input disabled id="Show-Category-leave" type="text" class="form-control capitalize" value="">
+                </div>
+                {{-- if leave --}}
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Type Leave :</label>
+                    <input disabled id="Show-TypeLeave-leave" type="text" class="form-control capitalize" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Type Description :</label>
+                    <input disabled id="Show-TypeDesc-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Submission Date :</label>
+                    <input disabled id="Show-SubmissDesch-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label  class="text-xs">Start Date :</label>
+                    <input disabled id="Show-StartDate-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">End Date :</label>
+                    <input disabled id="Show-EndDate-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Total Leave Days :</label>
+                    <input disabled id="Show-TotalDesch-leave" type="text" class="form-control" value="Days">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Entry Date :</label>
+                    <input disabled id="Show-EntryDate-leave" type="text" class="form-control" value="">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{-- detail modal attendance search leave end--}}
+
+<script type="text/javascript">
+   jQuery(document).ready(function($) {
+            $('#search').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('presence') }}',
+                    data: { query: query },
+                    success: function(data) {
+                        $('tbody').html(data);
+                    }
+                });
+            });
+    });
+
+    $(document).on("click", ".delete-modal-search-presence", function () {
+        var DeleteModalid = $(this).attr('data-id');
+        var DeleteModalName = $(this).attr('data-name');
+
+
+    
+        var formAction;
+        formAction = '{{ route("presence.destroy", ":id") }}'.replace(':id', DeleteModalid);
+
+        $("#subjuduldelete-confirmation-presence").text('Please type the username "'+ DeleteModalName +'" of the data to confrim.');
+        $("#delete-form-search-presence").attr('action', formAction);
+    });
+
+    $(document).on("click", ".show-attendance-modal-search-wfo", function () {
+        var ShowGender = $(this).attr('data-gender');
+        var showAvatar = $(this).attr('data-avatar');
+        var ShowFirstname = $(this).attr('data-firstname');
+        var ShowLastName = $(this).attr('data-LastName');
+        var ShowStafId = $(this).attr('data-stafId');
+        var ShowPosisi = $(this).attr('data-Position');
+        var ShowCategory = $(this).attr('data-Category');
+        var ShowEntryTime = $(this).attr('data-entryTime');
+        var ShowExitTime = $(this).attr('data-exitTime');
+
+
+        console.log(ShowFirstname);
+        var imgSrc;
+        if(showAvatar){
+            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+        }else if(ShowGender == 'male'){
+            imgSrc = '{{ asset('images/default-boy.jpg') }}';
+        }else if(ShowGender == 'female'){
+            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        };
+
+
+        $("#show-modal-image-wfo").attr('src', imgSrc);
+        $("#Show-firstname-wfo").attr('value', ShowFirstname);
+        $("#Show-LastName-wfo").attr('value', ShowLastName);
+        $("#Show-StafId-wfo").attr('value', ShowStafId);
+        $("#Show-Posisi-wfo").attr('value', ShowPosisi);
+        $("#Show-Category-wfo").attr('value', ShowCategory);
+        $("#Show-EntryTime-wfo").attr('value',ShowEntryTime + ' WIB');
+        $("#Show-categoryWfo2").attr('value',ShowExitTime + ' WIB');
+    });
+
+    // telework modal
+    $(document).on("click", ".show-attendance-modal-search-telework", function () {
+        var ShowGender = $(this).attr('data-gender');
+        var showAvatar = $(this).attr('data-avatar');
+        var ShowFirstname = $(this).attr('data-firstname');
+        var ShowLastName = $(this).attr('data-LastName');
+        var ShowStafId = $(this).attr('data-stafId');
+        var ShowPosisi = $(this).attr('data-Position');
+        var ShowCategory = $(this).attr('data-Category');
+        var ShowTeleCat = $(this).attr('data-teleCategory');
+        var ShowTempoEntry = $(this).attr('data-tempoEntry');
+        var ShowCatDesc = $(this).attr('data-catDesc');
+
+
+
+        console.log(ShowFirstname);
+        var imgSrc;
+        if(showAvatar){
+            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+        }else if(ShowGender == 'male'){
+            imgSrc = '{{ asset('images/default-boy.jpg') }}';
+        }else if(ShowGender == 'female'){
+            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        };
+
+        if (ShowCatDesc) {
+        $("#Show-CatDesc").attr('value', ShowCatDesc);
+        $("#Show-CatDesc").parent().show();
+        } else {
+        $("#divCatDesc").hide();
+        }
+
+        $("#show-modal-image-tele").attr('src', imgSrc);
+        $("#Show-firstname-tele").attr('value', ShowFirstname);
+        $("#Show-LastName-tele").attr('value', ShowLastName);
+        $("#Show-StafId-tele").attr('value', ShowStafId);
+        $("#Show-Posisi-tele").attr('value', ShowPosisi);
+        $("#Show-Category-tele").attr('value', ShowCategory);
+        $("#Show-Telecat-tele").attr('value',ShowTeleCat);
+        $("#Show-TempoEntry-tele").attr('value',ShowTempoEntry);
+    });
+
+       // work trip modal
+       $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
+        var ShowGender = $(this).attr('data-gender');
+        var showAvatar = $(this).attr('data-avatar');
+        var ShowFirstname = $(this).attr('data-firstname');
+        var ShowLastName = $(this).attr('data-LastName');
+        var ShowStafId = $(this).attr('data-stafId');
+        var ShowPosisi = $(this).attr('data-Position');
+        var ShowCategory = $(this).attr('data-Category');
+        var ShowStartDate = $(this).attr('data-startDate');
+        var ShowEndDate = $(this).attr('data-endDate');
+        var ShowEntryDate = $(this).attr('data-enrtyDate');
+
+
+        console.log(ShowFirstname);
+        var imgSrc;
+        if(showAvatar){
+            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+        }else if(ShowGender == 'male'){
+            imgSrc = '{{ asset('images/default-boy.jpg') }}';
+        }else if(ShowGender == 'female'){
+            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        };
+
+
+        $("#show-modal-image-work").attr('src', imgSrc);
+        $("#Show-firstname-work").attr('value', ShowFirstname);
+        $("#Show-LastName-work").attr('value', ShowLastName);
+        $("#Show-StafId-work").attr('value', ShowStafId);
+        $("#Show-Posisi-work").attr('value', ShowPosisi);
+        $("#Show-Category-work").attr('value', ShowCategory);
+        $("#Show-StartDate-work").attr('value', ShowStartDate);
+        $("#Show-EndDate-work").attr('value', ShowEndDate);
+        $("#Show-EntryDate-work").attr('value', ShowEntryDate);
+    });
+
+      // leave modal
+      $(document).on("click", ".show-attendance-modal-search-leave", function () {
+        var ShowGender = $(this).attr('data-gender');
+        var showAvatar = $(this).attr('data-avatar');
+        var ShowFirstname = $(this).attr('data-firstname');
+        var ShowLastName = $(this).attr('data-LastName');
+        var ShowStafId = $(this).attr('data-stafId');
+        var ShowPosisi = $(this).attr('data-Position');
+        var ShowCategory = $(this).attr('data-Category');
+        var ShowStartDate = $(this).attr('data-startDate');
+        var ShowEndDate = $(this).attr('data-endDate');
+        var ShowEntryDate = $(this).attr('data-entryDate');
+        var ShowtypeLeave = $(this).attr('data-typeLeave');
+        var ShowTypeDesc = $(this).attr('data-typeDesc');
+        var ShowSubmisDate = $(this).attr('data-submisDate');
+        var ShowTotalDays = $(this).attr('data-totalDays');
+
+
+        console.log(ShowFirstname);
+        var imgSrc;
+        if(showAvatar){
+            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+        }else if(ShowGender == 'male'){
+            imgSrc = '{{ asset('images/default-boy.jpg') }}';
+        }else if(ShowGender == 'female'){
+            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        };
+
+
+        $("#show-modal-image-leave").attr('src', imgSrc);
+        $("#Show-firstname-leave").attr('value', ShowFirstname);
+        $("#Show-LastName-leave").attr('value', ShowLastName);
+        $("#Show-StafId-leave").attr('value', ShowStafId);
+        $("#Show-Posisi-leave").attr('value', ShowPosisi);
+        $("#Show-Category-leave").attr('value', ShowCategory);
+        $("#Show-StartDate-leave").attr('value', ShowStartDate);
+        $("#Show-EndDate-leave").attr('value', ShowEndDate);
+        $("#Show-EntryDate-leave").attr('value', ShowEntryDate);
+        $("#Show-TypeLeave-leave").attr('value', ShowtypeLeave);
+        $("#Show-TypeDesc-leave").attr('value', ShowTypeDesc);
+        $("#Show-SubmissDesch-leave").attr('value', ShowSubmisDate);
+        $("#Show-TotalDesch-leave").attr('value', ShowTotalDays + ' Days');
+    });
+</script>
 @endsection

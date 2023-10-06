@@ -21,12 +21,12 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
-        // if ($user->role !== 'superAdmin') {
-        //     Auth::logout();
-        //     return redirect()->route('login')->withErrors(['role' => 'You are not authorized.']);
-        // }
-
-        return redirect()->intended($this->redirectPath());
+        if ( auth()->user()->hasPermissionTo('can_access_web')) {
+            return redirect()->intended($this->redirectPath());
+        }
+        
+        Auth::logout();
+        return redirect()->route('login')->withErrors(['role' => 'You are not authorized.']);
     }
 }
 
