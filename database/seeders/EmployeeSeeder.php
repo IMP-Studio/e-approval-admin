@@ -43,6 +43,7 @@ class EmployeeSeeder extends Seeder
         ];
         
         $htPermissions = [
+            'can_access_web',
             'approve_preliminary', //khusus ht
             'reject_presence',
             'view_request_pending',
@@ -77,6 +78,7 @@ class EmployeeSeeder extends Seeder
         ];
 
         $hrPermissions = [
+            'can_access_web',
             'approve_allowed', //khusus hr
             'reject_presence',
             'view_request_preliminary',

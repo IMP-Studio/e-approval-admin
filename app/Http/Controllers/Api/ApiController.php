@@ -660,7 +660,7 @@ class ApiController extends Controller
             }
         }
 
-        if ($permissionName == 'ordinary_employee' || $scope === 'self') {
+        if ($scope === 'self') {
             $presenceQuery->where('user_id', $loggedInUserId);
         }
     
@@ -1539,7 +1539,12 @@ public function approveReject(Request $request, $id)
     public function getStandUp(Request $request) {
         $endOfToday = Carbon::today()->endOfDay();
         $today = Carbon::today();
+        $currentYear = date('Y');
+
+
         $startOfLastMonth = Carbon::today()->subMonth()->startOfDay();
+
+        $scope = $request->query('scope');
     
         // Query to fetch StandUp data for a specific user
         if ($request->has('id')) {
@@ -1552,9 +1557,18 @@ public function approveReject(Request $request, $id)
                 ]);
             }
     
-            $query = StandUp::with('user', 'project', 'presence')
-            ->where('user_id', $request->id)
-            ->whereBetween('created_at', [$startOfLastMonth, $endOfToday]);
+            $query = StandUp::with('user', 'project', 'presence')->where('user_id', $request->id);
+            
+            if ($scope == 'month'){
+                $query->whereBetween('created_at', [$startOfLastMonth, $endOfToday]);
+            }elseif($scope == 'year'){
+                $query->whereYear('created_at', $currentYear);
+            }else{
+                return response()->json([
+                    'status' => 500,
+                    'message' => 'Tolong lebih spesifik lagi.',
+                ]);
+            }
         } else {
             $query = StandUp::with('user', 'project', 'presence')
                             ->whereDate('created_at', $today);
@@ -1712,14 +1726,16 @@ public function approveReject(Request $request, $id)
         $userId = $request->query('id');
         $jenisleave = $request->query('type');
     
-        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit'])->orderBy('updated_at', 'desc');
+        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit','leavedetail'])->orderBy('leaves.updated_at', 'desc')
+        ;
     
         if ($userId) {
             $leaveQuery = $leaveQuery->where('user_id', $userId);
         }
-    
+
         if ($jenisleave) {
-            $leaveQuery = $leaveQuery->where('type', $jenisleave);
+            $leaveQuery->join('leave_detail', 'leaves.leave_detail_id', '=', 'leave_detail.id')
+                ->where('leave_detail.type_of_leave_id', $jenisleave);
         }
     
         $leave = $leaveQuery->get()->map(function ($leave) {
@@ -1760,10 +1776,10 @@ public function approveReject(Request $request, $id)
         } else {
             return response()->json(['message' => 'Success', 'data' => $leave]);
         }
-    }
+    }   
 
     public function getLeaveById(Request $request, $id) {
-        $leave = Leave::with(['user', 'user.employee', 'statusCommit'])->find($id);
+        $leave = Leave::with(['user', 'user.employee', 'statusCommit','leavedetail'])->find($id);
     
         if (!$leave) {
             return response()->json(['status' => 404, 'message' => 'Leave not found']);
@@ -1820,17 +1836,20 @@ public function approveReject(Request $request, $id)
         
         $currentYear = now()->year;
         
-        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit'])->whereHas('statusCommit', function($query) {
+        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit','leavedetail'])->whereHas('statusCommit', function($query) {
             $query->where('status', 'allowed');
-        })->orderBy('updated_at', 'desc');
+        })->orderBy('leaves.updated_at', 'desc')
+        ;
         
         if ($userId) {
             $leaveQuery = $leaveQuery->where('user_id', $userId);
         }
         
         if ($jenisleave) {
-            $leaveQuery = $leaveQuery->where('type', $jenisleave);
+            $leaveQuery->join('leave_detail', 'leaves.leave_detail_id', '=', 'leave_detail.id')
+                ->where('leave_detail.type_of_leave_id', $jenisleave);
         }
+    
         
         $leaves = $leaveQuery->get();
         
@@ -1867,7 +1886,7 @@ public function approveReject(Request $request, $id)
         
         $currentYear = now()->year; 
 
-        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit'])
+        $leaveQuery = Leave::with(['user', 'presence', 'statusCommit','leavedetail'])
                             ->whereHas('statusCommit', function($query) {
                                 $query->where('status', 'allowed');
                             })
