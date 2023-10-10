@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Partner;
+use App\Http\Controllers\ApproveController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
@@ -88,17 +89,48 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
             Route::get('/detail/{id}', [PartnerController::class,'detailpartner'])->name('partner.detail');
         });
-
-        Route::prefix('project')->middleware('permission:view_projects')->group(function () {
-            Route::get('/', [ProjectController::class,'index'])->name('project');
-            Route::post('/store', [ProjectController::class,'store'])->name('project.store');
-            Route::put('/update/{id}', [ProjectController::class,'update'])->name('project.update');
-            // Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
-        });
         
         Route::prefix('permission')->group(function () {
             Route::get('/', [PermissionController::class,'index'])->name('permission');
         });
+
+    Route::prefix('project')->middleware('permission:view_projects')->group(function () {
+           Route::get('/', [ProjectController::class,'index'])->name('project');
+           Route::post('/store', [ProjectController::class,'store'])->name('project.store');
+           Route::put('/update/{id}', [ProjectController::class,'update'])->name('project.update');
+           // Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
+     });
+
+    Route::prefix('approveht')->group(function () {
+    // ------------------------------------------------------- Human of Tired --------------------------------------------------------------- \\
+        Route::get('/worktripht', [ApproveController::class,'workTripHt'])->name('approveht.worktripHt');
+        Route::put('/approveWorktripHt/{id}', [ApproveController::class,'approveWkHt'])->name('approveht.approvedWorkTripHt');
+        Route::put('/rejectWorkTripHt/{id}', [ApproveController::class,'rejectWkHt'])->name('approveht.rejectWorokTripHt');
+
+        Route::get('/teleworkht', [ApproveController::class,'teleworkHt'])->name('approveht.teleworkHt');
+        Route::put('/approve/TeleWorkHt/{id}', [ApproveController::class,'approveTeleHt'])->name('approveht.approvedTeleHt');
+        Route::put('/reject/TeleWorkHt/{id}', [ApproveController::class,'rejectTeleHt'])->name('approveht.rejectTeleHt');
+
+        Route::get('/leaveht', [ApproveController::class,'leaveHt'])->name('approveht.leaveHt');
+        Route::put('/approve/LeaveWorkHt/{id}', [ApproveController::class,'approveLeaveHt'])->name('approveht.approvedLeaveHt');
+        Route::put('/reject/LeaveWorkHt/{id}', [ApproveController::class,'rejectLeaveHt'])->name('approveht.rejectLeaveHt');
+    });
+
+    Route::prefix('approvehr')->group(function () {
+        // ------------------------------------------------------- Human Resource --------------------------------------------------------------- \\
+        Route::get('/worktriphr', [ApproveController::class,'workTripHumanRes'])->name('approvehr.worktripHr');
+        Route::post('/worktriphr/approveWorktripHr/{id}', [ApproveController::class,'approveWkHumanRes'])->name('approvehr.approvedWorkTripHr');
+        Route::put('/worktriphr/rejectWorkTripHr/{id}', [ApproveController::class,'rejectWkHumanRes'])->name('approvehr.rejectWorokTripHr');
+    
+        Route::get('/teleworkhr', [ApproveController::class,'teleworkHumanRes'])->name('approvehr.teleworkHr');
+        Route::put('/teleworkhr/approve/TeleWorkHr/{id}', [ApproveController::class,'approveTeleHumanRes'])->name('approvehr.approvedTeleHr');
+        Route::put('/teleworkhr/reject/TeleWorkHr/{id}', [ApproveController::class,'rejectTeleHumanRes'])->name('approvehr.rejectTeleHr');
+    
+        Route::get('/leavehr', [ApproveController::class,'leaveHumanRes'])->name('approvehr.leaveHr');
+        Route::put('/leavehr/approve/LeaveWorkHr/{id}', [ApproveController::class,'approveLeaveHumanRes'])->name('approvehr.approvedLeaveHr');
+        Route::put('/leavehr/reject/LeaveWorkHr/{id}', [ApproveController::class,'rejectLeaveHumanRes'])->name('approvehr.rejectLeaveHr');
+    });
+
 
 });
 

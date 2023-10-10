@@ -303,7 +303,7 @@
         });
 
         //detail
-        $(document).on("click", ".detail-presence-modal-search", function() {
+    $(document).on("click", ".detail-presence-modal-search", function() {
     var divisionId = $(this).data('presenceId');
     var positionName = $(this).attr('data-positionName');
     var totalPages = 0;
