@@ -52,11 +52,11 @@
                                         data-tw-target="#modal-apprv-leave-search">
                                         <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
                                     </a>
-                                    <a class="mr-3 flex items-center text-warning delete-modal-search" data-id=""
+                                    {{-- <a class="mr-3 flex items-center text-warning delete-modal-search" data-id=""
                                         data-name="" href="javascript:;" data-tw-toggle="modal"
                                         data-tw-target="#">
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
-                                    </a>
+                                    </a> --}}
                                     @can('reject_presence')                                        
                                     <a data-rejectLeaveHrid="{{ $item->leave->statusCommit->first()->id }}" data-rejectmessageLeaveHt="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-danger reject_leave_Hr" data-id=""
                                         data-name="" href="javascript:;" data-tw-toggle="modal"

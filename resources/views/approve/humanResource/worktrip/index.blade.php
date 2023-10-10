@@ -51,11 +51,11 @@
                                             data-tw-target="#modal-apprv-wt-search">
                                             <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
                                         </a>
-                                        <a class="mr-3 flex items-center text-warning delete-modal-search" data-id=""
+                                        {{-- <a class="mr-3 flex items-center text-warning delete-modal-search" data-id=""
                                             data-name="" href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#rejected-confirmation-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
-                                        </a>
+                                        </a> --}}
                                         @can('reject_presence')                                            
                                         <a data-rejectwkHresid="{{ $item->worktrip->statusCommit->first()->id }}" data-rejectmessageWK="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-danger reject_wk_Hr" data-id=""
                                             data-name="" href="javascript:;" data-tw-toggle="modal"
