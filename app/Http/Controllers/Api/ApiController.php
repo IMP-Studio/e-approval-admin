@@ -1370,6 +1370,40 @@ if ($updateabsensi->category == 'work_trip') {
         ]);
     }
 
+
+    public function updateWorktripFromPresence(Request $request, $presenceId) {
+        // Find the presence with the given ID
+        $presence = Presence::find($presenceId);
+    
+        if (!$presence) {
+            return response()->json(['message' => 'Presence not found'], 404);
+        }
+    
+        // Check if the presence has a direct relation to a worktrip
+        $relatedWorktrip = $presence->worktrip;
+    
+        // If no direct relation, find the related worktrip based on the user and date range
+        if (!$relatedWorktrip) {
+            $relatedWorktrip = WorkTrip::where('user_id', $presence->user_id)
+                                       ->where('start_date', '<=', $presence->date)
+                                       ->where('end_date', '>=', $presence->date)
+                                       ->first();
+        }
+    
+        if (!$relatedWorktrip) {
+            return response()->json(['message' => 'No Worktrip associated with this Presence'], 404);
+        }
+    
+        // Update the specified attributes of the presence
+        $updateData = $request->only(['entry_time', 'longitude', 'latitude', 'face_point']);
+        $presence->update($updateData);
+    
+        return response()->json(['message' => 'Presence updated successfully', 'data' => $presence]);
+    }
+    
+    
+    
+    
     
     
     
@@ -1490,161 +1524,161 @@ if ($updateabsensi->category == 'work_trip') {
 }
 
 // APPROVE AND REJECT FUNCTION //BISA
-public function approveReject(Request $request, $id)
-{
-    $attendanceToday     = null;
-    $errors = [];
-    
-    if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'preliminary'])) {
-        $errors['status'] = 'The status field is required and must be one of: rejected, allowed, preliminary.';
-    }
-    
-    if ($request->has('description') && !is_string($request->input('description'))) {
-        $errors['description'] = 'The description must be a string.';
-    }
-    
-    if (in_array($request->input('status'), ['rejected', 'allowed']) && !$request->has('description')) {
-        $errors['description'] = 'The description is required when status is rejected or allowed.';
-    }
-    
-    $approver = User::find($request->input('approver_id'));
-    
-    if (!$request->has('approver_id') || !$approver) {
-        $errors['approver_id'] = 'The approver id field is required and must exist in the users table.';
-    } else {
-        // Check permissions based on the status
-        switch ($request->input('status')) {
-            case 'preliminary':
-                if (!$approver->hasPermissionTo('approve_preliminary')) {
-                    $errors['approver_id'] = 'The user must have the approve_preliminary permission for preliminary status.';
-                }
-                break;
-    
-            case 'allowed':
-                if (!$approver->hasPermissionTo('approve_allowed')) {
-                    $errors['approver_id'] = 'The user must have the approve_allowed permission for allowed status.';
-                }
-                break;
-    
-            case 'rejected':
-                if (!$approver->hasPermissionTo('reject_presence')) {
-                    $errors['approver_id'] = 'The user must have the reject_presence permission to reject.';
-                }
-                break;
-    
-            default:
-                // Handle unknown statuses, though it's already checked at the start.
-                $errors['status'] = 'Invalid status.';
-                break;
+    public function approveReject(Request $request, $id)
+    {
+        $attendanceToday     = null;
+        $errors = [];
+        
+        if (!$request->has('status') || !in_array($request->input('status'), ['rejected', 'allowed', 'preliminary'])) {
+            $errors['status'] = 'The status field is required and must be one of: rejected, allowed, preliminary.';
         }
-    }
-    
-    if (!empty($errors)) {
-        return response()->json(['errors' => $errors], 400);
-    }
-    
-
-    DB::table('status_commits')->where('id', $id)->update([
-        'approver_id' => $request->input('approver_id'),
-        'status' => $request->input('status'),
-        'description' => $request->input('description')
-    ]);
-
-    $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
-    $statusable = $statusCommit->statusable;
-
-
-
-    if ($statusable->presence) {
-        $statusable->update($request->only(['status', 'description', 'approver_id','entry_time']));
         
-        if ($statusable->presence->category == 'work_trip' && $request->input('status') === 'allowed') {
-    
-            $startDate = Carbon::parse($statusable->start_date);
-            $endDate = Carbon::parse($statusable->end_date);
-            $submissionDate = Carbon::parse($statusable->presence->date); 
-        
-            if (!$startDate->equalTo($submissionDate)) {
-                $statusable->presence->delete();
-            }
-        
-            $currentDate = clone $startDate;
-            while ($currentDate->lte($endDate)) {
-        
-                $presenceForCurrentDate = Presence::firstOrNew([
-                    'user_id' => $statusable->user_id,
-                    'date' => $currentDate->toDateString()
-                ]);
-        
-                // Check if $currentDate is equal to $submissionDate and set entry_time accordingly
-                if ($currentDate->equalTo($submissionDate)) {
-                    $presenceForCurrentDate->entry_time = '08:30:00';
-                } else {
-                    $presenceForCurrentDate->entry_time = '00:00:00';
-                }
-        
-                $presenceForCurrentDate->exit_time = '17:30:00';
-                $presenceForCurrentDate->category = 'work_trip';
-                $presenceForCurrentDate->save();
-        
-                if ($currentDate->equalTo($startDate)) {
-                    $statusable->presence_id = $presenceForCurrentDate->id;
-                    $statusable->save();
-                }
-        
-                $currentDate->addDay();
-            }
+        if ($request->has('description') && !is_string($request->input('description'))) {
+            $errors['description'] = 'The description must be a string.';
         }
-          elseif ($statusable->presence->category == 'leave' && $request->input('status') === 'allowed') {
-            $startDate = Carbon::parse($statusable->start_date);
-            $endDate = Carbon::parse($statusable->end_date);
-            $currentDate = Carbon::today();
-    
-            if ($startDate->isToday()) {
-                // If leave starts today, update today's presence
-                $statusable->presence->update([
-                    'entry_time' => '08:30:00',
-                    'exit_time' => '17:30:00',
-                    'category' => 'leave'
-                ]);
-            } else if ($startDate->greaterThan($currentDate)) {
-                // If leave starts in future, delete today's presence (if exists)
-                $statusable->presence->delete();
-            }
-    
-            // Create or update presence records for the entire leave duration
-            $currentDate = clone $startDate;
-            while ($currentDate->lte($endDate)) {
-                Presence::updateOrCreate([
-                    'user_id' => $statusable->user_id,
-                    'date' => $currentDate->toDateString(),
-                    'category' => 'leave'
-                ], [
-                    'entry_time' => '08:30:00',
-                    'exit_time' => '17:30:00'
-                ]);
-                $currentDate->addDay();
-            }
-        } elseif ($statusable->presence->category == 'telework' && $request->input('status') === 'allowed') {
-            $submissionDate = Carbon::parse($statusable->presence->date); 
-            $attendanceToday = Presence::where('user_id', $statusable->user_id)
-                                       ->whereDate('date', $submissionDate->toDateString())
-                                       ->first();
-
-            // dd($attendanceToday);
         
-            if($attendanceToday) {
-                $attendanceToday->update([
-                    'entry_time' => '08:30:00',
-                    'exit_time' => '00:00:00',
-                    'category' => 'telework'
-                ]);
+        if (in_array($request->input('status'), ['rejected', 'allowed']) && !$request->has('description')) {
+            $errors['description'] = 'The description is required when status is rejected or allowed.';
+        }
+        
+        $approver = User::find($request->input('approver_id'));
+        
+        if (!$request->has('approver_id') || !$approver) {
+            $errors['approver_id'] = 'The approver id field is required and must exist in the users table.';
+        } else {
+            // Check permissions based on the status
+            switch ($request->input('status')) {
+                case 'preliminary':
+                    if (!$approver->hasPermissionTo('approve_preliminary')) {
+                        $errors['approver_id'] = 'The user must have the approve_preliminary permission for preliminary status.';
+                    }
+                    break;
+        
+                case 'allowed':
+                    if (!$approver->hasPermissionTo('approve_allowed')) {
+                        $errors['approver_id'] = 'The user must have the approve_allowed permission for allowed status.';
+                    }
+                    break;
+        
+                case 'rejected':
+                    if (!$approver->hasPermissionTo('reject_presence')) {
+                        $errors['approver_id'] = 'The user must have the reject_presence permission to reject.';
+                    }
+                    break;
+        
+                default:
+                    // Handle unknown statuses, though it's already checked at the start.
+                    $errors['status'] = 'Invalid status.';
+                    break;
             }
         }
         
+        if (!empty($errors)) {
+            return response()->json(['errors' => $errors], 400);
+        }
+        
+
+        DB::table('status_commits')->where('id', $id)->update([
+            'approver_id' => $request->input('approver_id'),
+            'status' => $request->input('status'),
+            'description' => $request->input('description')
+        ]);
+
+        $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
+        $statusable = $statusCommit->statusable;
+
+
+
+        if ($statusable->presence) {
+            $statusable->update($request->only(['status', 'description', 'approver_id','entry_time']));
+            
+            if ($statusable->presence->category == 'work_trip' && $request->input('status') === 'allowed') {
+        
+                $startDate = Carbon::parse($statusable->start_date);
+                $endDate = Carbon::parse($statusable->end_date);
+                $submissionDate = Carbon::parse($statusable->presence->date); 
+            
+                if (!$startDate->equalTo($submissionDate)) {
+                    $statusable->presence->delete();
+                }
+            
+                $currentDate = clone $startDate;
+                while ($currentDate->lte($endDate)) {
+            
+                    $presenceForCurrentDate = Presence::firstOrNew([
+                        'user_id' => $statusable->user_id,
+                        'date' => $currentDate->toDateString()
+                    ]);
+            
+                    // Check if $currentDate is equal to $submissionDate and set entry_time accordingly
+                    if ($currentDate->equalTo($submissionDate)) {
+                        $presenceForCurrentDate->entry_time = '08:30:00';
+                    } else {
+                        $presenceForCurrentDate->entry_time = '00:00:00';
+                    }
+            
+                    $presenceForCurrentDate->exit_time = '17:30:00';
+                    $presenceForCurrentDate->category = 'work_trip';
+                    $presenceForCurrentDate->save();
+            
+                    if ($currentDate->equalTo($startDate)) {
+                        $statusable->presence_id = $presenceForCurrentDate->id;
+                        $statusable->save();
+                    }
+            
+                    $currentDate->addDay();
+                }
+            }
+            elseif ($statusable->presence->category == 'leave' && $request->input('status') === 'allowed') {
+                $startDate = Carbon::parse($statusable->start_date);
+                $endDate = Carbon::parse($statusable->end_date);
+                $currentDate = Carbon::today();
+        
+                if ($startDate->isToday()) {
+                    // If leave starts today, update today's presence
+                    $statusable->presence->update([
+                        'entry_time' => '08:30:00',
+                        'exit_time' => '17:30:00',
+                        'category' => 'leave'
+                    ]);
+                } else if ($startDate->greaterThan($currentDate)) {
+                    // If leave starts in future, delete today's presence (if exists)
+                    $statusable->presence->delete();
+                }
+        
+                // Create or update presence records for the entire leave duration
+                $currentDate = clone $startDate;
+                while ($currentDate->lte($endDate)) {
+                    Presence::updateOrCreate([
+                        'user_id' => $statusable->user_id,
+                        'date' => $currentDate->toDateString(),
+                        'category' => 'leave'
+                    ], [
+                        'entry_time' => '08:30:00',
+                        'exit_time' => '17:30:00'
+                    ]);
+                    $currentDate->addDay();
+                }
+            } elseif ($statusable->presence->category == 'telework' && $request->input('status') === 'allowed') {
+                $submissionDate = Carbon::parse($statusable->presence->date); 
+                $attendanceToday = Presence::where('user_id', $statusable->user_id)
+                                        ->whereDate('date', $submissionDate->toDateString())
+                                        ->first();
+
+                // dd($attendanceToday);
+            
+                if($attendanceToday) {
+                    $attendanceToday->update([
+                        'entry_time' => '08:30:00',
+                        'exit_time' => '00:00:00',
+                        'category' => 'telework'
+                    ]);
+                }
+            }
+            
+        }
+        return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh(), 'absensi' => $statusable->fresh(), 'presence' => $attendanceToday ? $attendanceToday->fresh() : null], 200);
     }
-    return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh(), 'absensi' => $statusable->fresh(), 'presence' => $attendanceToday ? $attendanceToday->fresh() : null], 200);
-}
 
     //---- STAND UP FUNCTION ----\\
 

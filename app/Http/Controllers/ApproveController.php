@@ -42,8 +42,7 @@ class ApproveController extends Controller
             $worktripQuery->whereHas('statusCommit', function ($statusCommitQuery) {
                 $statusCommitQuery->where('status', 'pending');
             })
-                ->whereDate('start_date', '<=', $today) // Add condition for start_date
-                ->whereDate('end_date', '>=', $today);
+            ->whereDate('date', '<=', $today);
         })
             ->orderBy('entry_time', 'asc')
             ->paginate(10);
@@ -274,19 +273,18 @@ class ApproveController extends Controller
             ->where('category', 'work_trip');
 
         // Condition to check if the user doesn't have the 'super-admin' role
-        if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
-            $workTripDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
-                $employeeQuery->where('division_id', $kepaladivisi);
-            });
-        }
+        // if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
+        //     $workTripDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
+        //         $employeeQuery->where('division_id', $kepaladivisi);
+        //     });
+        // }
 
         $workTripData = $workTripDataQuery->whereHas('worktrip', function ($worktripQuery) {
             $today = Carbon::today('Asia/Jakarta');
             $worktripQuery->whereHas('statusCommit', function ($statusCommitQuery) {
                 $statusCommitQuery->where('status', 'preliminary');
             })
-                ->whereDate('start_date', '<=', $today) // Add condition for start_date
-                ->whereDate('end_date', '>=', $today);
+            ->whereDate('date', '<=', $today);
         })
             ->orderBy('entry_time', 'asc')
             ->paginate(10);
@@ -393,6 +391,7 @@ class ApproveController extends Controller
     // end worktrip human resource
 
 
+// telework
     public function teleworkHumanRes()
     {
         $loggedInUser = auth()->user();
@@ -408,11 +407,11 @@ class ApproveController extends Controller
             ->where('category', 'telework');
 
         // Condition to check if the user doesn't have the 'super-admin' role
-        if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
-            $teleworkDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
-                $employeeQuery->where('division_id', $kepaladivisi);
-            });
-        }
+        // if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
+        //     $teleworkDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
+        //         $employeeQuery->where('division_id', $kepaladivisi);
+        //     });
+        // }
 
         $teleworkData = $teleworkDataQuery->whereHas('telework', function ($teleworkQuery) {
             $teleworkQuery->whereHas('statusCommit', function ($statusCommitQuery) {
@@ -486,11 +485,11 @@ class ApproveController extends Controller
             ->where('category', 'leave');
 
         // Condition to check if the user doesn't have the 'super-admin' role
-        if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
-            $leaveDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
-                $employeeQuery->where('division_id', $kepaladivisi);
-            });
-        }
+        // if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
+        //     $leaveDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
+        //         $employeeQuery->where('division_id', $kepaladivisi);
+        //     });
+        // }
 
         $leavekData = $leaveDataQuery->whereHas('leave', function ($leaveQuery) {
             $leaveQuery->whereHas('statusCommit', function ($statusCommitQuery) {

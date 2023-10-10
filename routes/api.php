@@ -34,6 +34,7 @@ Route::get('/presence/today/{id}', [ApiController::class, 'getPresenceToday']);
 Route::post('/presence/store', [ApiController::class, 'storePresence']);
 Route::get('/presence/get/{id}', [ApiController::class, 'getPresenceById']);
 Route::put('/presence/update/{id}', [ApiController::class, 'updatePresence']);
+Route::put('/presence/update/worktrip/{id}', [ApiController::class, 'updateWorktripFromPresence']);
 Route::delete('/presence/delete/{id}', [ApiController::class, 'destroyPresence']);
 Route::post('/presence/commit/{id}', [ApiController::class, 'approveReject']);
 Route::get('/presence/resume/{id}', [ApiController::class, 'getResumePresence']);

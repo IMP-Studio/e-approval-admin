@@ -195,34 +195,62 @@ while ($createdEmployees < 50) {
 
 
         
-       // Randomly selecting 3 "HT" from "Product Engineering" and "Designer"
-        $desiredDivisions = ['Product Engineering', 'Designer'];
+$desiredDivisions = [1,2,3];
 
-        // Fetch all users from the specified divisions
-        $usersFromDesiredDivisions = User::whereHas('employee', function ($query) use ($desiredDivisions) {
-            $query->whereIn('division_id', Division::whereIn('name', $desiredDivisions)->pluck('id'));
-        })->get();
+// Fetch random user from "Product Engineering"
+$userFromProductEngineering = User::whereHas('employee', function ($query) {
+    $query->whereIn('division_id', Division::where('id', 1)->pluck('id'));
+})->inRandomOrder()->first();
 
-        // Randomly select 3 users from that pool
-        $selectedUsers = $usersFromDesiredDivisions->random(3);
+// Fetch random user from "Designer"
+$userFromDesigner = User::whereHas('employee', function ($query) {
+    $query->whereIn('division_id', Division::where('id', 2)->pluck('id'));
+})->inRandomOrder()->first();
 
-        // Assign the "HT" permissions to the selected users
-        foreach ($selectedUsers as $user) {
+// Fetch random user from "Human Resource" WITHOUT excluding any positions
+$userFromHR = User::whereHas('employee', function ($query) {
+    $query->whereIn('division_id', Division::where('id', 3)->pluck('id'));
+})->inRandomOrder()->first();
+
+$selectedUsers = collect([]);
+
+if ($userFromProductEngineering) {
+    $selectedUsers->push($userFromProductEngineering);
+}
+if ($userFromDesigner) {
+    $selectedUsers->push($userFromDesigner);
+}
+if ($userFromHR) {
+    $selectedUsers->push($userFromHR);
+}
+
+// Assign permissions to the selected users
+foreach ($selectedUsers as $user) {
+    // Check for the presence of the employee relation
+    if ($user->employee && $user->employee->position) {
+        // For HR Development position, give ONLY HR permissions
+        if ($user->employee->position->name === 'Human Resource Development') {
+            $user->givePermissionTo($hrPermissions);
+        } else {
+            // For other positions, give HT permissions
             $user->givePermissionTo($htPermissions);
         }
+    }
+}
 
-        // Assigning HR permissions to all employees in Human Resource division
-        $hrUsers = User::whereHas('employee', function ($query) {
-            $query->whereHas('position', function ($subQuery) {
-                $subQuery->whereHas('division', function ($subSubQuery) {
-                    $subSubQuery->where('name', 'Human Resource');
-                });
-            });
-        })->get();
+// If you want to give HR permissions to all users with the "Human Resource Development" position
+$hrDevelopmentUsers = User::whereHas('employee', function ($query) {
+    $query->whereHas('position', function ($subQuery) {
+        $subQuery->where('name', 'Human Resource Development');
+    });
+})->get();
 
-        foreach ($hrUsers as $user) {
-            $user->givePermissionTo($hrPermissions);
-        }   
+foreach ($hrDevelopmentUsers as $hrDevUser) {
+    $hrDevUser->givePermissionTo($hrPermissions);
+}
+
+
+
 
             }
         }

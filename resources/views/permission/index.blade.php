@@ -79,16 +79,16 @@
                                 @foreach($employees as $employee)
                                     <div class="employee-box box px-5 py-3 mb-3 flex items-center zoom-in employee-item" data-employee-id="{{ $employee->id }}">
                                         <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
-                                            @if($employee->gender == 'male')
+                                            @if($employee->employee->gender == 'male')
                                                 <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($employee->gender == 'female')
+                                            @elseif($employee->employee->gender == 'female')
                                                 <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
                                             @endif
                                         </div>
                                         <div class="ml-4 mr-auto overflow-hidden">
-                                            <div class="font-medium truncate employee-text">{{ $employee->first_name }} {{ $employee->last_name }}</div>
+                                            <div class="font-medium truncate employee-text">{{ $employee->employee->first_name }} {{ $employee->employee->last_name }}</div>
                                             <!-- Assuming each employee has a division relationship -->
-                                            <div class="text-slate-500 text-xs mt-0.5">{{ $employee->division->name }}</div>
+                                            <div class="text-slate-500 text-xs mt-0.5">{{ $employee->employee->division->name }}</div>
                                         </div>
                                     </div>
                                 @endforeach
