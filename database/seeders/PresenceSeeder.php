@@ -127,9 +127,11 @@ class PresenceSeeder extends Seeder
                     
                     $end_date = $start_date->copy()->addDays($randomLeaveDetail->days - 1); 
                     $entry_date = $end_date->copy()->addDays(random_int(1, 2));
+                    $substitute = $faker->numberBetween(2,51);
                 
                     $leave = Leave::create([
                         'user_id' => $users_id,
+                        'substitute_id' => $substitute,
                         'presence_id' => $presenceId,
                         'submission_date' => $submission_date,
                         'leave_detail_id' => $randomLeaveDetail->id,
@@ -188,6 +190,7 @@ class PresenceSeeder extends Seeder
             }
         
             $user_id = $faker->numberBetween(2,51);
+
         
             $presenceId = Presence::insertGetId([
                 'user_id' => $user_id,
@@ -271,9 +274,11 @@ class PresenceSeeder extends Seeder
                     
                     $end_date = $start_date->copy()->addDays($randomLeaveDetail->days - 1); // Adjust this as necessary
                     $entry_date = $end_date->copy()->addDays(random_int(1, 2));
+                    $substitute = $faker->numberBetween(2,51);
                 
                     $leave = Leave::create([
                         'user_id' => $user_id,
+                        'substitute_id' => $substitute,
                         'presence_id' => $presenceId,
                         'submission_date' => $submission_date,
                         'leave_detail_id' => $randomLeaveDetail->id,

@@ -29,4 +29,9 @@ class Leave extends Model
     {
         return $this->morphMany(StatusCommit::class, 'statusable');
     }
+
+    public function substitute()
+    {
+        return $this->belongsTo(User::class, 'substitute_id');
+    }
 }
