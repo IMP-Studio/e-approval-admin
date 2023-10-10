@@ -54,13 +54,21 @@
                 </a>
             </li>
         @endcan
-        @can('view_project')
+        @can('view_projects')
             <li>
                 <a href="{{ route('project') }}" class="side-menu {{ Request::is('project*') ? 'side-menu--active' : '' }}">
                     <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
-                    <div class="side-menu__title"> project </div>
+                    <div class="side-menu__title"> Project </div>
                 </a>
             </li>
         @endcan
+        {{-- @can('view_project') --}}
+        <li>
+            <a href="{{ route('permission') }}" class="side-menu {{ Request::is('permission*') ? 'side-menu--active' : '' }}">
+                <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
+                <div class="side-menu__title"> User Permission </div>
+            </a>
+        </li>
+    {{-- @endcan --}}
     </ul>
 </nav>

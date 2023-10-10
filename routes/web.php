@@ -1,17 +1,17 @@
 <?php
 
-use App\Http\Controllers\DivisionController;
-use App\Http\Controllers\PresenceController;
-use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PartnerController;
-use App\Http\Controllers\PositionController;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\roleController;
-use App\Http\Controllers\superAdminController;
 use App\Models\Partner;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\DivisionController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\PositionController;
+use App\Http\Controllers\PresenceController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\superAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,6 +94,10 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/store', [ProjectController::class,'store'])->name('project.store');
             Route::put('/update/{id}', [ProjectController::class,'update'])->name('project.update');
             // Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
+        });
+        
+        Route::prefix('permission')->group(function () {
+            Route::get('/', [PermissionController::class,'index'])->name('permission');
         });
 
 });
