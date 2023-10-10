@@ -48,6 +48,8 @@ class EmployeeSeeder extends Seeder
             'reject_presence',
             'view_request_pending',
 
+            'can_access_web',
+
             //DIVISI
             'view_divisions',
             'export_divisions',
