@@ -38,6 +38,7 @@ Route::put('/presence/update/worktrip/{id}', [ApiController::class, 'updateWorkt
 Route::delete('/presence/delete/{id}', [ApiController::class, 'destroyPresence']);
 Route::post('/presence/commit/{id}', [ApiController::class, 'approveReject']);
 Route::get('/presence/resume/{id}', [ApiController::class, 'getResumePresence']);
+Route::get('/presence/today/user/{id}', [ApiController::class, 'getPresenceTodayID']);
 
 
 Route::get('/standup', [ApiController::class, 'getStandUp']);
