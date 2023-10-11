@@ -21,7 +21,7 @@
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
-                            <th class="text-center whitespace-nowrap">Position</th>
+                            <th class="text-center whitespace-nowrap">Divisi</th>
                             <th class="text-center whitespace-nowrap">Jensi Kehadiran</th>
                             <th class="text-center whitespace-nowrap">Status</th>
                         </tr>
@@ -51,11 +51,21 @@
                                         data-tw-target="#modal-apprv-teleHt-search">
                                         <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
                                     </a>
-                                    {{-- <a class="mr-3 flex items-center text-warning delete-modal-search" data-id=""
-                                        data-name="" href="javascript:;" data-tw-toggle="modal"
-                                        data-tw-target="#rejected-confirmation-modal">
+                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-telework"
+                                        data-avatar="{{ $item->user->employee->avatar }}"
+                                        data-divisi="{{ $item->user->employee->division->name }}"
+                                        data-gender="{{ $item->user->employee->gender }}"
+                                        data-firstname="{{ $item->user->employee->first_name }}"
+                                        data-LastName="{{ $item->user->employee->last_name }}"
+                                        data-stafId="{{ $item->user->employee->id_number }}"
+                                        data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                        data-Position="{{ $item->user->employee->position->name }}"
+                                        data-teleCategory="{{ $item->telework->telework_category }}"
+                                        data-tempoEntry="{{ $item->temporary_entry_time }}"
+                                        data-catDesc="{{ $item->telework->category_description }}"
+                                        href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-telework">
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
-                                    </a> --}}
+                                    </a>
                                     @can('reject_presence')                                        
                                     <a data-rejectTeleHtid="{{ $item->telework->statusCommit->first()->id }}" data-rejectmessageTele="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-danger reject_tele_Ht" href="javascript:;" data-tw-toggle="modal"
                                         data-tw-target="#reject-confirmation-teleHt-modal">
@@ -138,19 +148,118 @@
     </div>
     {{-- moda rejected end --}}
 
-    <script type="text/javascript">
-        $(document).on("click", ".approve_tele_Ht", function() {
-            var ApproveTeleModalid = $(this).attr('data-teleHtid');
-            var ApproveTeleModalMessage = $(this).attr('data-messageTele');
+    {{-- detail modal attendance search TeleWork --}}
+    <div id="show-modal-search-telework" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-lg mx-auto">Detail Kehadiran</h2>
+                </div>
+                <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                    <div class="col-span-12 mx-auto">
+                        <div class="w-24 h-24 image-fit zoom-in">
+                            <img id="show-modal-image-tele" class="tooltip rounded-full" src="">
+                        </div>
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Firstname :</label>
+                        <input disabled id="Show-firstname-tele" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Lastname :</label>
+                        <input disabled id="Show-LastName-tele" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Staff Id :</label>
+                        <input disabled id="Show-StafId-tele" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Position :</label>
+                        <input disabled id="Show-Posisi-tele" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Divisi :</label>
+                        <input disabled id="Show-Divisi-tele" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Category :</label>
+                        <input disabled id="Show-Category-tele" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Telework Category  :</label>
+                        <input disabled id="Show-Telecat-tele" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Temporary Entry Time  :</label>
+                        <input disabled id="Show-TempoEntry-tele" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6" id="divCatDesc">
+                        <label class="text-xs">Category Description :</label>
+                        <textarea disabled id="Show-CatDesc" class="form-control capitalize p-5"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- detail modal attendance search TeleWork end--}}
 
-            var formAction;
-            formAction = '{{ route('approveht.approvedTeleHt', ':id') }}'.replace(':id', ApproveTeleModalid);
+<script type="text/javascript">
+    $(document).on("click", ".approve_tele_Ht", function() {
+        var ApproveTeleModalid = $(this).attr('data-teleHtid');
+        var ApproveTeleModalMessage = $(this).attr('data-messageTele');
 
-            $("#approve-tele-dataHt").attr('action', formAction);
-            $("#messageTele-approveHt").attr('value', ApproveTeleModalMessage);
+        var formAction;
+        formAction = '{{ route('approveht.approvedTeleHt', ':id') }}'.replace(':id', ApproveTeleModalid);
+
+        $("#approve-tele-dataHt").attr('action', formAction);
+        $("#messageTele-approveHt").attr('value', ApproveTeleModalMessage);
 
 
-        });
+    });
+
+     // telework modal
+     $(document).on("click", ".show-attendance-modal-search-telework", function () {
+        var ShowGender = $(this).attr('data-gender');
+        var showAvatar = $(this).attr('data-avatar');
+        var ShowFirstname = $(this).attr('data-firstname');
+        var ShowLastName = $(this).attr('data-LastName');
+        var ShowStafId = $(this).attr('data-stafId');
+        var ShowPosisi = $(this).attr('data-Position');
+        var ShowCategory = $(this).attr('data-Category');
+        var ShowTeleCat = $(this).attr('data-teleCategory');
+        var ShowTempoEntry = $(this).attr('data-tempoEntry');
+        var ShowCatDesc = $(this).attr('data-catDesc');
+        var ShowDivisi = $(this).attr('data-divisi');
+
+
+
+        console.log(ShowFirstname);
+        var imgSrc;
+        if(showAvatar){
+            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+        }else if(ShowGender == 'male'){
+            imgSrc = '{{ asset('images/default-boy.jpg') }}';
+        }else if(ShowGender == 'female'){
+            imgSrc = '{{ asset('images/default-women.jpg') }}';
+        };
+
+        if (ShowCatDesc) {
+        $("#Show-CatDesc").text(ShowCatDesc);
+        $("#Show-CatDesc").parent().show();
+        } else {
+        $("#divCatDesc").hide();
+        }
+
+        $("#show-modal-image-tele").attr('src', imgSrc);
+        $("#Show-firstname-tele").attr('value', ShowFirstname);
+        $("#Show-LastName-tele").attr('value', ShowLastName);
+        $("#Show-StafId-tele").attr('value', ShowStafId);
+        $("#Show-Posisi-tele").attr('value', ShowPosisi);
+        $("#Show-Divisi-tele").attr('value', ShowDivisi);
+        $("#Show-Category-tele").attr('value', ShowCategory);
+        $("#Show-Telecat-tele").attr('value',ShowTeleCat);
+        $("#Show-TempoEntry-tele").attr('value',ShowTempoEntry);
+    });
 
     $(document).on("click", ".reject_tele_Ht", function() {
         var rejectWkModalid = $(this).attr('data-rejectTeleHtid');
@@ -164,5 +273,5 @@
 
 
     });
-    </script>
+</script>
 @endsection
