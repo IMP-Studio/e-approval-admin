@@ -448,125 +448,37 @@ class ApiController extends Controller
     //---- PRESENCE FUNCTION ----\\ 
 
     //FUNCTION PRESENCE TODAY STATUS //BISA
-    public function presenceToday($id)
-{
-    $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
-
-    $attendance = Presence::with(['telework.statusCommit', 'worktrip.statusCommit', 'leave.statusCommit'])
-                          ->where('user_id', $id)
-                          ->whereDate('date', $currentDate)
-                          ->first();
-
-    if (!$attendance) {
-        return response()->json(['status' => 'notAttended', 'carbon_date' => $currentDate]);
-    }
-
-    
-
-    $teleworkStatus = $attendance->telework ? $attendance->telework->statusCommit->sortByDesc('created_at')->first()->status : null;
-    $worktripStatus = $attendance->worktrip ? $attendance->worktrip->statusCommit->sortByDesc('created_at')->first()->status : null;
-    $leaveStatus = $attendance->leave ? $attendance->leave->statusCommit->sortByDesc('created_at')->first()->status : null;
-    // dd([
-    //     'category' => $attendance->category, 
-    //     'worktripStatus' => $worktripStatus, 
-    //     'entry_time' => $attendance->entry_time, 
-    //     'exit_time' => $attendance->exit_time
-    // ]);
-
-    if (($teleworkStatus && $teleworkStatus == 'pending') || ($worktripStatus && $worktripStatus == 'pending') || ($leaveStatus && $leaveStatus == 'pending')) {
-        return response()->json(['status' => 'pendingStatus', 'message' => 'Your request is still pending. Wait for a moment for a response.', 'carbon_date' => $currentDate]);
-    } elseif (($teleworkStatus && $teleworkStatus == 'rejected') || ($worktripStatus && $worktripStatus == 'rejected') || ($leaveStatus && $leaveStatus == 'rejected')) {
-        return response()->json(['status' => 'canReAttend', 'message' => 'You can mark your attendance again', 'carbon_date' => $currentDate]);
-    } elseif ($attendance->category == 'work_trip') {
-        $worktrip = WorkTrip::where('user_id', $id)
-                            ->where('start_date', '<=', $currentDate)
-                            ->where('end_date', '>=', $currentDate)
-                            ->first();
-    
-        if (!$worktrip) {
-            // Handle the case where no related WorkTrip is found (maybe return an error or another status)
-            return response()->json(['status' => 'noRelatedWorkTrip', 'message' => 'No related work trip found.', 'carbon_date' => $currentDate]);
-        }
-    
-        $worktripStatus = $worktrip->statusCommit->sortByDesc('created_at')->first()->status ?? null;
-    
-        if ($worktripStatus == 'allowed' || $worktripStatus === null) {
-            if ($attendance->date == $worktrip->start_date) {
-                if($attendance->entry_time == '08:30:00' && $attendance->exit_time == '17:30:00'){
-                    return response()->json(['status' => 'Perjadin', 'carbon_date' => $currentDate]);
-                } elseif ($attendance->entry_time == '00:00:00' && $attendance->exit_time == '17:30:00') {
-                    return response()->json(['status' => 'notAttendedWT', 'carbon_date' => $currentDate]);
-                }
-            } elseif ($attendance->date != $worktrip->start_date) {
-                if($attendance->entry_time == '00:00:00' && $attendance->exit_time == '17:30:00'){
-                    return response()->json(['status' => 'perjadinCheckin', 'carbon_date' => $currentDate]);
-                }
-            }
-        }
-    }
-    elseif ($attendance->category == 'leave') {
-        $worktrip = Leave::where('user_id', $id)
-        ->where('start_date', '<=', $currentDate)
-        ->where('end_date', '>=', $currentDate)
-        ->first();
-
-        if (!$worktrip) {
-            return response()->json(['status' => 'noRelatedWorkTrip', 'message' => 'No related work trip found.', 'carbon_date' => $currentDate]);
-        }
-
-        $worktripStatus = $worktrip->statusCommit->sortByDesc('created_at')->first()->status ?? null;
-
-        if($leaveStatus == 'allowed' || $leaveStatus === null ){
-            if($attendance->date == $leave->start_date){
-                if($attendance->entry_time ==  '08:30:00' && $attendance->exit_time == '17:30:00'){
-                    return response()->json(['status' => 'Leave', 'message' => 'Kamu sedang cuti', 'carbon_date' => $currentDate]);
-                }
-            }elseif($attendance->date == $leave->start_date){
-                if($attendance->entry_time ==  '08:30:00' && $attendance->exit_time == '17:30:00'){
-                    return response()->json(['status' => 'Leave', 'message' => 'Kamu sedang cuti', 'carbon_date' => $currentDate]);
-                }
-            }
-        }
-        
-    }elseif($attendance->category == 'skip' && $attendance->exit_time == '00:00:00' && $attendance->entry_time == '00:00:00' && $attendance->temporary_entry_time == '00:00:00') {
-        return response()->json(['status' => 'Bolos', 'message' => 'Kamu bolos','carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
-    }elseif ($attendance->exit_time == '00:00:00') {
-        return response()->json(['status' => 'checkedIn', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
-    }else {
-        return response()->json(['status' => 'checkedOut', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
-    }
-}  
-
-    //FUNCTION GET PRESENCE TODAY //BISAA
-    public function getPresenceToday($id) {
+    public function presenceToday($id) {
         $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
-        $belum = '00:00:00';
-        
     
-        $attendanceToday = Presence::with('worktrip','telework','leave')->where('user_id', $id)
-                                  ->whereDate('date', $currentDate)
-                                  ->first();
-
-        $category = $attendanceToday->category ?? null;
-
-        if($category != null){
-            if($category == 'WFO'){
-                 $category = 'Work From Office';
-            }elseif($category == 'telework'){
-                 $category = 'Work From Anywhere';
-            }elseif($category == 'work_trip'){
-                 $category = 'Perjalanan Dinas';
-            }elseif($category == 'leave'){
-                 $category = 'Cuti';
-            }elseif($category == 'skip'){
-                 $category = 'Bolos';
-            }
+        $attendance = Presence::with(['telework.statusCommit', 'worktrip.statusCommit', 'leave.statusCommit'])
+                              ->where('user_id', $id)
+                              ->whereDate('date', $currentDate)
+                              ->orderByDesc('created_at')
+                              ->first();
+    
+        if (!$attendance) {
+            return response()->json(['status' => 'notAttended', 'carbon_date' => $currentDate]);
         }
-
-        
     
-        if ($attendanceToday) {
-            if ($attendanceToday->category == 'work_trip' ) {
+        $teleworkStatus = $attendance->telework ? $attendance->telework->statusCommit->sortByDesc('created_at')->first()->status : null;
+        $worktripStatus = $attendance->worktrip ? $attendance->worktrip->statusCommit->sortByDesc('created_at')->first()->status : null;
+        $leaveStatus = $attendance->leave ? $attendance->leave->statusCommit->sortByDesc('created_at')->first()->status : null;
+    
+        // Handle Rejected Status
+        if (($teleworkStatus && $teleworkStatus == 'rejected') || 
+            ($worktripStatus && $worktripStatus == 'rejected' && $attendance->date == $attendance->worktrip->start_date) || 
+            ($leaveStatus && $leaveStatus == 'rejected' && $attendance->date == $attendance->leave->start_date)) {
+            return response()->json(['status' => 'canReAttend', 'message' => 'You can mark your attendance again', 'data' => $attendance ,'carbon_date' => $currentDate]);
+        }
+    
+        // Handle Pending Status
+        if (($teleworkStatus && $teleworkStatus == 'pending') || ($worktripStatus && $worktripStatus == 'pending') || ($leaveStatus && $leaveStatus == 'pending')) {
+            return response()->json(['status' => 'pendingStatus', 'message' => 'Your request is still pending. Wait for a moment for a response.', 'data' => $attendance,'carbon_date' => $currentDate]);
+        } 
+    
+        // Handle Work Trip Category
+        if ($attendance->category == 'work_trip') {
             $worktrip = WorkTrip::where('user_id', $id)
                                 ->where('start_date', '<=', $currentDate)
                                 ->where('end_date', '>=', $currentDate)
@@ -579,105 +491,132 @@ class ApiController extends Controller
             $worktripStatus = $worktrip->statusCommit->sortByDesc('created_at')->first()->status ?? null;
         
             if ($worktripStatus == 'allowed' || $worktripStatus === null) {
-                if ($attendanceToday->date == $worktrip->start_date) {
-                    if($attendanceToday->entry_time == '08:30:00' && $attendanceToday->exit_time == '17:30:00'){
-                        return response()->json([
-                            'status' => 'attended (Khusus Perjadin)',
-                            'category' => $category,
-                            'entry_time' => $attendanceToday->entry_time,
-                            'exit_time' => $attendanceToday->exit_time,
-                            'date' => $attendanceToday->date
-                        ]);
-                    } elseif ($attendanceToday->entry_time == '00:00:00' && $attendanceToday->exit_time == '17:30:00') {
-                        return response()->json([
-                            'status' => 'notAttended',
-                            'category' => 'Belum check in',
-                            'entry_time' => '00:00 AM',
-                            'exit_time' => '00:00 AM',
-                            'date' => $currentDate,
-                            'system_date' => $currentDate,
-                            'carbon_date' => $currentDate,
-                            'user_id' => $id
-                        ]);
+                if ($attendance->date == $worktrip->start_date) {
+                    if($attendance->entry_time == '08:30:00' && $attendance->exit_time == '17:30:00'){
+                        return response()->json(['status' => 'Perjadin', 'carbon_date' => $currentDate]);
+                    } elseif ($attendance->entry_time == '00:00:00' && $attendance->exit_time == '17:30:00') {
+                        return response()->json(['status' => 'notAttendedWT', 'carbon_date' => $currentDate]);
                     }
-                } elseif ($attendanceToday->date != $worktrip->start_date) {
-                    if($attendanceToday->entry_time == '00:00:00' && $attendanceToday->exit_time == '17:30:00'){
-                        return response()->json([
-                            'status' => 'perjadinCheckin',
-                            'carbon_date' => $currentDate
-                        ]);
+                } else {
+                    if($attendance->entry_time == '00:00:00' && $attendance->exit_time == '17:30:00'){
+                        return response()->json(['status' => 'perjadinCheckin', 'carbon_date' => $currentDate]);
                     }
                 }
             }
         }
-        elseif($attendanceToday->category == 'leave') {
+    
+        // Handle Leave Category
+        if ($attendance->category == 'leave') {
             $leave = Leave::where('user_id', $id)
-                          ->where('start_date', '<=', $currentDate)
-                          ->where('end_date', '>=', $currentDate)
-                          ->first();
-        
+            ->where('start_date', '<=', $currentDate)
+            ->where('end_date', '>=', $currentDate)
+            ->first();
+    
             if (!$leave) {
                 return response()->json(['status' => 'noRelatedLeave', 'message' => 'No related leave found.', 'carbon_date' => $currentDate]);
             }
-        
+    
             $leaveStatus = $leave->statusCommit->sortByDesc('created_at')->first()->status ?? null;
-        
-            if($leaveStatus == 'allowed' || $leaveStatus === null) {
-                if($attendanceToday->date == $leave->start_date || $attendanceToday->date == $leave->end_date) {
-                    if($attendanceToday->entry_time == '08:30:00' && $attendanceToday->exit_time == '17:30:00') {
-                        return response()->json([
-                            'status' => 'attended (Cuti)',
-                            'category' => $category,
-                            'entry_time' => $attendanceToday->entry_time,
-                            'exit_time' => $attendanceToday->exit_time,
-                            'date' => $attendanceToday->date,
-                            'system_date' => $currentDate,
-                            'carbon_date' => $currentDate,
-                            'user_id' => $id
-                        ]);
-                    }
+    
+            if($leaveStatus == 'allowed' || $leaveStatus === null ){
+                if($attendance->entry_time == '08:30:00' && $attendance->exit_time == '17:30:00'){
+                    return response()->json(['status' => 'Leave', 'message' => 'You are currently on leave', 'carbon_date' => $currentDate]);
                 }
             }
         }
-         elseif( $attendanceToday->category == 'skip'){
-                return response()->json([
-                    'status' => 'Bolos',
-                    'category' => $category,
-                    'entry_time' => $attendanceToday->entry_time,
-                    'exit_time' => $attendanceToday->exit_time,
-                    'date' => $attendanceToday->date,
-                    'system_date' => $currentDate,
-                    'carbon_date' => $currentDate,
-                    'user_id' => $id
-                ]);
-
-            }else {
-                return response()->json([
-                    'status' => 'attended',
-                    'category' => $category,
-                    'entry_time' => $attendanceToday->entry_time,
-                    'exit_time' => $attendanceToday->exit_time,
-                    'date' => $attendanceToday->date,
-                    'system_date' => $currentDate,
-                    'carbon_date' => $currentDate,
-                    'user_id' => $id
-                ]);
-            }
+    
+        // Handle other cases, like skipping
+        if($attendance->category == 'skip' && $attendance->exit_time == '00:00:00' && $attendance->entry_time == '00:00:00' && $attendance->temporary_entry_time == '00:00:00') {
+            return response()->json(['status' => 'Skipped', 'message' => 'You skipped work','carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
+        } elseif ($attendance->exit_time == '00:00:00') {
+            return response()->json(['status' => 'checkedIn', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
+        } else {
+            return response()->json(['status' => 'checkedOut', 'carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
         }
+    }
+    
+
+    //FUNCTION GET PRESENCE TODAY //BISAA
+    public function getPresenceToday($id) {
+        $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
         
-        else {
+        $attendanceToday = Presence::with(['worktrip.statusCommit', 'telework.statusCommit', 'leave.statusCommit'])
+                                  ->where('user_id', $id)
+                                  ->whereDate('date', $currentDate)
+                                  ->first();
+    
+        if (!$attendanceToday) {
             return response()->json([
                 'status' => 'notAttended',
                 'category' => 'Belum check in',
                 'entry_time' => '00:00 AM',
-                'exit_time'    =>'00:00 AM',
-                'date'         => $currentDate,
+                'exit_time' => '00:00 AM',
+                'date' => $currentDate,
                 'system_date' => $currentDate,
                 'carbon_date' => $currentDate,
-                'user_id' => $id  // Confirming the user_id used in the query
+                'user_id' => $id
             ]);
         }
+    
+        // Check for rejected status
+        $teleworkStatus = $attendanceToday->telework ? $attendanceToday->telework->statusCommit->sortByDesc('created_at')->first()->status : null;
+        $worktripStatus = $attendanceToday->worktrip ? $attendanceToday->worktrip->statusCommit->sortByDesc('created_at')->first()->status : null;
+        $leaveStatus = $attendanceToday->leave ? $attendanceToday->leave->statusCommit->sortByDesc('created_at')->first()->status : null;
+    
+        if (($teleworkStatus && $teleworkStatus == 'rejected') || 
+            ($worktripStatus && $worktripStatus == 'rejected') || 
+            ($leaveStatus && $leaveStatus == 'rejected')) {
+            return response()->json([
+                'status' => 'Presence Again!',
+                'category' => 'Presence Rejected',
+                'presence' => $attendanceToday->category,
+                'entry_time' => $attendanceToday->entry_time,
+                'exit_time' => $attendanceToday->exit_time,
+                'date' => $attendanceToday->date,
+                'system_date' => $currentDate,
+                'carbon_date' => $currentDate,
+                'user_id' => $id
+            ]);
+        }
+    
+        if ($attendanceToday->category == 'skip') {
+            return response()->json([
+                'status' => 'Bolos',
+                'category' => 'Bolos',
+                'entry_time' => $attendanceToday->entry_time,
+                'exit_time' => $attendanceToday->exit_time,
+                'date' => $attendanceToday->date,
+                'system_date' => $currentDate,
+                'carbon_date' => $currentDate,
+                'user_id' => $id
+            ]);
+        }
+    
+        // Default case is "attended".
+        $category = 'Work From Office';  // Default
+        if ($attendanceToday->category == 'telework') {
+            $category = 'Work From Anywhere';
+        } elseif ($attendanceToday->category == 'work_trip') {
+            $category = 'Perjalanan Dinas';
+        } elseif ($attendanceToday->category == 'leave') {
+            $category = 'Cuti';
+        }
+    
+        return response()->json([
+            'status' => 'attended',
+            'category' => $category,
+            'entry_time' => $attendanceToday->entry_time,
+            'exit_time' => $attendanceToday->exit_time,
+            'date' => $attendanceToday->date,
+            'system_date' => $currentDate,
+            'carbon_date' => $currentDate,
+            'user_id' => $id
+        ]);
     }
+    
+    
+
+    
 
     public function getPresenceTodayID($id) {
         $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
