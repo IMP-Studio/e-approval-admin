@@ -56,13 +56,13 @@ class ProjectController extends Controller
                                             data-projectpartnerId="' . $item->partner_id . '"
                                             data-partnerId="' . $item->partner->id . '"
                                             data-partnerName="' . $item->partner->name . '"
-                                            class="flex items-center text-warning mr-3 edit-modal-project-search"
+                                            class="flex items-center text-success mr-3 edit-modal-project-search"
                                             href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-project">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit
                                         </a>
 
                                         <a data-projectnameD="'. $item->name .'" data-partnerNameD="'. $item->partner->name .'" data-startdateD="'. $item->start_date .'" data-enddateD="'. $item->end_date .'"
-                                            class="mr-3 flex items-center text-success detail-project-modal-search"
+                                            class="mr-3 flex items-center text-warning detail-project-modal-search"
                                             href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#detail-project-modal">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail

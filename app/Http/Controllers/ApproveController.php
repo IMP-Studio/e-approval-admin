@@ -46,11 +46,96 @@ class ApproveController extends Controller
         })
             ->orderBy('entry_time', 'asc')
             ->paginate(10);
+            // ->map(function ($item) {
+            // $item->category = 'work_trip';
+            // return $item;
+            // })
 
-        // ->map(function ($item) {
-        //     $item->category = 'work_trip';
-        //     return $item;
-        // })
+        if ($request->ajax()) {
+            $query = $request->input('query');
+
+            $loggedInUser = auth()->user();
+
+            $kepaladivisi = null;
+            if ($loggedInUser->employee) {
+                $kepaladivisi = $loggedInUser->employee->division_id;
+            }
+    
+    
+            // Only fetch WorkTrip data
+            $workTripDataQuery = Presence::with('worktrip.statusCommit')
+                ->where('category', 'work_trip');
+    
+            // Condition to check if the user doesn't have the 'super-admin' role
+            if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
+                $workTripDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
+                    $employeeQuery->where('division_id', $kepaladivisi);
+                });
+            }
+
+            $workTripDataQuery->whereHas('user', function ($userQuery) use ($query) {
+                $userQuery->where('name', 'LIKE', '%' . $query . '%');
+            });
+    
+            $workTripData = $workTripDataQuery->whereHas('worktrip', function ($worktripQuery) {
+                $today = Carbon::today('Asia/Jakarta');
+                $worktripQuery->whereHas('statusCommit', function ($statusCommitQuery) {
+                    $statusCommitQuery->where('status', 'pending');
+                })
+                ->whereDate('date', '<=', $today);
+            })
+                ->orderBy('entry_time', 'asc')
+                ->paginate(10);;
+
+                $output = '';
+                $iteration = 0;
+
+                foreach ($workTripData as $item) {
+                    $iteration++;
+                    $output = '<tr class="intro-x h-16">
+                    <td class="w-4 text-center">' . $iteration . '.</td>
+                    <td class="w-50 text-center capitalize">' . $item->user->name . '</td>
+                    <td class="w-50 text-center capitalize">' . $item->user->employee->division->name . '</td>
+                    <td class="w-50 text-center capitalize">' . ($item->category === 'work_trip' ? 'Work Trip' : $item->category) . '</td>
+                    <td class="w-50 text-center capitalize">' . $item->worktrip->statusCommit->first()->status . '</td>
+                    <td class="table-report__action w-56">
+                        <div class="flex justify-center items-center">
+                            <a data-wkHtid="' . $item->worktrip->statusCommit->first()->id . '" data-messageWK="' . $item->user->name . ' ' . $item->category . '" class="flex items-center text-success mr-3 approve_wk_Ht"
+                                data-Positionid="" href="javascript:;" data-tw-toggle="modal"
+                                data-tw-target="#modal-apprv-wt-search">
+                                <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
+                            </a>
+                            <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-worktrip"
+                                data-avatar="' . $item->user->employee->avatar . '"
+                                data-gender="' . $item->user->employee->gender . '"
+                                data-firstname="' . $item->user->employee->first_name . '"
+                                data-LastName="' . $item->user->employee->last_name . '"
+                                data-stafId="' . $item->user->employee->id_number . '"
+                                data-Category="' . ($item->category === 'work_trip' ? 'Work Trip' : $item->category) . '"
+                                data-Position="' . $item->user->employee->position->name . '"
+                                data-startDate="' . $item->worktrip->start_date . '"
+                                data-endDate="' . $item->worktrip->end_date . '"
+                                data-enrtyDate="' . $item->worktrip->entry_date . '"
+                                data-file="' . $item->worktrip->file . '"
+                                href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-approve-worktrip">
+                                <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                            </a>';
+                            
+                    if (auth()->check() && auth()->user()->can('reject_presence')) {
+                        $output .= '<a data-rejectwkHtid="' . $item->worktrip->statusCommit->first()->id . '" data-rejectmessageWK="' . $item->user->name . ' ' . $item->category . '" class="flex items-center text-danger reject_wk_Ht" data-id=""
+                            data-name="" href="javascript:;" data-tw-toggle="modal"
+                            data-tw-target="#reject-confirmation-modal">
+                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Reject
+                        </a>';
+                    }
+
+                    $output .= '</div>
+                        </td>
+                    </tr>';
+                }
+
+                return response($output);
+        }
 
         return view('approve.headTired.worktrip.index', compact('workTripData'));
     }

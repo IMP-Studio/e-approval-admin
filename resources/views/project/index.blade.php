@@ -90,14 +90,14 @@
                                                 data-projectpartnerId="{{ $item->partner_id }}"
                                                 data-partnerId="{{ $item->partner->id }}"
                                                 data-partnerName="{{ $item->partner->name }}"
-                                                class="flex items-center text-warning mr-3 edit-modal-project-search"
+                                                class="flex items-center text-success mr-3 edit-modal-project-search"
                                                 href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-project">
                                                 <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                             </a>
                                         @endcan
 
                                         <a data-projectnameD="{{ $item->name }}" data-partnerNameD="{{ $item->partner->name }}" data-startdateD="{{ $item->start_date }}" data-enddateD="{{ $item->end_date }}"
-                                            class="mr-3 flex items-center text-success detail-project-modal-search"
+                                            class="mr-3 flex items-center text-warning detail-project-modal-search"
                                             href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#detail-project-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail

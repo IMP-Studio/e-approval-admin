@@ -74,7 +74,7 @@
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
                                 @if($item->category === 'WFO')
-                                <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-wfo"
+                                <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-wfo"
                                    data-avatar="{{ $item->user->employee->avatar }}"
                                    data-gender="{{ $item->user->employee->gender }}"
                                    data-firstname="{{ $item->user->employee->first_name }}"
@@ -88,7 +88,7 @@
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
                                 @elseif($item->category == 'telework')
-                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-telework"
+                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-telework"
                                     data-avatar="{{ $item->user->employee->avatar }}"
                                     data-gender="{{ $item->user->employee->gender }}"
                                     data-firstname="{{ $item->user->employee->first_name }}"
@@ -103,7 +103,7 @@
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @elseif($item->category == 'work_trip')
-                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-worktrip"
+                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-worktrip"
                                     data-avatar="{{ $item->user->employee->avatar }}"
                                     data-gender="{{ $item->user->employee->gender }}"
                                     data-firstname="{{ $item->user->employee->first_name }}"
@@ -118,7 +118,7 @@
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @elseif ($item->category == 'leave')
-                                    <a class="flex items-center text-success delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->type }}" data-typeDesc="{{ $item->type_description }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->type }}" data-typeDesc="{{ $item->type_description }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @endif
@@ -554,7 +554,7 @@
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
