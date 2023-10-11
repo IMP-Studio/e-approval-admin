@@ -53,4 +53,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(StandUp::class);
     }
+
+    public function subtituteLeave()
+    {
+        return $this->hasMany(Leave::class, 'substitute_id');
+    }
 }

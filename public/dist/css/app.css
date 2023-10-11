@@ -4018,6 +4018,12 @@ select {
   --tw-text-opacity: 1;
   color: rgb(var(--color-slate-700) / var(--tw-text-opacity));
 }
+.text-cyan-300 {
+  color: rgb(103 232 249);
+}
+.text-pink-500 {
+  color: rgb(236 72 153);
+}
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
