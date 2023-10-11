@@ -302,7 +302,7 @@
             });
         });
 
-        //detail
+    //detail
     $(document).on("click", ".detail-presence-modal-search", function() {
     var divisionId = $(this).data('presenceId');
     var positionName = $(this).attr('data-positionName');
@@ -359,21 +359,21 @@
             });
         }
 
-        loadPage(currentPage);
+            loadPage(currentPage);
 
-        $("#next-page").click(function() {
-            if (currentPage < totalPages) {
-                loadPage(currentPage + 1);
-            }
-        });
+            $("#next-page").click(function() {
+                if (currentPage < totalPages) {
+                    loadPage(currentPage + 1);
+                }
+            });
 
-        $("#prev-page").click(function() {
-            if (currentPage > 1) {
-                loadPage(currentPage - 1);
-            }
+            $("#prev-page").click(function() {
+                if (currentPage > 1) {
+                    loadPage(currentPage - 1);
+                }
+            });
         });
     });
-});
 
         $(document).on("click", ".edit-modal-search-class", function() {
             var EditModalid = $(this).attr('data-Positionid');
