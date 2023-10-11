@@ -55,6 +55,7 @@
                                         data-avatar="{{ $item->user->employee->avatar }}"
                                         data-divisi="{{ $item->user->employee->division->name }}"
                                         data-gender="{{ $item->user->employee->gender }}"
+                                        data-date=" {{ $item->telework->presence->date }}"
                                         data-firstname="{{ $item->user->employee->first_name }}"
                                         data-LastName="{{ $item->user->employee->last_name }}"
                                         data-stafId="{{ $item->user->employee->id_number }}"
@@ -190,10 +191,14 @@
                         <input disabled id="Show-Telecat-tele" type="text" class="form-control capitalize" value="">
                     </div>
                     <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Date  :</label>
+                        <input disabled id="Show-Date" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
                         <label class="text-xs">Temporary Entry Time  :</label>
                         <input disabled id="Show-TempoEntry-tele" type="text" class="form-control capitalize" value="">
                     </div>
-                    <div class="col-span-12 sm:col-span-6" id="divCatDesc">
+                    <div class="col-span-12 sm:col-span-12" id="divCatDesc">
                         <label class="text-xs">Category Description :</label>
                         <textarea disabled id="Show-CatDesc" class="form-control capitalize p-5"></textarea>
                     </div>
@@ -217,7 +222,7 @@
 
     });
 
-     // telework modal
+     // telework modal detail
      $(document).on("click", ".show-attendance-modal-search-telework", function () {
         var ShowGender = $(this).attr('data-gender');
         var showAvatar = $(this).attr('data-avatar');
@@ -230,13 +235,14 @@
         var ShowTempoEntry = $(this).attr('data-tempoEntry');
         var ShowCatDesc = $(this).attr('data-catDesc');
         var ShowDivisi = $(this).attr('data-divisi');
+        var ShowDate = $(this).attr('data-date');
 
 
 
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;   
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
@@ -259,6 +265,7 @@
         $("#Show-Category-tele").attr('value', ShowCategory);
         $("#Show-Telecat-tele").attr('value',ShowTeleCat);
         $("#Show-TempoEntry-tele").attr('value',ShowTempoEntry);
+        $("#Show-Date").attr('value',ShowDate);
     });
 
     $(document).on("click", ".reject_tele_Ht", function() {

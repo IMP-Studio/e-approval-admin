@@ -81,7 +81,7 @@
                                             </a>
                                         @endcan
 
-                                        <a class="mr-3 flex items-center text-success detail-partner-modal-search"
+                                        <a class="mr-3 flex items-center text-warning detail-partner-modal-search"
                                             data-partnerId="{{ $item->id }}" data-partnerName="{{ $item->name }}"
                                             data-partnerDesc="{{ $item->description }}" href="javascript:;"
                                             data-tw-toggle="modal" data-tw-target="#detail-partner-modal">

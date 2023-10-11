@@ -242,7 +242,7 @@
 
         });
 
-        // leave modal
+        // leave modal detail
         $(document).on("click", ".show-modal-search-leave", function() {
             var ShowGender = $(this).attr('data-gender');
             var showAvatar = $(this).attr('data-avatar');
@@ -263,7 +263,7 @@
             console.log(ShowFirstname);
             var imgSrc;
             if (showAvatar) {
-                imgSrc = '{{ asset('storage/' . $item->user->employee->avatar) }}';
+                imgSrc = '{{ asset('storage/') }}/' + showAvatar;
             } else if (ShowGender == 'male') {
                 imgSrc = '{{ asset('images/default-boy.jpg') }}';
             } else if (ShowGender == 'female') {
