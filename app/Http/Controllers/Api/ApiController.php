@@ -679,6 +679,44 @@ class ApiController extends Controller
         }
     }
 
+    public function getPresenceTodayID($id) {
+        $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
+    
+        $attendanceToday = Presence::with(['user', 'worktrip', 'telework', 'leave'])
+                                  ->where('user_id', $id)
+                                  ->whereDate('date', $currentDate)
+                                  ->first();
+    
+        if (!$attendanceToday) {
+            return response()->json(['message' => 'Attendance not found for today'], 404);
+        }
+    
+        // Map category for better presentation
+        $categoriesMapping = [
+            'WFO' => 'Work From Office',
+            'telework' => 'Work From Anywhere',
+            'work_trip' => 'Perjalanan Dinas',
+            'leave' => 'Cuti',
+            'skip' => 'Bolos'
+        ];
+        
+        $category = $categoriesMapping[$attendanceToday->category] ?? $attendanceToday->category;
+    
+        $response = [
+            'presence_id' => $attendanceToday->id,
+            'user_id' => $attendanceToday->user_id,
+            'name' => $attendanceToday->user->name, // Assuming user relationship exists and has a 'name' field
+            'division' => $attendanceToday->user->employee->division->name, // Assuming user relationship exists and has a 'division' field
+            'category' => $category,
+            'date' => $attendanceToday->date
+        ];
+    
+        return response()->json($response);
+    }
+    
+
+
+
     //FUNCTION GET PRESENCE //BISA 
 
     public function getPresence(Request $request) {
@@ -1371,35 +1409,35 @@ if ($updateabsensi->category == 'work_trip') {
     }
 
 
-    public function updateWorktripFromPresence(Request $request, $presenceId) {
-        // Find the presence with the given ID
-        $presence = Presence::find($presenceId);
-    
-        if (!$presence) {
-            return response()->json(['message' => 'Presence not found'], 404);
+        public function updateWorktripFromPresence(Request $request, $presenceId) {
+          
+            $presence = Presence::find($presenceId);
+        
+            if (!$presence) {
+                return response()->json(['message' => 'Presence not found'], 404);
+            }
+        
+            
+            $relatedWorktrip = $presence->worktrip;
+        
+          
+            if (!$relatedWorktrip) {
+                $relatedWorktrip = WorkTrip::where('user_id', $presence->user_id)
+                                        ->where('start_date', '<=', $presence->date)
+                                        ->where('end_date', '>=', $presence->date)
+                                        ->first();
+            }
+        
+            if (!$relatedWorktrip) {
+                return response()->json(['message' => 'No Worktrip associated with this Presence'], 404);
+            }
+        
+            // Update the specified attributes of the presence
+            $updateData = $request->only(['entry_time', 'longitude', 'latitude', 'face_point']);
+            $presence->update($updateData);
+        
+            return response()->json(['message' => 'Presence updated successfully', 'data' => $presence]);
         }
-    
-        // Check if the presence has a direct relation to a worktrip
-        $relatedWorktrip = $presence->worktrip;
-    
-        // If no direct relation, find the related worktrip based on the user and date range
-        if (!$relatedWorktrip) {
-            $relatedWorktrip = WorkTrip::where('user_id', $presence->user_id)
-                                       ->where('start_date', '<=', $presence->date)
-                                       ->where('end_date', '>=', $presence->date)
-                                       ->first();
-        }
-    
-        if (!$relatedWorktrip) {
-            return response()->json(['message' => 'No Worktrip associated with this Presence'], 404);
-        }
-    
-        // Update the specified attributes of the presence
-        $updateData = $request->only(['entry_time', 'longitude', 'latitude', 'face_point']);
-        $presence->update($updateData);
-    
-        return response()->json(['message' => 'Presence updated successfully', 'data' => $presence]);
-    }
     
     
     
@@ -1882,9 +1920,11 @@ if ($updateabsensi->category == 'work_trip') {
         }
 
         if ($jenisleave) {
-            $leaveQuery->join('leave_detail', 'leaves.leave_detail_id', '=', 'leave_detail.id')
-                ->where('leave_detail.type_of_leave_id', $jenisleave);
+            $leaveQuery = $leaveQuery->whereHas('leavedetail', function ($query) use ($jenisleave) {
+                $query->where('type_of_leave_id', $jenisleave);
+            });
         }
+        
     
         $leave = $leaveQuery->get()->map(function ($leave) {
             $nama_lengkap = ($leave->user && $leave->user->employee) 
@@ -1898,11 +1938,12 @@ if ($updateabsensi->category == 'work_trip') {
                 'id' => $leave->id,
                 'user_id' => $leave->user_id,
                 'substitute_id' => $leave->substitute_id,
-                'substitute_name' => $leave->substitute->name,
-                'substitute_division' => $leave->substitute->employee->division->name,
-                'substitute_position' => $leave->substitute->employee->position->name,
+                'substitute_name' => $leave->substitute->name ?? 'unknown',
+                'substitute_division' => $leave->substitute->employee->division->name ?? 'unknown',
+                'substitute_position' => $leave->substitute->employee->position->name ?? 'unknown',
                 'nama_lengkap' => $nama_lengkap,
                 'type' => $leave->leavedetail->typeofleave->leave_name,
+                'leave_detail_id' => $leave->leave_detail_id,
                 'description_leave' => $leave->leavedetail->description_leave,
                 'entry_time' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->entry_time : null,
                 'category' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->category : null,
@@ -1946,6 +1987,7 @@ if ($updateabsensi->category == 'work_trip') {
             'substitute_name' => $leave->substitute->name ?? 'unknown',
             'substitute_division' => $leave->substitute->employee->division->name ?? 'unknown',
             'substitute_position' => $leave->substitute->employee->position->name ?? 'unknown',
+            'leave_detail_id' => $leave->leave_detail_id,
             'nama_lengkap' => $nama_lengkap,
             'posisi' => $leave->user->employee->position->name,
             'type' => $leave->leavedetail->typeofleave->leave_name,
