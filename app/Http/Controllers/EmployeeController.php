@@ -145,6 +145,7 @@ class EmployeeController extends Controller
             ]);
 
             $user->givePermissionTo('can_access_mobile');
+            
 
             Employee::create([
                 'user_id' => $user->id,
@@ -159,6 +160,8 @@ class EmployeeController extends Controller
                 'birth_date' => $birthDate,
                 'is_active' => true
             ]);
+
+            $user->assignRole('employee');
 
             
             $user_name = $user->firstname;
