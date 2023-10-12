@@ -40,7 +40,7 @@
                         <th class="whitespace-nowrap">No</th>
                         <th class="text-center whitespace-nowrap">Image</th>
                         <th class="text-center whitespace-nowrap">Username</th>
-                        <th class="text-center whitespace-nowrap">Position</th>
+                        <th class="text-center whitespace-nowrap">Entry time</th>
                         <th class="text-center whitespace-nowrap">Jenis Kehadiran</th>
                         <th class="text-center whitespace-nowrap">Actions</th>
                     </tr>
@@ -118,15 +118,11 @@
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @elseif ($item->category == 'leave')
-                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->type }}" data-typeDesc="{{ $item->type_description }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->leavedetail->typeOfLeave->leave_name }}" data-typeDesc="{{ $item->leavedetail->description_leave }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @endif
                 
-                                {{-- berfungsi --}}
-                                {{-- <a data-id="{{ $item->id }}" data-name="{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}"  class="flex items-center text-danger delete-modal-search-presence" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search-presence">
-                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
-                                </a> --}}
                             </div>
                         </td>
                     </tr>
@@ -365,10 +361,6 @@
                     <input disabled id="Show-TypeLeave-leave" type="text" class="form-control capitalize" value="">
                 </div>
                 <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">Type Description :</label>
-                    <input disabled id="Show-TypeDesc-leave" type="text" class="form-control" value="">
-                </div>
-                <div class="col-span-12 sm:col-span-6">
                     <label class="text-xs">Submission Date :</label>
                     <input disabled id="Show-SubmissDesch-leave" type="text" class="form-control" value="">
                 </div>
@@ -387,6 +379,10 @@
                 <div class="col-span-12 sm:col-span-6">
                     <label class="text-xs">Entry Date :</label>
                     <input disabled id="Show-EntryDate-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-12">
+                    <label class="text-xs">Type Description :</label>
+                    <textarea disabled id="Show-TypeDesc-leave" type="text" class="form-control" ></textarea>
                 </div>
             </div>
         </div>
@@ -572,7 +568,7 @@
         $("#Show-EndDate-leave").attr('value', ShowEndDate);
         $("#Show-EntryDate-leave").attr('value', ShowEntryDate);
         $("#Show-TypeLeave-leave").attr('value', ShowtypeLeave);
-        $("#Show-TypeDesc-leave").attr('value', ShowTypeDesc);
+        $("#Show-TypeDesc-leave").text(ShowTypeDesc);
         $("#Show-SubmissDesch-leave").attr('value', ShowSubmisDate);
         $("#Show-TotalDesch-leave").attr('value', ShowTotalDays + ' Days');
     });

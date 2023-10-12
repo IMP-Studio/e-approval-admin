@@ -9,8 +9,7 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..."
-                            id="searchPartner">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchTeleworkHt">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
@@ -27,56 +26,56 @@
                         </tr>
                     </thead>
                     <tbody id="tablePartner">
-                        @foreach ($teleworkData as $item)
-                        <tr class="intro-x h-16">
-                            <td class="w-4 text-center">
-                                {{ $loop->iteration }}.
-                            </td>
-                            <td class="w-50 text-center capitalize">
-                                {{ $item->user->name }}
-                            </td>
-                            <td class="w-50 text-center capitalize">
-                                {{ $item->user->employee->division->name }}
-                            </td>
-                            <td class="w-50 text-center capitalize">
-                                {{ $item->category }}
-                            </td>
-                            <td class="w-50 text-center capitalize">
-                                  {{ $item->telework->statusCommit->first()->status }}
-                            </td>
-                            <td class="table-report__action w-56">
-                                <div class="flex justify-center items-center">
-                                    <a data-teleHtid="{{ $item->telework->statusCommit->first()->id }}" data-messageTele="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-success mr-3 approve_tele_Ht"
-                                        data-Positionid="" href="javascript:;" data-tw-toggle="modal"
-                                        data-tw-target="#modal-apprv-teleHt-search">
-                                        <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
-                                    </a>
-                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-telework"
-                                        data-avatar="{{ $item->user->employee->avatar }}"
-                                        data-divisi="{{ $item->user->employee->division->name }}"
-                                        data-gender="{{ $item->user->employee->gender }}"
-                                        data-date=" {{ $item->telework->presence->date }}"
-                                        data-firstname="{{ $item->user->employee->first_name }}"
-                                        data-LastName="{{ $item->user->employee->last_name }}"
-                                        data-stafId="{{ $item->user->employee->id_number }}"
-                                        data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
-                                        data-Position="{{ $item->user->employee->position->name }}"
-                                        data-teleCategory="{{ $item->telework->telework_category }}"
-                                        data-tempoEntry="{{ $item->temporary_entry_time }}"
-                                        data-catDesc="{{ $item->telework->category_description }}"
-                                        href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-telework">
-                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
-                                    </a>
-                                    @can('reject_presence')                                        
-                                    <a data-rejectTeleHtid="{{ $item->telework->statusCommit->first()->id }}" data-rejectmessageTele="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-danger reject_tele_Ht" href="javascript:;" data-tw-toggle="modal"
-                                        data-tw-target="#reject-confirmation-teleHt-modal">
-                                        <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Reject
-                                    </a>
-                                    @endcan
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
+                         @foreach ($teleworkData as $item)
+                            <tr class="intro-x h-16">
+                                <td class="w-4 text-center">
+                                    {{ $loop->iteration }}.
+                                </td>
+                                <td class="w-50 text-center capitalize">
+                                    {{ $item->user->name }}
+                                </td>
+                                <td class="w-50 text-center capitalize">
+                                    {{ $item->user->employee->division->name }}
+                                </td>
+                                <td class="w-50 text-center capitalize">
+                                    {{ $item->category }}
+                                </td>
+                                <td class="w-50 text-center capitalize">
+                                    {{ $item->telework->statusCommit->first()->status }}
+                                </td>
+                                <td class="table-report__action w-56">
+                                    <div class="flex justify-center items-center">
+                                        <a data-teleHtid="{{ $item->telework->statusCommit->first()->id }}" data-messageTele="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-success mr-3 approve_tele_Ht"
+                                            data-Positionid="" href="javascript:;" data-tw-toggle="modal"
+                                            data-tw-target="#modal-apprv-teleHt-search">
+                                            <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
+                                        </a>
+                                        <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-telework"
+                                            data-avatar="{{ $item->user->employee->avatar }}"
+                                            data-divisi="{{ $item->user->employee->division->name }}"
+                                            data-gender="{{ $item->user->employee->gender }}"
+                                            data-date=" {{ $item->telework->presence->date }}"
+                                            data-firstname="{{ $item->user->employee->first_name }}"
+                                            data-LastName="{{ $item->user->employee->last_name }}"
+                                            data-stafId="{{ $item->user->employee->id_number }}"
+                                            data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
+                                            data-Position="{{ $item->user->employee->position->name }}"
+                                            data-teleCategory="{{ $item->telework->telework_category }}"
+                                            data-tempoEntry="{{ $item->temporary_entry_time }}"
+                                            data-catDesc="{{ $item->telework->category_description }}"
+                                            href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-telework">
+                                            <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                        </a>
+                                        @can('reject_presence')                                        
+                                        <a data-rejectTeleHtid="{{ $item->telework->statusCommit->first()->id }}" data-rejectmessageTele="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-danger reject_tele_Ht" href="javascript:;" data-tw-toggle="modal"
+                                            data-tw-target="#reject-confirmation-teleHt-modal">
+                                            <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Reject
+                                        </a>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
                 @if ($teleworkData->count() > 0)
@@ -209,6 +208,23 @@
     {{-- detail modal attendance search TeleWork end--}}
 
 <script type="text/javascript">
+    // search
+    jQuery(document).ready(function($) {
+        $('#searchTeleworkHt').on('keyup', function() {
+            var query = $(this).val();
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('approveht.teleworkHt') }}',
+                data: {
+                    query: query
+                },
+                success: function(data) {
+                    $('tbody').html(data);
+                }
+            });
+        });
+    });
+
     $(document).on("click", ".approve_tele_Ht", function() {
         var ApproveTeleModalid = $(this).attr('data-teleHtid');
         var ApproveTeleModalMessage = $(this).attr('data-messageTele');

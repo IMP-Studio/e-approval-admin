@@ -26,7 +26,7 @@
                             <th class="text-center whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="tablePartner">
+                    <tbody>
                         @foreach ($workTripData as $item)
                             <tr class="intro-x h-16">
                                 <td class="w-4 text-center">

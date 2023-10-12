@@ -22,9 +22,13 @@ class Leave extends Model
         return $this->belongsTo(Presence::class);
     }
     public function leavedetail()
-{
-    return $this->belongsTo(LeaveDetail::class, 'leave_detail_id', 'id');
-}
+    {
+        return $this->belongsTo(LeaveDetail::class, 'leave_detail_id', 'id');
+    }
+    public function typeOfLeave()
+    {
+        return $this->belongsTo(TypeOfLeave::class, 'type_of_leave_id', 'id');
+    }
     public function statusCommit()
     {
         return $this->morphMany(StatusCommit::class, 'statusable');
