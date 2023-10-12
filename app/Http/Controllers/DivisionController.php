@@ -52,11 +52,6 @@ public function detailDivisi(Request $request)
     public function index(Request $request)
     {
         $divisi = Division::paginate(5);
-        // $position = Position::all();
-        // foreach ($divisi as $item) {
-        //     $jumlah_posisi = Position::where('division_id', $item->id)->get();
-        //     $item->name_posisi = $jumlah_posisi;
-        // }
         
         foreach ($divisi as $item) {
             $jumlah_posisi = Position::where('division_id', $item->id)->count();

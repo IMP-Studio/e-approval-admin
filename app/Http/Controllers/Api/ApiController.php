@@ -644,8 +644,8 @@ class ApiController extends Controller
         $response = [
             'presence_id' => $attendanceToday->id,
             'user_id' => $attendanceToday->user_id,
-            'name' => $attendanceToday->user->name, // Assuming user relationship exists and has a 'name' field
-            'division' => $attendanceToday->user->employee->division->name, // Assuming user relationship exists and has a 'division' field
+            'name' => $attendanceToday->user->name, 
+            'division' => $attendanceToday->user->employee->division->name, 
             'category' => $category,
             'date' => $attendanceToday->date
         ];
@@ -1028,7 +1028,7 @@ class ApiController extends Controller
             }
         } elseif ($presence->category === 'work_trip' && $presence->worktrip) {
             $data['file'] = $presence->worktrip->file;
-            $filePath = $worktripDetails->file ?? 'null';
+            $filePath = $presence->worktrip->file ?? 'null';
                         if ($filePath !== 'null') {
                             $data['originalFile'] = ($filePath !== 'null') ? basename($filePath) : 'null';
                         }   
@@ -1912,13 +1912,21 @@ if ($updateabsensi->category == 'work_trip') {
     }   
 
     public function getLeaveById(Request $request, $id) {
-        $leave = Leave::with(['user', 'user.employee', 'statusCommit','leavedetail','substitute'])->find($id);
+        $leave = Leave::with(['user', 'user.employee', 'statusCommit', 'leavedetail', 'substitute'])->find($id);
     
         if (!$leave) {
             return response()->json(['status' => 404, 'message' => 'Leave not found']);
         }
     
-        $nama_lengkap = $leave->user ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name : '';
+        $nama_lengkap = ($leave->user && $leave->user->employee) 
+                       ? $leave->user->employee->first_name .' '. $leave->user->employee->last_name 
+                       : null;
+    
+        $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
+        $approver_name = $mostRecentStatus && $mostRecentStatus->approver 
+                       ? $mostRecentStatus->approver->employee->first_name .' '. $mostRecentStatus->approver->employee->last_name 
+                       : null;
+    
         $data = [
             'id' => $leave->id,
             'user_id' => $leave->user_id,
@@ -1926,48 +1934,31 @@ if ($updateabsensi->category == 'work_trip') {
             'substitute_name' => $leave->substitute->name ?? 'unknown',
             'substitute_division' => $leave->substitute->employee->division->name ?? 'unknown',
             'substitute_position' => $leave->substitute->employee->position->name ?? 'unknown',
-            'leave_detail_id' => $leave->leave_detail_id,
             'nama_lengkap' => $nama_lengkap,
-            'posisi' => $leave->user->employee->position->name,
             'type' => $leave->leavedetail->typeofleave->leave_name,
+            'leave_detail_id' => $leave->leave_detail_id,
             'description_leave' => $leave->leavedetail->description_leave,
-            'file' => $leave->file,
-            'originalFile' => basename($leave->file),
+            'entry_time' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->entry_time : null,
+            'category' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->category : null,
+            'posisi' => $leave->user->employee->position->name,
             'submission_date' => $leave->submission_date,
-            'total_leave_days' => $leave->total_leave_days,
             'start_date' => $leave->start_date,
             'end_date' => $leave->end_date,
             'entry_date' => $leave->entry_date,
+            'total_leave_days' => $leave->total_leave_days,
+            'file' => $leave->file,
+            'originalFile' => basename($leave->file),
+            'status' => $mostRecentStatus ? $mostRecentStatus->status : null,
+            'status_description' => $mostRecentStatus ? $mostRecentStatus->description : null,
+            'approver_id' => $mostRecentStatus ? $mostRecentStatus->approver_id : null,
+            'approver_name' => $approver_name,
             'created_at' => $leave->created_at,
-            'updated_at' => $leave->updated_at,
+            'updated_at' => $leave->updated_at
         ];
-    
-        $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
-        if ($mostRecentStatus && in_array($mostRecentStatus->status, ['allowed', 'rejected', 'preliminary'])) {
-            $approver = $mostRecentStatus->approver;
-    
-            if ($approver) { // Check if approver exists
-                $approverPermission = $approver->getPermissionNames()->intersect([
-                    'approve_preliminary', 
-                    'approve_allowed', 
-                   
-                    'view_request_pending', 
-                    'view_request_preliminary', 
-                    'can_access_mobile'
-                ])->values();
-    
-                if ($approverPermission && in_array($approverPermission, ['approve_preliminary', 'approve_allowed'])) {
-                    $data['approver_id'] = $approver->id;
-                    $data['approver_name'] = $approver->employee->first_name . ' ' . $approver->employee->last_name;
-                    $data['permission_approver'] = $approverPermission;
-                }
-            }
-            $data['status'] = $mostRecentStatus->status;
-            $data['status_description'] = $mostRecentStatus->description;
-        }
     
         return response()->json(['message' => 'Success', 'data' => $data]);
     }
+    
 
     public function getLeaveCount(Request $request) {
         $userId = $request->query('id');

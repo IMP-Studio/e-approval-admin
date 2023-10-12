@@ -46,10 +46,7 @@ class ApproveController extends Controller
         })
             ->orderBy('entry_time', 'asc')
             ->paginate(10);
-            // ->map(function ($item) {
-            // $item->category = 'work_trip';
-            // return $item;
-            // })
+
 
         if ($request->ajax()) {
             $query = $request->input('query');
@@ -357,12 +354,7 @@ class ApproveController extends Controller
         $workTripDataQuery = Presence::with('worktrip.statusCommit')
             ->where('category', 'work_trip');
 
-        // Condition to check if the user doesn't have the 'super-admin' role
-        // if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
-        //     $workTripDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
-        //         $employeeQuery->where('division_id', $kepaladivisi);
-        //     });
-        // }
+   
 
         $workTripData = $workTripDataQuery->whereHas('worktrip', function ($worktripQuery) {
             $today = Carbon::today('Asia/Jakarta');
@@ -405,9 +397,6 @@ class ApproveController extends Controller
 
 
         if ($statusable->presence) {
-            // $statusable->update([
-            //     'entry_time' => '08:30:00',
-            // ]);
 
             if ($statusable->presence->category == 'work_trip' && $statusCommit2->status === 'allowed') {
 
@@ -448,7 +437,7 @@ class ApproveController extends Controller
             }
         }
 
-        // return response()->json(['message' => 'Success', 'data' => $presenceForCurrentDate], 200);
+       
         return redirect()->route('approvehr.worktripHr')->with(['success' => "$message approved successfully"]);
     }
 
@@ -490,13 +479,6 @@ class ApproveController extends Controller
         // Only fetch WorkTrip data
         $teleworkDataQuery = Presence::with('telework.statusCommit')
             ->where('category', 'telework');
-
-        // Condition to check if the user doesn't have the 'super-admin' role
-        // if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
-        //     $teleworkDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
-        //         $employeeQuery->where('division_id', $kepaladivisi);
-        //     });
-        // }
 
         $teleworkData = $teleworkDataQuery->whereHas('telework', function ($teleworkQuery) {
             $teleworkQuery->whereHas('statusCommit', function ($statusCommitQuery) {
@@ -569,13 +551,6 @@ class ApproveController extends Controller
         $leaveDataQuery = Presence::with('leave.statusCommit')
             ->where('category', 'leave');
 
-        // Condition to check if the user doesn't have the 'super-admin' role
-        // if (!$loggedInUser->hasRole('super-admin') && $kepaladivisi) {
-        //     $leaveDataQuery->whereHas('user.employee', function ($employeeQuery) use ($kepaladivisi) {
-        //         $employeeQuery->where('division_id', $kepaladivisi);
-        //     });
-        // }
-
         $leavekData = $leaveDataQuery->whereHas('leave', function ($leaveQuery) {
             $leaveQuery->whereHas('statusCommit', function ($statusCommitQuery) {
                 $statusCommitQuery->where('status', 'preliminary');
@@ -639,7 +614,6 @@ class ApproveController extends Controller
                 $currentDate->addDay();
             }
         }
-        // return response()->json(['message' => 'Success', 'data' => $presenceForCurrentDate], 200);
         return redirect()->route('approvehr.leaveHr')->with(['success' => "$message approved successfully"]);
 
     }

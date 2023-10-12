@@ -125,9 +125,7 @@ class PartnerController extends Controller
                 }
             }
 
-            // if ($projects->count() > 0) {
-            //     return redirect()->back()->with(['error' => 'Cannot delete partner with associated project']);
-            // }
+     
 
 
             if ($inputName === $partner->name) {

@@ -19,7 +19,7 @@ class WorkTrip extends Model
     }
     public function user()
     {
-        return $this->belongsTo(user::class);
+        return $this->belongsTo(User::class);
     }
     public function statusCommit()
     {
