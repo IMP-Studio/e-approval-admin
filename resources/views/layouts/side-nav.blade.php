@@ -42,7 +42,7 @@
             <li>
                 <a href="{{ route('employee') }}" class="side-menu {{ Request::is('employee*') ? 'side-menu--active' : '' }}">
                     <div class="side-menu__icon"> <i data-lucide="users"></i> </div>
-                    <div class="side-menu__title"> Pegawai </div>
+                    <div class="side-menu__title"> Employee </div>
                 </a>
             </li>
         @endcan

@@ -82,7 +82,7 @@
 
                                         <a data-positionName="{{ $item->name }}" data-presenceId="{{ $item->id }}"
                                             data-DivisionId="{{ $item->division_id }}"
-                                            class="mr-3 flex items-center text-success detail-presence-modal-search"
+                                            class="mr-3 flex items-center text-warning detail-presence-modal-search"
                                             href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#detail-division-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
@@ -303,77 +303,77 @@
         });
 
         //detail
-    $(document).on("click", ".detail-presence-modal-search", function() {
-    var divisionId = $(this).data('presenceId');
-    var positionName = $(this).attr('data-positionName');
-    var totalPages = 0;
-    var currentPage = 1;
-    var perPage = 5;
+        $(document).on("click", ".detail-presence-modal-search", function() {
+        var divisionId = $(this).data('presenceId');
+        var positionName = $(this).attr('data-positionName');
+        var totalPages = 0;
+        var currentPage = 1;
+        var perPage = 5;
 
-    jQuery(document).ready(function($) {
-        function updatePaginationInfo() {
-            $("#page-numbers").text("Page " + currentPage + " of " + totalPages);
-        }
+        jQuery(document).ready(function($) {
+            function updatePaginationInfo() {
+                $("#page-numbers").text("Page " + currentPage + " of " + totalPages);
+            }
 
-        function updatePaginationControls() {
-            $("#prev-page").prop('disabled', currentPage === 1);
-            $("#next-page").prop('disabled', currentPage === totalPages || totalPages === 0);
-        }
+            function updatePaginationControls() {
+                $("#prev-page").prop('disabled', currentPage === 1);
+                $("#next-page").prop('disabled', currentPage === totalPages || totalPages === 0);
+            }
 
-        function loadPage(page) {
-            $.ajax({
-                url: '{{ route('position.detail', ':id') }}'.replace(':id', divisionId),
-                type: 'GET',
-                data: { page: page },
-                success: function(response) {
-                    console.log(response);
-                    totalPages = response.positionData.last_page;
-                    var positionList = $('#positionList');
-                    positionList.empty();
+            function loadPage(page) {
+                $.ajax({
+                    url: '{{ route('position.detail', ':id') }}'.replace(':id', divisionId),
+                    type: 'GET',
+                    data: { page: page },
+                    success: function(response) {
+                        console.log(response);
+                        totalPages = response.positionData.last_page;
+                        var positionList = $('#positionList');
+                        positionList.empty();
 
-                    var startIndex = (page - 1) * perPage;
+                        var startIndex = (page - 1) * perPage;
 
-                    $.each(response.positionData.data, function(index, positionData) {
-                        var row = '<tr>' +
-                            '<td class="w-4 text-center">' + (startIndex + index + 1) +
-                            '.</td>' +
-                            '<td class="w-50 text-center capitalize">' +
-                            positionData.id_number + '</td>' +
-                            '<td class="w-50 text-left capitalize">' +
-                            positionData.first_name + ' ' + positionData.last_name +
-                            '</td>' +
-                            '<td class="w-50 text-left capitalize">' +
-                            positionData.division.name + '</td>' +
-                            '<td class="w-50 text-left capitalize">' +
-                            positionData.address + '</td>' +
-                            '<td class="w-50 text-center capitalize">' + (
-                                positionData.is_active == '1' ? 'active' : 'non-active') + '</td>' +
-                            '</tr>';
-                        positionList.append(row);
-                    });
+                        $.each(response.positionData.data, function(index, positionData) {
+                            var row = '<tr>' +
+                                '<td class="w-4 text-center">' + (startIndex + index + 1) +
+                                '.</td>' +
+                                '<td class="w-50 text-center capitalize">' +
+                                positionData.id_number + '</td>' +
+                                '<td class="w-50 text-left capitalize">' +
+                                positionData.first_name + ' ' + positionData.last_name +
+                                '</td>' +
+                                '<td class="w-50 text-left capitalize">' +
+                                positionData.division.name + '</td>' +
+                                '<td class="w-50 text-left capitalize">' +
+                                positionData.address + '</td>' +
+                                '<td class="w-50 text-center capitalize">' + (
+                                    positionData.is_active == '1' ? 'active' : 'non-active') + '</td>' +
+                                '</tr>';
+                            positionList.append(row);
+                        });
 
-                    currentPage = page;
-                    updatePaginationInfo();
-                    updatePaginationControls();
-                }
+                        currentPage = page;
+                        updatePaginationInfo();
+                        updatePaginationControls();
+                    }
+                });
+            }
+
+                loadPage(currentPage);
+
+                $("#next-page").click(function() {
+                    if (currentPage < totalPages) {
+                        loadPage(currentPage + 1);
+                    }
+                });
+
+                $("#prev-page").click(function() {
+                    if (currentPage > 1) {
+                        loadPage(currentPage - 1);
+                    }
+                });
             });
-        }
-
-        loadPage(currentPage);
-
-        $("#next-page").click(function() {
-            if (currentPage < totalPages) {
-                loadPage(currentPage + 1);
-            }
         });
-
-        $("#prev-page").click(function() {
-            if (currentPage > 1) {
-                loadPage(currentPage - 1);
-            }
-        });
-    });
-});
 
         $(document).on("click", ".edit-modal-search-class", function() {
             var EditModalid = $(this).attr('data-Positionid');
@@ -402,8 +402,6 @@
         $(document).on("click", ".delete-modal-search", function() {
             var DeleteModalid = $(this).attr('data-id');
             var DeleteModalName = $(this).attr('data-name');
-
-
 
             var formAction;
             formAction = '{{ route('position.destroy', ':id') }}'.replace(':id', DeleteModalid);

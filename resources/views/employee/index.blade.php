@@ -123,7 +123,7 @@
                                                 </a>
                                             @endcan
 
-                                            <a class="flex items-center delete-button mr-3 show-modal-search" data-name="{{ $item->user->name }}" data-avatar="{{ $item->avatar }}" data-gender="{{ $item->gender }}" data-firstname="{{ $item->first_name }}" data-LastName="{{ $item->last_name }}" data-stafId="{{ $item->id_number }}" data-Divisi="{{ $item->division->name }}" data-Posisi="{{ $item->position->name }}" data-Address="{{ $item->address }}" data-BirthDate="{{ $item->birth_date }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">
+                                            <a class="flex items-center text-warning delete-button mr-3 show-modal-search" data-name="{{ $item->user->name }}" data-avatar="{{ $item->avatar }}" data-gender="{{ $item->gender }}" data-firstname="{{ $item->first_name }}" data-LastName="{{ $item->last_name }}" data-stafId="{{ $item->id_number }}" data-Divisi="{{ $item->division->name }}" data-Posisi="{{ $item->position->name }}" data-Address="{{ $item->address }}" data-BirthDate="{{ $item->birth_date }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">
                                                 <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
                                             </a>
                                             

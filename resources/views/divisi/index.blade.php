@@ -79,7 +79,7 @@
                                         </a>
                                         @endcan
 
-                                        <a data-divisionId="{{ $item->id }}" class="mr-3 flex items-center text-success detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">
+                                        <a data-divisionId="{{ $item->id }}" class="mr-3 flex items-center text-warning detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                         </a>
 

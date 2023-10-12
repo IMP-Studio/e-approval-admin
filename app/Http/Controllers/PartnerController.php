@@ -58,7 +58,7 @@ class PartnerController extends Controller
                             }
 
                             $output .=
-                            '<a  class="mr-3 flex items-center text-success detail-partner-modal-search" data-partnerId="'. $item->id .'" data-partnerName="'. $item->name .'"  data-partnerDesc="'. $item->description .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-partner-modal">'.
+                            '<a  class="mr-3 flex items-center text-warning detail-partner-modal-search" data-partnerId="'. $item->id .'" data-partnerName="'. $item->name .'"  data-partnerDesc="'. $item->description .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-partner-modal">'.
                                 '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail '.
                             '</a>';
     
@@ -125,9 +125,7 @@ class PartnerController extends Controller
                 }
             }
 
-            // if ($projects->count() > 0) {
-            //     return redirect()->back()->with(['error' => 'Cannot delete partner with associated project']);
-            // }
+     
 
 
             if ($inputName === $partner->name) {
