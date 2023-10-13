@@ -349,6 +349,10 @@ class ApiController extends Controller
         $user->load('employee');
     }
 
+    if (!$user->hasPermissionTo('can_access_mobile')) {
+        return response()->json(['status' => 500, 'message' => "Kamu tidak punya permission untuk akses mobile"]);
+    }
+
     if (!$user->employee) {
         return response()->json(['status' => 500, 'message' => 'Employee data not found.']);
     }
@@ -472,10 +476,7 @@ class ApiController extends Controller
             return response()->json(['status' => 'canReAttend', 'message' => 'You can mark your attendance again', 'data' => $attendance ,'carbon_date' => $currentDate]);
         }
     
-        // Handle Pending Status
-        if (($teleworkStatus && $teleworkStatus == 'pending') || ($worktripStatus && $worktripStatus == 'pending') || ($leaveStatus && $leaveStatus == 'pending')) {
-            return response()->json(['status' => 'pendingStatus', 'message' => 'Your request is still pending. Wait for a moment for a response.', 'data' => $attendance,'carbon_date' => $currentDate]);
-        } 
+
     
         // Handle Work Trip Category
         if ($attendance->category == 'work_trip') {
@@ -524,6 +525,11 @@ class ApiController extends Controller
                 }
             }
         }
+
+                // Handle Pending Status
+                if (($teleworkStatus && $teleworkStatus == 'pending') || ($worktripStatus && $worktripStatus == 'pending') || ($leaveStatus && $leaveStatus == 'pending')) {
+                    return response()->json(['status' => 'pendingStatus', 'message' => 'Your request is still pending. Wait for a moment for a response.', 'data' => $attendance,'carbon_date' => $currentDate]);
+                } 
     
         // Handle other cases, like skipping
         if($attendance->category == 'skip' && $attendance->exit_time == '00:00:00' && $attendance->entry_time == '00:00:00' && $attendance->temporary_entry_time == '00:00:00') {
@@ -715,6 +721,8 @@ class ApiController extends Controller
                 $presenceQuery->where('category', 'work_trip'); 
             } elseif ($type == 'BOLOS') {
                 $presenceQuery->where('category', 'skip'); 
+            } elseif ($type == 'HISTORY'){
+                $presenceQuery->whereIn('category', ['telework', 'work_trip', 'skip', 'WFO']); 
             }
         }
 
@@ -2260,7 +2268,9 @@ if (!$user) {
                     'user_id' => $employee->user_id,
                     'nama_lengkap'=> $nama_lengkap,
                     'divisi' => $employee->division->name,
+                    'division_id' => $employee->division_id,
                     'posisi' => $employee->position->name,
+                    'posisition_id' => $employee->position_id,
                     'avatar' => $employee->avatar,
                     'id_number' => $employee->id_number,
                     'gender' => $employee->gender,
