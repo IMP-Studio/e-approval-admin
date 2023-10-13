@@ -117,13 +117,13 @@
                                     <td class="table-report__action w-56">
                                         <div class="flex justify-center items-center">
                                             @can('edit_employees')
-                                                <a class="flex items-center text-pending mr-3"
+                                                <a class="flex items-center text-success mr-3"
                                                     href="{{ route('employee.edit', $item->id) }}">
                                                     <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                                 </a>
                                             @endcan
 
-                                            <a class="flex items-center text-warning delete-button mr-3 show-modal-search" data-name="{{ $item->user->name }}" data-avatar="{{ $item->avatar }}" data-gender="{{ $item->gender }}" data-firstname="{{ $item->first_name }}" data-LastName="{{ $item->last_name }}" data-stafId="{{ $item->id_number }}" data-Divisi="{{ $item->division->name }}" data-Posisi="{{ $item->position->name }}" data-Address="{{ $item->address }}" data-BirthDate="{{ $item->birth_date }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">
+                                            <a class="flex items-center text-warning delete-button mr-3 show-modal-search" data-email="{{ $item->user->email }}" data-name="{{ $item->user->name }}" data-avatar="{{ $item->avatar }}" data-gender="{{ $item->gender }}" data-firstname="{{ $item->first_name }}" data-LastName="{{ $item->last_name }}" data-stafId="{{ $item->id_number }}" data-Divisi="{{ $item->division->name }}" data-Posisi="{{ $item->position->name }}" data-Address="{{ $item->address }}" data-BirthDate="{{ $item->birth_date }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">
                                                 <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
                                             </a>
                                             
@@ -240,6 +240,10 @@
                         <input disabled id="Show-LastName"" type="text" class="form-control" value="">
                     </div>
                     <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Email :</label>
+                        <input disabled id="Show-Email" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-6">
                         <label class="text-xs">Staff Id :</label>
                         <input disabled id="Show-StafId" type="text" class="form-control" value="">
                     </div>
@@ -311,6 +315,7 @@
             var ShowPosisi = $(this).attr('data-Posisi');
             var ShowAddress = $(this).attr('data-Address');
             var ShowBirthDate = $(this).attr('data-BirthDate');
+            var ShowEmail = $(this).attr('data-email');
 
 
             var imgSrc;
@@ -333,6 +338,7 @@
             $("#Show-Posisi").attr('value', ShowPosisi);
             $("#Show-Address").attr('value', ShowAddress);
             $("#Show-BirthDate").attr('value', ShowBirthDate);
+            $("#Show-Email").attr('value', ShowEmail);
         });
     </script>
 @endsection
