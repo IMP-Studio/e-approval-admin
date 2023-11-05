@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PresenceByRangeExport;
 use App\Exports\PresenceExport;
 use App\Exports\PresenceSheet;
 use App\Models\Leave;
@@ -171,6 +172,16 @@ class PresenceController extends Controller
     public function exportExcel($year)
     {
         return Excel::download(new PresenceExport($year), "Presence $year.xlsx");
+    }
+
+
+    public function exportExcelByRange(Request $request)
+    {
+        
+        $startDate = Carbon::createFromFormat('d M, Y', $request->startDate)->format('Y-m-d');
+        $endDate = Carbon::createFromFormat('d M, Y', $request->endDate)->format('Y-m-d');
+        
+        return Excel::download(new PresenceByRangeExport($startDate, $endDate), "Presence.xlsx");
     }
 
     /**
