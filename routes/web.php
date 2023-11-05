@@ -93,7 +93,10 @@ Route::middleware(['auth'])->group(function () {
         });
         
         Route::prefix('permission')->group(function () {
-            Route::get('/', [PermissionController::class,'index'])->name('permission');
+            Route::get('/', [PermissionController::class, 'index'])->name('permission');
+            // Route::get('/set-permission/{modelType}/{modelId}', [PermissionController::class, 'setModelPermission'])->name('permission.set_permission');
+            Route::get('/user/{userId}/permissions', [PermissionController::class, 'getUserPermissions'])->name('permission.user_permissions');
+            Route::post('/user/{userId}/permissions', [PermissionController::class, 'setModelPermissions'])->name('permission.user.set_permissions');
         });
 
     Route::prefix('project')->middleware('permission:view_projects')->group(function () {

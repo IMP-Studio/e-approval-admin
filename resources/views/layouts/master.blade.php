@@ -5,10 +5,20 @@
         <link href="{{ asset('images/IMP-location.png') }}" rel="shortcut icon">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        
         <title>Dashboard - Absensi IMP-Studio</title>
         <link rel="stylesheet" href="{{ asset('dist/css/app.css') }}" />
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+         <!-- Include Toastr JS -->
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+         <!-- Include jQuery -->
+         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ 
+         <!-- Include Toastr CSS -->
+         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
         <style>
             /* width */
             ::-webkit-scrollbar {
