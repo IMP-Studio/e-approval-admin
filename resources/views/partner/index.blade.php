@@ -76,7 +76,7 @@
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
                                         @can('edit_partners')
-                                            <a class="flex items-center text-warning mr-3 edit-modal-partner-search-class" data-partnerName="{{ $item->name }}" data-descId="{{ $item->description }}" data-partnerId="{{ $item->id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">
+                                            <a class="flex items-center text-success mr-3 edit-modal-partner-search-class" data-partnerName="{{ $item->name }}" data-descId="{{ $item->description }}" data-partnerId="{{ $item->id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">
                                                 <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                             </a>
                                         @endcan
@@ -118,7 +118,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Create-Division</h2>
+                    <h2 class="font-medium text-base mr-auto">Create-partner</h2>
                 </div>
                 <form action="{{ route('partner.store') }}" method="post">
                     @csrf
