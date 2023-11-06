@@ -8,6 +8,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {
+    
     /**
      * Define the application's command schedule.
      */
@@ -27,7 +28,7 @@ class Kernel extends ConsoleKernel
         ->timezone('Asia/Jakarta');
 
         $schedule->command('users:mark-skipped')->dailyAt('10:00')->timezone('Asia/Jakarta');
-
+        $schedule->command('users:auto-checkout')->dailyAt('23:59')->timezone('Asia/Jakarta');
 }
 
     /**
