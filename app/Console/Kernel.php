@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
         })->dailyAt('17:30')
         ->timezone('Asia/Jakarta');
 
-        $schedule->command('users:mark-skipped')->dailyAt('10:00')->timezone('Asia/Jakarta');
+        $schedule->command('users:mark-skipped')->dailyAt('11:00')->timezone('Asia/Jakarta');
         $schedule->command('users:auto-checkout')->dailyAt('23:59')->timezone('Asia/Jakarta');
 }
 
@@ -36,7 +36,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(_DIR_.'/Commands');
 
         require base_path('routes/console.php');
     }
