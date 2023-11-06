@@ -41,6 +41,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/presence', [PresenceController::class, 'index'])->middleware('permission:view_presences')->name('presence');
     Route::get('/attendance/export/{year}', [PresenceController::class, 'exportExcel'])->name('presence.excel');
 
+    Route::post('/attendance/exportByRange', [PresenceController::class, 'exportExcelByRange'])->name('presence.excelByRange');
+
     Route::prefix('presence')->group(function () {
         Route::delete('/destroy/{id}', [PresenceController::class, 'destroy'])->name('presence.destroy');
     });
