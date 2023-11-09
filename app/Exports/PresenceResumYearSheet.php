@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use GuzzleHttp\Client;
 use App\Models\StandUp;
 use App\Models\Presence;
 use Illuminate\Support\Carbon;
@@ -22,6 +23,7 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
     protected $monthName;
     protected $startDate;
     protected $endDate;
+    protected $dateHeaders; 
 
     public function __construct($absenceData, $monthName, $startDate, $endDate, $year)
     {
@@ -78,7 +80,7 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
         }
     
         $mainHeaders = [
-            'ID',
+            'No',
             'Nama Lengkap',
             'Position',
             'L/P',
@@ -115,6 +117,8 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
     
         $combinedHeadersWithCategory = array_merge($combinedHeaderss, $rekaptotalcategory);
     
+        $this->dateHeaders = $dateHeaders;
+
         return [
             ["Resum Data"],
             $datetitle,
@@ -194,7 +198,7 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
             $dateIndex = array_search($absenceDate, $dateHeaders); 
         
             if (!isset($desiredStructure[$userId])) {
-                $gender = $absence->user->employee->position->name === 'female' ? 'P' : 'L';
+                $gender = $absence->user->employee->gender === 'female' ? 'P' : 'L';
                 $desiredStructure[$userId] = [
                     'user_id' => $userId,
                     'name' => $name,
@@ -441,7 +445,54 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
         return $columnWidths;
     }
     
+    private function fetchNationalDays($startYear, $endYear)
+    {
+        $holidaysWithWeekends = [];
     
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $apiUrl = "https://api-harilibur.vercel.app/api?year={$year}";
+            $response = file_get_contents($apiUrl);
+    
+            if ($response) {
+                $holidayData = json_decode($response, true);
+    
+                if ($holidayData) {
+                    $holidays = $holidayData;
+    
+                    // Calculate the date range for the entire year
+                    $startDate = Carbon::createFromDate($year, 1, 1);
+                    $endDate = Carbon::createFromDate($year, 12, 31);
+    
+                    while ($startDate->lte($endDate)) {
+                        if ($startDate->isWeekend()) {
+                            $weekendDate = $startDate->toDateString();
+                            $holidays[] = [
+                                'holiday_name' => 'Weekend',
+                                'holiday_date' => $weekendDate,
+                                'is_national_holiday' => true, 
+                            ];
+                        }
+    
+                        $startDate->addDay();
+                    }
+    
+                    $nationalHolidays = array_filter($holidays, function ($holiday) {
+                        return isset($holiday['is_national_holiday']) ? $holiday['is_national_holiday'] === true : true;
+                    });
+    
+                    $holidaysWithWeekends = array_merge($holidaysWithWeekends, $nationalHolidays);
+                } else {
+                    echo 'Failed to parse JSON response for year ' . $year . '.';
+                }
+            } else {
+                echo 'Failed to fetch data from the API for year ' . $year . '.';
+            }
+        }
+    
+        return $holidaysWithWeekends;
+    }
+    
+
 
     public function styles(Worksheet $sheet)
     {
@@ -449,25 +500,35 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
         $lastRow = $sheet->getHighestRow();
 
         // date
-        for ($col = 'F'; $col <= $lastColumn; $col++) {
-            $cellCoordinate = $col . '4';
-            $sheet->getColumnDimension($col)->setWidth(3); 
-            $sheet->getStyle($cellCoordinate)->applyFromArray([
-                'font' => ['size' => 12, 'bold' => true],
-                'alignment' => [
-                    'horizontal' => 'center',
-                    'vertical' => 'center',
+        $startColumn = 'F';
+        $dateHeadersCount = count($this->dateHeaders);
+        $numberOfColumns = $dateHeadersCount;
+        $endColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn) + $numberOfColumns - 1;
+        $endColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($endColumnIndex);
+        
+        $holidays = $this->fetchNationalDays(substr($this->startDate, 0, 4), substr($this->endDate, 0, 4));
+        
+        for ($columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn); $columnIndex <= $endColumnIndex; $columnIndex++) {
+            $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex);
+        
+            $date = Carbon::parse($this->startDate)->addDays($columnIndex - \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn));
+        
+            $isHoliday = false;
+            foreach ($holidays as $holiday) {
+                $holidayDate = Carbon::parse($holiday['holiday_date'])->format('Y-m-d');
+                $currentDate = $date->format('Y-m-d');
+                if ($currentDate === $holidayDate) {
+                    $isHoliday = true;
+                    break;
+                }
+            }
+        
+            $sheet->getStyle($column . '5:' . $column . $lastRow)->applyFromArray([
+                'fill' => [
+                    'fillType' => $isHoliday ? \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID : \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE,
+                    'startColor' => $isHoliday ? ['rgb' => 'B8CCE4'] : ['rgb' => 'FFFFFF'],
                 ],
-                'borders' => [
-                    'outline' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'],
-                    ],
-                ],
-                'width' => [
-                    'size' => 3,
-                ],
-            ]);
+            ]);   
         }
 
         $lastRow = intval($lastRow);
@@ -580,7 +641,7 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
             ],
         ]);
         
-        $sheet->getStyle('C4:' . $lastColumn . '4')->applyFromArray([
+        $sheet->getStyle('B4:' . $lastColumn . '4')->applyFromArray([
             'alignment' => [
                 'horizontal' => 'center',
                 'vertical' => 'center',
@@ -591,7 +652,7 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
             ],
             'borders' => [
                 'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
                 ],
                 'horizontal' => [
@@ -603,6 +664,10 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
                     'color' => ['rgb' => '000000'],
                 ],
                 'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'left' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
                 ],
@@ -626,6 +691,7 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
                 ],
+                
             ],
         ]);
         // end
@@ -895,14 +961,10 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
             4 => [
                 'font' => ['name' => 'Calibri', 'size' => 11, 'bold' => true],
             ],
-            'B3:B' . $lastRow => [
+            'B4:B' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
-                ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'C2D9FF'],
                 ],
                 'borders' => [
                     'left' => [
@@ -919,28 +981,89 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
                     ],
                 ],
             ],
+            
              
-            'D4:D' . $lastRow => [
+            'B4' => [
                 'borders' => [
-                    'right' => [
+                    'outline' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                         'color' => ['rgb' => '000000'],
                     ],
                 ],
             ],
 
-            'E4:E' . $lastRow => [
-                'alignment' => [
-                    'horizontal' => 'center',
-                    'vertical' => 'center',
-                ],
-            ],
             'F4:F' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
             ],
+
+            'C5:C' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+
+            'D5:D' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+
+            'E5:E' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'bottom' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ]
+                ],
+            ],
+
+
+            
         ];
     }
 }

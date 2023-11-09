@@ -22,6 +22,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
     protected $startDate;
     protected $endDate;
     protected $userAbsenceSummaries = [];
+    protected $dateHeaders; 
 
     public function __construct($startDate, $endDate)
     {
@@ -54,7 +55,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
         }
 
         $mainHeaders = [
-            'ID',
+            'No',
             'Nama Lengkap',
             'Position',
             'L/P',
@@ -90,6 +91,8 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
         $combinedHeaderss = array_merge($combinedHeaders, $additionalHeaders);
 
         $combinedHeadersWithCategory = array_merge($combinedHeaderss, $rekaptotalcategory);
+
+        $this->dateHeaders = $dateHeaders;
 
         return [
             ["Resum Data"],
@@ -160,6 +163,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
             $dateHeaders[] = $currentDate->format('d M Y');
             $currentDate->addDay();
         }        
+        
 
         foreach ($allPresences as $absence) {
             $userId = $absence->user_id;
@@ -412,12 +416,97 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
         return $columnWidths;
     }
     
+    private function fetchNationalDays($startYear, $endYear)
+    {
+        $holidaysWithWeekends = [];
+    
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $apiUrl = "https://api-harilibur.vercel.app/api?year={$year}";
+            $response = file_get_contents($apiUrl);
+    
+            if ($response) {
+                $holidayData = json_decode($response, true);
+    
+                if ($holidayData) {
+                    $holidays = $holidayData;
+    
+                    $startDate = Carbon::createFromDate($year, 1, 1);
+                    $endDate = Carbon::createFromDate($year, 12, 31);
+    
+                    while ($startDate->lte($endDate)) {
+                        if ($startDate->isWeekend()) {
+                            $weekendDate = $startDate->toDateString();
+                            $holidays[] = [
+                                'holiday_name' => 'Weekend',
+                                'holiday_date' => $weekendDate,
+                                'is_national_holiday' => true, 
+                            ];
+                        }
+    
+                        $startDate->addDay();
+                    }
+    
+                    $nationalHolidays = array_filter($holidays, function ($holiday) {
+                        return isset($holiday['is_national_holiday']) ? $holiday['is_national_holiday'] === true : true;
+                    });
+    
+                    $holidaysWithWeekends = array_merge($holidaysWithWeekends, $nationalHolidays);
+                } else {
+                    echo 'Failed to parse JSON response for year ' . $year . '.';
+                }
+            } else {
+                echo 'Failed to fetch data from the API for year ' . $year . '.';
+            }
+        }
+    
+        return $holidaysWithWeekends;
+    }
+    
+
+
+    
+
+
+
     
 
     public function styles(Worksheet $sheet)
     {
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
+
+        $startColumn = 'F';
+        $dateHeadersCount = count($this->dateHeaders);
+        $numberOfColumns = $dateHeadersCount;
+        $endColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn) + $numberOfColumns - 1;
+        $endColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($endColumnIndex);
+        
+        // Fetch holiday data
+        $holidays = $this->fetchNationalDays(substr($this->startDate, 0, 4), substr($this->endDate, 0, 4));
+        for ($columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn); $columnIndex <= $endColumnIndex; $columnIndex++) {
+            $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex);
+        
+            $date = Carbon::parse($this->startDate)->addDays($columnIndex - \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn));
+        
+           $isHoliday = false;
+           foreach ($holidays as $holiday) {
+               $holidayDate = Carbon::parse($holiday['holiday_date'])->format('Y-m-d');
+               $currentDate = $date->format('Y-m-d');
+               if ($currentDate === $holidayDate) {
+                   $isHoliday = true;
+                   break;
+               }
+           }
+           
+
+            $sheet->getStyle($column . '5:' . $column . $lastRow)->applyFromArray([
+                'fill' => [
+                    'fillType' => $isHoliday ? \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID : \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE,
+                    'startColor' => $isHoliday ? ['rgb' => 'B8CCE4'] : ['rgb' => 'FFFFFF'],
+                ],
+            ]);
+
+        }
 
         // date
         for ($col = 'F'; $col <= $lastColumn; $col++) {
@@ -551,7 +640,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
             ],
         ]);
         
-        $sheet->getStyle('C4:' . $lastColumn . '4')->applyFromArray([
+        $sheet->getStyle('B4:' . $lastColumn . '4')->applyFromArray([
             'alignment' => [
                 'horizontal' => 'center',
                 'vertical' => 'center',
@@ -562,7 +651,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
             ],
             'borders' => [
                 'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
                 ],
                 'horizontal' => [
@@ -574,6 +663,10 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                     'color' => ['rgb' => '000000'],
                 ],
                 'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'left' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
                 ],
@@ -866,14 +959,10 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
             4 => [
                 'font' => ['name' => 'Calibri', 'size' => 11, 'bold' => true],
             ],
-            'B3:B' . $lastRow => [
+            'B4:B' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
-                ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'C2D9FF'],
                 ],
                 'borders' => [
                     'left' => [
@@ -891,9 +980,9 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                 ],
             ],
              
-            'D4:D' . $lastRow => [
+            'B4' => [
                 'borders' => [
-                    'right' => [
+                    'outline' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                         'color' => ['rgb' => '000000'],
                     ],
@@ -904,6 +993,12 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
+                ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
                 ],
             ],
             'F4:F' . $lastRow => [
