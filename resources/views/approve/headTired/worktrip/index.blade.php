@@ -59,9 +59,6 @@
                                             data-stafId="{{ $item->user->employee->id_number }}"
                                             data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
                                             data-Position="{{ $item->user->employee->position->name }}"
-                                            data-startDate="{{ $item->worktrip->start_date }}"
-                                            data-endDate="{{ $item->worktrip->end_date }}"
-                                            data-enrtyDate="{{ $item->worktrip->entry_date }}"
                                             data-file="{{ $item->worktrip->file }}"
                                             href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-approve-worktrip">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
@@ -182,19 +179,6 @@
                         <label class="text-xs">Category :</label>
                         <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
                     </div>
-                    {{-- if work trip --}}
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">Start Date :</label>
-                        <input disabled id="Show-StartDate-work" type="text" class="form-control" value="">
-                    </div>
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">End Date :</label>
-                        <input disabled id="Show-EndDate-work" type="text" class="form-control" value="">
-                    </div>
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">Entry Date :</label>
-                        <input disabled id="Show-EntryDate-work" type="text" class="form-control" value="">
-                    </div>
                     <div class="col-span-12 sm:col-span-6">
                         <div class="flex items-center p-5 form-control">
                             <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
@@ -247,9 +231,6 @@
             var ShowStafId = $(this).attr('data-stafId');
             var ShowPosisi = $(this).attr('data-Position');
             var ShowCategory = $(this).attr('data-Category');
-            var ShowStartDate = $(this).attr('data-startDate');
-            var ShowEndDate = $(this).attr('data-endDate');
-            var ShowEntryDate = $(this).attr('data-enrtyDate');
 
             var fileUrl = $(this).attr('data-file');
             var fileName = fileUrl.split('/').pop();
@@ -290,9 +271,6 @@
             $("#Show-StafId-work").attr('value', ShowStafId);
             $("#Show-Posisi-work").attr('value', ShowPosisi);
             $("#Show-Category-work").attr('value', ShowCategory);
-            $("#Show-StartDate-work").attr('value', ShowStartDate);
-            $("#Show-EndDate-work").attr('value', ShowEndDate);
-            $("#Show-EntryDate-work").attr('value', ShowEntryDate);
         });
 
         // approve

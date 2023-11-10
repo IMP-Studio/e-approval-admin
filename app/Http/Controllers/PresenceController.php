@@ -32,20 +32,27 @@ class PresenceController extends Controller
             $query->where('status', 'allowed');
         };
 
-        $tele_wfo = Presence::whereDate('date', $today)
-            ->whereIn('category', ['WFO', 'telework'])
-            ->where(function ($query) use ($allowedStatusCheck) {
-                $query->where('category', 'WFO')
-                    ->orWhere(function($query) use ($allowedStatusCheck) {
-                        $query->where('category', 'telework')
-                            ->whereHas('telework.statusCommit', $allowedStatusCheck);
-                    });
-            })
-            ->with([
-                'telework.statusCommit' => $allowedStatusCheck,
-            ])
-            ->orderBy('entry_time','asc')
+
+    $tele_wfo_wk = Presence::whereDate('date', $today)
+        ->whereIn('category', ['WFO', 'telework', 'work_trip'])
+        ->where(function ($query) use ($allowedStatusCheck) {
+            $query->where('category', 'WFO')
+                ->orWhere(function ($query) use ($allowedStatusCheck) {
+                    $query->where('category', 'telework')
+                        ->whereHas('telework.statusCommit', $allowedStatusCheck);
+                })
+                ->orWhere(function ($query) use ($allowedStatusCheck) {
+                    $query->where('category', 'work_trip')
+                        ->whereHas('worktrip.statusCommit', $allowedStatusCheck);
+                });
+        })
+        ->with([
+            'telework.statusCommit' => $allowedStatusCheck,
+            'worktrip.statusCommit' => $allowedStatusCheck,
+        ])
+        ->orderBy('entry_time', 'asc')
         ->get();
+
         $leaveData = Leave::whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->whereHas('statusCommit', $allowedStatusCheck)
@@ -55,23 +62,9 @@ class PresenceController extends Controller
             ->map(function ($item) {
                 $item->category = 'leave';
                 return $item;
-        });
-
-        $workTripData = WorkTrip::whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
-            ->whereHas('statusCommit', $allowedStatusCheck)
-            ->join('presences', 'work_trips.presence_id', '=', 'presences.id')
-            ->orderBy('presences.entry_time', 'asc')
-            ->get()
-            ->map(function ($item) {
-                $item->category = 'work_trip';
-                return $item;
-        });
-
-
+        });        
         
-        
-        $gabungData = $tele_wfo->concat($leaveData)->concat($workTripData);
+        $gabungData = $tele_wfo_wk->concat($leaveData);
         $perPage = 5;
         $currentPage = $request->input('page', 1);
 

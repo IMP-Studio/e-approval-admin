@@ -391,19 +391,6 @@
                                                             <label for="modal-form-1" class="text-xs">Category :</label>
                                                             <input disabled id="modal-form-1" type="text" class="form-control capitalize" value="{{ $data->presence->category === 'work_trip' ? ' Work Trip' : $data->presence->category }}">
                                                         </div>
-                                                        <div class="col-span-12 sm:col-span-6">
-                                                            <label for="modal-form-1" class="text-xs">Start Date :</label>
-                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->start_date }}">
-                                                        </div>
-                                                        <div class="col-span-12 sm:col-span-6">
-                                                            <label for="modal-form-1" class="text-xs">End Date :</label>
-                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->end_date }}">
-                                                        </div>
-                                                        <div class="col-span-12 sm:col-span-6">
-                                                            <label for="modal-form-1" class="text-xs">Entry Date :</label>
-                                                            <input disabled id="modal-form-1" type="text" class="form-control" value="{{ $data->entry_date }}">
-                                                        </div>
-
                                                     </div>
                                                 </div>
                                             </div>

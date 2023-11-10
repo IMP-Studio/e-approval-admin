@@ -346,19 +346,6 @@
                     <label class="text-xs">Category :</label>
                     <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
                 </div>
-                {{-- if work trip --}}
-                <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">Start Date :</label>
-                    <input disabled id="Show-StartDate-work" type="text" class="form-control" value="">
-                </div>
-                <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">End Date :</label>
-                    <input disabled id="Show-EndDate-work" type="text" class="form-control" value="">
-                </div>
-                <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">Entry Date :</label>
-                    <input disabled id="Show-EntryDate-work" type="text" class="form-control" value="">
-                </div>
             </div>
         </div>
     </div>
@@ -556,9 +543,6 @@
         var ShowStafId = $(this).attr('data-stafId');
         var ShowPosisi = $(this).attr('data-Position');
         var ShowCategory = $(this).attr('data-Category');
-        var ShowStartDate = $(this).attr('data-startDate');
-        var ShowEndDate = $(this).attr('data-endDate');
-        var ShowEntryDate = $(this).attr('data-enrtyDate');
 
 
         console.log(ShowFirstname);
