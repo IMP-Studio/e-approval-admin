@@ -449,7 +449,17 @@ class ApiController extends Controller
 
 }
 
- 
+    //LOGIN TOKEN VALIDATION
+
+    public function userToken(Request $request){
+        $user = $request->user();
+    
+        if(!$user){
+            return response()->json(['error' => 'Token not valid'], 401);
+        }
+    
+        return response()->json(['message' => 'Token valid', 'status' => 'VALID'],);
+    }
     
     
     //---- PRESENCE FUNCTION ----\\ 
@@ -1666,8 +1676,8 @@ class ApiController extends Controller
                 'id' => $standUp->id,
                 'user_id' => $standUp->user_id,
                 'nama_lengkap' => $nama_lengkap,
-                'prensence_id' => $standUp->presence_id,
-                'prensence_category' => $standUp->presence->category,
+                'presence_id' => $standUp->presence_id,
+                'presence_category' => $standUp->presence->category,
                 'project_id' => $standUp->project_id,
                 'project' => $standUp->project->name,
                 'partner' => $standUp->project->partner->name,
