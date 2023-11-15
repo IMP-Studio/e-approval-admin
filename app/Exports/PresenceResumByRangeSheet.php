@@ -386,13 +386,16 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
         }
     
         foreach ($totalCategoryData as $key => $totalData) {
+            if (!isset($mergedData[$key])) {
+                $mergedData[$key] = []; // Initialize an empty array if the key doesn't exist
+            }
             $mergedData[$key] = array_merge($mergedData[$key], $totalData);
         }
+        
     
         return collect($mergedData);
     }
-    
-    
+
     public function columnWidths(): array
     {
         $columnWidths = [
@@ -475,59 +478,36 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
 
+        // date
         $startColumn = 'F';
         $dateHeadersCount = count($this->dateHeaders);
         $numberOfColumns = $dateHeadersCount;
         $endColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn) + $numberOfColumns - 1;
         $endColumn = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($endColumnIndex);
         
-        // Fetch holiday data
         $holidays = $this->fetchNationalDays(substr($this->startDate, 0, 4), substr($this->endDate, 0, 4));
+        
         for ($columnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn); $columnIndex <= $endColumnIndex; $columnIndex++) {
             $column = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($columnIndex);
         
             $date = Carbon::parse($this->startDate)->addDays($columnIndex - \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($startColumn));
         
-           $isHoliday = false;
-           foreach ($holidays as $holiday) {
-               $holidayDate = Carbon::parse($holiday['holiday_date'])->format('Y-m-d');
-               $currentDate = $date->format('Y-m-d');
-               if ($currentDate === $holidayDate) {
-                   $isHoliday = true;
-                   break;
-               }
-           }
-           
-
+            $isHoliday = false;
+            foreach ($holidays as $holiday) {
+                $holidayDate = Carbon::parse($holiday['holiday_date'])->format('Y-m-d');
+                $currentDate = $date->format('Y-m-d');
+                if ($currentDate === $holidayDate) {
+                    $isHoliday = true;
+                    break;
+                }
+            }
+        
             $sheet->getStyle($column . '5:' . $column . $lastRow)->applyFromArray([
                 'fill' => [
                     'fillType' => $isHoliday ? \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID : \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE,
                     'startColor' => $isHoliday ? ['rgb' => 'B8CCE4'] : ['rgb' => 'FFFFFF'],
                 ],
-            ]);
-
-        }
-
-        // date
-        for ($col = 'F'; $col <= $lastColumn; $col++) {
-            $cellCoordinate = $col . '4';
-            $sheet->getColumnDimension($col)->setWidth(3); 
-            $sheet->getStyle($cellCoordinate)->applyFromArray([
-                'font' => ['size' => 12, 'bold' => true],
-                'alignment' => [
-                    'horizontal' => 'center',
-                    'vertical' => 'center',
-                ],
-                'borders' => [
-                    'outline' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'],
-                    ],
-                ],
-                'width' => [
-                    'size' => 3,
-                ],
-            ]);
+            ]);   
         }
 
         $lastRow = intval($lastRow);
@@ -568,15 +548,6 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
             ],
         ]);
 
-        $sheet->getStyle('F3:' . $lastColumn . '3')->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-            'width' => [
-                'size' => 3,
-            ],
-        ]);
 
         $targetColumnIndex3 = $columnIndex - 6; 
         $targetColumnName3 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex3);
@@ -673,7 +644,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
             ],
         ]);
 
-
+        // TABLE KEDUA
         // 0 kolom dari terakhir
 
         $targetColumnIndex3 = $columnIndex - 0; 
@@ -689,7 +660,25 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                 'right' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
-                ],
+                ],             
+            ],
+        ]);
+        
+        $sheet->getColumnDimension($targetColumnName3)->setWidth(20); 
+        $sheet->getStyle($targetColumnName3 . '5:'. $targetColumnName3 . 10)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],             
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],             
             ],
         ]);
         // end
@@ -712,6 +701,26 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                 ],
             ],
         ]);
+        $targetColumnIndex3 = $columnIndex - 1; 
+        $targetColumnName3 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex3);
+        
+        $sheet->getColumnDimension($targetColumnName3)->setWidth(10); 
+        $sheet->getStyle($targetColumnName3 . '5:'. $targetColumnName3 . 10)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],             
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],             
+            ],
+        ]);
         // end
 
         // 2 kolom dari terakhir
@@ -732,229 +741,211 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                 ],
             ],
         ]);
+        $sheet->getColumnDimension($targetColumnName3)->setWidth(20); 
+        $sheet->getStyle($targetColumnName3 . '5:'. $targetColumnName3 . 10)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],             
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],             
+            ],
+        ]);
         // end
 
          // 3 kolom dari terakhir
 
 
-         $targetColumnIndex3 = $columnIndex - 3; 
-         $targetColumnName3 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex3);
-         
-         $sheet->getColumnDimension($targetColumnName3)->setWidth(5); 
-         $sheet->getStyle($targetColumnName3 . '4:'. $targetColumnName3 . 10)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-            'borders' => [
-                'right' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
+      $targetColumnIndex3 = $columnIndex - 3; 
+      $targetColumnName3 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex3);
+      
+      $sheet->getColumnDimension($targetColumnName3)->setWidth(5); 
+      $sheet->getStyle($targetColumnName3 . '4:'. $targetColumnName3 . 10)->applyFromArray([
+         'alignment' => [
+             'horizontal' => 'center',
+             'vertical' => 'center',
+         ],
+         'borders' => [
+             'right' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                 'color' => ['rgb' => '000000'],
+             ],
+         ],
+      ]);
+
+
+
+         $sheet->getStyle($targetColumnName3 . '11:' . $lastColumn . '11')->applyFromArray([
+             'fill' => [
+                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                 'startColor' => ['rgb' => 'C2D9FF'],
+             ],
+             'borders' => [
+                 'outline' => [
+                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                     'color' => ['rgb' => '000000'],
+                 ],
+                 'horizontal' => [
+                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                     'color' => ['rgb' => '000000'],
+                 ],
+             ],
          ]);
 
-            //  membuat baris ke 7 menjadi berwarna biru dibagian total
-         $sheet->getStyle($targetColumnName3 . 11 . ':' . $lastColumn . 11)->applyFromArray([
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'C2D9FF'],
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'horizontal' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-         ]);
+      $sheet->getStyle($targetColumnName3 . ($lastRow + 1) . ':' . $lastColumn . ($lastRow + 1))->applyFromArray([
+         'fill' => [
+             'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE,
+         ],
+         'borders' => [
+             'outline' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE,
+             ],
+             'horizontal' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE,
+                 'color' => ['rgb' => '000000'],
+             ],
+         ],
+     ]);
+     $sheet->getStyle($targetColumnName3 . '5:'. $targetColumnName3 . 10)->applyFromArray([
+        'alignment' => [
+            'horizontal' => 'center',
+            'vertical' => 'center',
+        ],
+        'borders' => [
+            'right' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                'color' => ['rgb' => '000000'],
+            ],             
+            'horizontal' => [
+                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                'color' => ['rgb' => '000000'],
+            ],             
+        ],
+    ]);
+     // end
 
-         $sheet->getStyle($targetColumnName3 . ($lastRow + 1) . ':' . $lastColumn . ($lastRow + 1))->applyFromArray([
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_NONE,
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE,
-                ],
-                'horizontal' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-        ]);
-        // end
+     // 4 kolom dari terakhir
 
-        // 4 kolom dari terakhir
+     $targetColumnIndex4 = $columnIndex - 4; 
+     $targetColumnName4 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex4);
+     
+     $sheet->getStyle($targetColumnName4 . '2:'. $targetColumnName4 . ($lastRow + 1))->applyFromArray([
+         'fill' => [
+             'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+             'startColor' => ['rgb' => 'ffffff'], 
+         ],
+         'borders' => [
+             'outline' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                 'color'      => ['rgb' => 'D4D4D4'],
+             ],
+             'horizontal' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                 'color'      => ['rgb' => 'D4D4D4'],
+             ],
+             'vertical' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                   'color'      => ['rgb' => 'D4D4D4'],
+             ],
+         ],
+     ]);
+     $sheet->getStyle($targetColumnName4 . '2:'. $targetColumnName4 . 10)->applyFromArray([
+         'borders' => [
+             'right' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                 'color' => ['rgb' => '000000'],
+             ],
+         ],
+     ]);
+     $sheet->getStyle($targetColumnName4 . '2:'. $targetColumnName4 . 10)->applyFromArray([
+         'borders' => [
+             'right' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                 'color' => ['rgb' => '000000'],
+             ],
+         ],
+     ]);
+     // end
 
-        $targetColumnIndex4 = $columnIndex - 4; 
-        $targetColumnName4 = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex4);
-        
-        $sheet->getStyle($targetColumnName4 . '2:'. $targetColumnName4 . ($lastRow + 1))->applyFromArray([
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'ffffff'], 
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color'      => ['rgb' => 'D4D4D4'],
-                ],
-                'horizontal' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color'      => ['rgb' => 'D4D4D4'],
-                ],
-                'vertical' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                      'color'      => ['rgb' => 'D4D4D4'],
-                ],
-            ],
-        ]);
-        $sheet->getStyle($targetColumnName4 . '2:'. $targetColumnName4 . 10)->applyFromArray([
-            'borders' => [
-                'right' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-        ]);
-        // end
+     // 5 kolom dari terakhir
 
-        // 5 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 5; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
-        
-        $sheet->getStyle($targetColumnName . '2:'. $targetColumnName .($lastRow + 1))->applyFromArray([
-            'fill' => [
-                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'ffffff'], 
-            ],
-            'borders' => [
-                'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color'      => ['rgb' => 'D4D4D4'],
-                ],
-                'horizontal' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color'      => ['rgb' => 'D4D4D4'],
-                ],
-                'vertical' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color'      => ['rgb' => 'D4D4D4'],
-                ],
-                'left' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-        ]);
-        // end
+     $targetColumnIndex5 = $columnIndex - 5; 
+     $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
+     
+     $sheet->getStyle($targetColumnName . '2:'. $targetColumnName .($lastRow + 1))->applyFromArray([
+         'fill' => [
+             'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+             'startColor' => ['rgb' => 'ffffff'], 
+         ],
+         'borders' => [
+             'outline' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                 'color'      => ['rgb' => 'D4D4D4'],
+             ],
+             'horizontal' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                 'color'      => ['rgb' => 'D4D4D4'],
+             ],
+             'vertical' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                 'color'      => ['rgb' => 'D4D4D4'],
+             ],
+             'left' => [
+                 'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                 'color' => ['rgb' => '000000'],
+             ],
+         ],
+     ]);
+     // end
 
         // 6 kolom dari terakhir
 
-        $targetColumnIndex5 = $columnIndex - 6; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
         
-        $sheet->getStyle($targetColumnName . '5:'. $targetColumnName .$lastRow)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-        ]);
         // end
 
-        // 7 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 7; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
+        for ($i = 6; $i <= 12; $i++) {
+            $targetColumnIndex = $columnIndex - $i;
+            $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex);
         
-        $sheet->getStyle($targetColumnName . '5:'. $targetColumnName .$lastRow)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-        ]);
-        // end
-
-        // 8 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 8; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
-        
-        $sheet->getStyle($targetColumnName . '5:'. $targetColumnName .($lastRow + 1))->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-        ]);
-        // end
-
-        // 9 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 9; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
-        
-        $sheet->getStyle($targetColumnName . '5:'. $targetColumnName .$lastRow)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-        ]);
-        // end
-
-        // 10 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 10; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
-        
-        $sheet->getStyle($targetColumnName . '5:'. $targetColumnName .$lastRow)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-        ]);
-        // end
-
-        // 11 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 11; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
-        
-        $sheet->getStyle($targetColumnName . '5:'. $targetColumnName .$lastRow)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-        ]);
-        // end
-
-        // 12 kolom dari terakhir
-
-        $targetColumnIndex5 = $columnIndex - 12; 
-        $targetColumnName = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($targetColumnIndex5);
-        
-        $sheet->getStyle($targetColumnName . '4:'. $targetColumnName .$lastRow)->applyFromArray([
-            'alignment' => [
-                'horizontal' => 'center',
-                'vertical' => 'center',
-            ],
-            'borders' => [
-                'left' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
+            $styleArray = [
+                
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
                 ],
-            ],
-        ]);
-        // end
-                                                                                                                                                                                                                                                                                                                                                                                                               
+            ];
+        
+            // Add additional styling for the 12th column
+            if ($i == 12) {
+                $styleArray['borders'] = [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ];
+            }
+        
+            $sheet->getStyle($targetColumnName . '5:' . $targetColumnName . $lastRow)->applyFromArray($styleArray);
+        }
+        
+        // Apply styles to all columns from 'C' to the last column
         for ($col = 'C'; $col <= $lastColumn; $col++) {
             $sheet->getStyle($col)->getAlignment()->setVertical('center');
             $sheet->getStyle($col)->getAlignment()->setIndent(1);
         }
+        
+        // Get the updated last column and index
+        $lastColumn = $sheet->getHighestColumn();
+        $lastColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
+        
+        
         return [
             4 => [
                 'font' => ['name' => 'Calibri', 'size' => 11, 'bold' => true],
@@ -979,6 +970,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                     ],
                 ],
             ],
+            
              
             'B4' => [
                 'borders' => [
@@ -988,25 +980,149 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                     ],
                 ],
             ],
-
-            'E4:E' . $lastRow => [
-                'alignment' => [
-                    'horizontal' => 'center',
-                    'vertical' => 'center',
-                ],
+            'E4' => [
                 'borders' => [
+
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
                     'right' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                         'color' => ['rgb' => '000000'],
                     ],
                 ],
             ],
-            'F4:F' . $lastRow => [
+
+            // ini buat date - table
+            'F5:' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($lastColumnIndex - 6) . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'outline' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'vertical' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
+
+
+
+           
+            'F5:' . \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($lastColumnIndex - 13) . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'outline' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'vertical' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],           
+
+            'C5:C' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+
+            'D5:D' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+
+            'E5:E' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+            
         ];
+        foreach ($styles as $range => $style) {
+            $sheet->getStyle($range)->applyFromArray($style);
+        }
+    
     }
 }

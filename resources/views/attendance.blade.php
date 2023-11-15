@@ -435,15 +435,6 @@
             });
     });
 
-    // $(document).on("click", ".ExcelByRange", function () {
-    // var startDate = $(".startdateinput").val();
-    // var endDate = $(".enddateinput").val();
-
-    // var formAction = '{{ route("presence.excelByRange", ["startDate" => "start", "endDate" => "end"]) }}';
-    // formAction = formAction.replace("start", startDate).replace("end", endDate);
-
-    // $("#exportExcelByRangeID").attr('action', formAction);
-    // });
 
 
     $(document).on("click", ".delete-modal-search-presence", function () {
@@ -474,7 +465,7 @@
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
@@ -510,7 +501,7 @@
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
@@ -548,7 +539,7 @@
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){

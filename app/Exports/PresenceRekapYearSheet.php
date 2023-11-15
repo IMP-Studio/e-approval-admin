@@ -4,6 +4,8 @@ namespace App\Exports;
 
 use App\Models\StandUp;
 use App\Models\Presence;
+use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -19,8 +21,6 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
     private $iteration = 0;
     protected $startDate;
     protected $endDate;
-    protected $userAbsenceSummaries = [];
-    protected $absenceSummary;
     protected $absenceData; 
 
     public function __construct($absenceData, $monthName, $startDate, $endDate)
@@ -29,7 +29,6 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
         $this->monthName = $monthName;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
-        $this->absenceSummary = $this->getAbsenceSummary();
     }
 
     public function startCell(): string
@@ -37,17 +36,22 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
         return 'B2';
     }
 
-  public function title(): string
+    public function title(): string
     {
         return $this->monthName . ' - Rekap'; 
     }
 
 
-
     public function headings(): array
     {
+        $startDate = Carbon::parse($this->startDate);
+        $endDate = Carbon::parse($this->endDate);
+
+        $dateRange = Str::upper($startDate->format('d F')) . ' - ' . Str::upper($endDate->format('d F Y'));
+
         return [
-            ["Data Presence", '', '', '', '', '', '', '', "Standup", '', '', '', '', "Total Absen"],
+            ["REKAP ABSENSI ".$dateRange],
+            ["PRESENCE & STANDUP"],
             [
                 'No',
                 'Username',
@@ -60,16 +64,6 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
                 'Done',
                 'Doing',
                 'Blocker',
-                '',
-                '',
-                'ID',
-                'User Name',
-                'WFO',
-                'Work trip',
-                'telework',
-                'leave',
-                'skip',
-                'Total',
             ]
         ];
     }
@@ -145,97 +139,16 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
                 '',
                 '',
             ];
-        })->all();
+        });
     }
     
-
-    protected function getAbsenceSummary()
-    {
-        $desiredStructure = [];
-
-        $wfo = Presence::whereBetween('date', [$this->startDate, $this->endDate])
-        ->where('category', 'WFO')
-        ->orderBy('date', 'asc')
-        ->get();
-
-        $telework = Presence::whereBetween('date', [$this->startDate, $this->endDate])
-            ->where('category', 'telework')
-            ->whereHas('telework.statusCommit', function ($query) {
-                $query->where('status', 'allowed');
-            })
-            ->orderBy('date', 'asc')
-            ->get();
-
-        $work_trip = Presence::whereBetween('date', [$this->startDate, $this->endDate])
-            ->where('category', 'work_trip')
-            ->whereHas('worktrip.statusCommit', function ($query) {
-                $query->where('status', 'allowed');
-            })
-            ->orderBy('date', 'asc')
-            ->get();
-
-        $skip = Presence::whereBetween('date', [$this->startDate, $this->endDate])
-            ->where('category', 'skip')
-            ->orderBy('date', 'asc')
-            ->get();
-
-        $leave = Presence::whereBetween('date', [$this->startDate, $this->endDate])
-            ->where('category', 'leave')   
-            ->whereHas('leave.statusCommit', function ($query) {
-                $query->where('status', 'allowed');
-            }) 
-            ->orderBy('date', 'asc')
-            ->get();
-
-        $allPresences = collect($wfo)->concat($telework)->concat($work_trip)->concat($skip)->concat($leave);
-
-        foreach ($allPresences as $absence) {
-            $userId = $absence->user_id;
-            $name = $absence->user->name;
-            $category = $absence->category;
-
-            if (!isset($desiredStructure[$userId])) {
-                $desiredStructure[$userId] = [
-                    'user_id' => $userId,
-                    'name' => $name,
-                    'WFO' => 0,
-                    'work_trip' => 0,
-                    'telework' => 0,
-                    'leave' => 0,
-                    'skip' => 0,
-                    'total_excluding_skip' => 0,
-                ];
-            }
-            
-            $desiredStructure[$userId][$category] += 1;
-            
-            $totalExcludingSkip = $desiredStructure[$userId]['WFO'] +
-            $desiredStructure[$userId]['work_trip'] +
-            $desiredStructure[$userId]['telework'] +
-            $desiredStructure[$userId]['leave'];
-            $desiredStructure[$userId]['total_excluding_skip'] = $totalExcludingSkip;
-        }
-
-        $result = collect($desiredStructure)->groupBy('user_id')->values()->toArray();
-       
-
-        return $result;
-    }
 
     public function collection()
     {
         
         $absences = $this->getAbsences();
     
-        $absenceSummary = $this->getAbsenceSummary();
-    
-        $combinedData = [];
-        foreach ($absences as $userId => $absenceData) {
-            $summaryData = $absenceSummary[$userId][0] ?? [];
-            $combinedData[] = array_merge($absenceData, $summaryData);
-        }
-    
-        return collect($combinedData);
+        return $absences;
     }
     
 
@@ -253,12 +166,6 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
             'J' => 22,
             'K' => 22,
             'L' => 22,
-            'M' => 8,
-            'O' => 8,
-            'P' => 28,
-            'Q' => 12,
-            'R' => 14,
-            'S' => 14,
         ];
     }
 
@@ -266,47 +173,159 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
     {
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
-        $absenceSummary = collect($this->getAbsenceSummary());
-        $lastRowSum = $absenceSummary->count() + 3;
-        
-
-        foreach ($this->absenceSummary as $rowIndex => $data) {
-            if (isset($data[0]['total_excluding_skip'])) {
-                $totalExcludingSkip = $data[0]['total_excluding_skip'];
-                if ($totalExcludingSkip < 2) {
-                    $sheet->getStyle('V' . ($rowIndex + 4))
-                        ->applyFromArray([
-                            'font' => [
-                                'size' => 8, 
-                                'bold' => true,
-                                'color' => ['rgb' => 'FFFFFF'],
-                            ],
-                            'fill' => [
-                                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                                'startColor' => ['rgb' => 'FF0000'], 
-                            ],
-                        ]);
-                }else{
-                     $sheet->getStyle('V' . ($rowIndex + 4))
-                     ->applyFromArray([
-                         'font' => [
-                             'size' => 8, 
-                             'bold' => true,
-                         ],
-                         'fill' => [
-                             'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                             'startColor' => ['rgb' => '92D050'], 
-                         ],
-                     ]);
-                }
-            }
-        }
         
 
         for ($col = 'C'; $col <= $lastColumn; $col++) {
             $sheet->getStyle($col)->getAlignment()->setVertical('center');
             $sheet->getStyle($col)->getAlignment()->setIndent(1);
         }
+
+        $sheet->getStyle('B' . ($lastRow + 1) . ':' . $lastColumn . ($lastRow + 1))->applyFromArray([
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'C2D9FF'],
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->mergeCells('B2:' . $lastColumn . '2');
+        $sheet->getStyle('B2:' . $lastColumn . '2')->applyFromArray([
+            'font' => ['name' => 'Calibri', 'size' => 13, 'bold' => true],
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'C2D9FF'],
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'left' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'top' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->mergeCells('B3:' . $lastColumn . '3');
+        $sheet->getStyle('B3:' . $lastColumn . '3')->applyFromArray([
+            'font' => ['name' => 'Calibri', 'size' => 12, 'bold' => true],
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'C2D9FF'],
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'left' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'top' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('B4:' . $lastColumn . '4')->applyFromArray([
+            'font' => ['name' => 'Calibri', 'size' => 12, 'bold' => true],
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'C2D9FF'],
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'horizontal' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'vertical' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'left' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'top' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'bottom' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle($lastColumn . '2:' . $lastColumn . $lastRow)->applyFromArray([
+            'borders' => [
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'bottom' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+        
         return [
             2 => [
                 'font' => ['size' => 13, 'bold' => true],
@@ -314,14 +333,26 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
             3 => [
                 'font' => ['size' => 12, 'bold' => true],
             ],
-            'B3:B' . $lastRow => [
+            'B4' =>[
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+            'J4:J' . $lastRow => [
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+            'B5:B' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
-                ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'C2D9FF'], 
                 ],
                 'borders' => [
                     'outline' => [
@@ -329,122 +360,149 @@ class PresenceRekapYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
                         'color' => ['rgb' => '000000'],
                     ],
                     'horizontal' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+            ],
+
+            'C4:C' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+                'borders' => [
+                    'right' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                         'color' => ['rgb' => '000000'],
                     ],
                 ],
             ],
-            'C3:L3'=> [
+            'D4:D' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'C2D9FF'], 
-                ],
                 'borders' => [
-                    'outline' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'],
-                    ],
-                    'horizontal' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'], 
-                    ],
-                    'vertical' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'], 
-                    ],
-                ],                
-            ],
-            'O4:O' . $lastRowSum => [
-                'alignment' => [
-                    'horizontal' => 'center',
-                    'vertical' => 'center',
-                ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'C2D9FF'], 
-                ],
-                'borders' => [
-                    'outline' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'],
-                    ],
-                    'horizontal' => [
+                    'right' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                         'color' => ['rgb' => '000000'],
                     ],
                 ],
             ],
-            'O3:V3'=> [
+            'E4:E' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
-                'fill' => [
-                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['rgb' => 'C2D9FF'], 
-                ],
                 'borders' => [
-                    'outline' => [
+                    'right' => [
                         'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
                         'color' => ['rgb' => '000000'],
                     ],
-                    'horizontal' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'], 
-                    ],
-                    'vertical' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                        'color' => ['rgb' => '000000'], 
-                    ],
-                ],                
+                ],
             ],
             'F4:F' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
-            'Q3:Q' . $lastRow => [
+            'G4:G' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
-            'R3:R' . $lastRow => [
+            'H4:H' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
-            'S3:S' . $lastRow => [
+            'I4:I' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
-            'T3:T' . $lastRow => [
+            'J4:J' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
-            'V3:V' . $lastRow => [
+            'K4:K' . $lastRow => [
                 'alignment' => [
                     'horizontal' => 'center',
                     'vertical' => 'center',
                 ],
+                'borders' => [
+                    'right' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
             ],
-            'J' => [
-                'alignment' => ['wrapText' => true],
+            'L4:L' . $lastRow => [
+                'alignment' => [
+                    'horizontal' => 'center',
+                    'vertical' => 'center',
+                ],
+
+                'borders' => [
+                    'left' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['rgb' => '000000'],
+                    ],
+                ],
+                    
             ],
             'J' => [
                 'alignment' => ['wrapText' => true],
             ],
             'K' => [
+                'alignment' => ['wrapText' => true],
+            ],
+            'L' => [
                 'alignment' => ['wrapText' => true],
             ],
         ];
