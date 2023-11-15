@@ -393,33 +393,87 @@ class PresenceResumYearSheet implements WithTitle, WithHeadings,  WithStyles, Wi
     }
 
     public function collection()
-    {
-        $absenceCategories = $this->getAbsenceCategory();
-        $absenceSummaries = $this->getAbsenceSummary();
-        $totalCategoryData = $this->getTotalSemuaCategory();
+{
+    $absenceCategories = $this->getAbsenceCategory();
+    $absenceSummaries = $this->getAbsenceSummary();
+    $totalCategoryData = $this->getTotalSemuaCategory();
+
+    $mergedData = [];
     
-        $mergedData = [];
+    $invisibleRowCount = 6;
     
-        foreach ($absenceSummaries as $key => $summary) {
-            $userId = $summary[0]['user_id'];
-    
-            $categoryData = collect($absenceCategories)->first(function ($item) use ($userId) {
-                return $item[0]['user_id'] === $userId;
-            });
-    
-            $mergedData[$key] = array_merge($summary[0], $categoryData[0]);
+    foreach ($absenceSummaries as $key => $summary) {
+        $userId = $summary[0]['user_id'];
+        
+        $categoryData = collect($absenceCategories)->first(function ($item) use ($userId) {
+            return $item[0]['user_id'] === $userId;
+        });
+        
+        if (!empty($summary)) {
+            $mergedData[] = array_merge($summary[0], $categoryData[0]);
         }
+    }
     
-        foreach ($totalCategoryData as $key => $totalData) {
-            if (!isset($mergedData[$key])) {
-                $mergedData[$key] = []; // Initialize an empty array if the key doesn't exist
-            }
-            $mergedData[$key] = array_merge($mergedData[$key], $totalData);
+    $userSummaryCount = count($absenceSummaries);
+    $additionalInvisibleRowCount = max(0, $invisibleRowCount - $userSummaryCount);
+
+
+    if($userSummaryCount > 0){
+        for ($i = 0; $i < $additionalInvisibleRowCount; $i++) {
+            $keysToExclude = ['user_id']; 
+            
+            // Buat baris tidak terlihat
+            $invisibleRow = array_diff_key(
+                array_fill_keys(array_keys(($absenceSummaries[0][0] ?? []) + ($categoryData[0] ?? [])), ''),
+                array_flip($keysToExclude)
+            );
+            $invisibleRow['invisible'] = ''; 
+            $mergedData[] = $invisibleRow;
+        }
+    }else {
+        for ($i = 0; $i < $additionalInvisibleRowCount; $i++) {
+            $dateHeadersCount = count($this->dateHeaders);
+        
+            $emptyStrings = array_fill(0, $dateHeadersCount, '');
+        
+            $invisibleRow = [
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                ...$emptyStrings, 
+            ];
+        
+            $mergedData[] = $invisibleRow;
         }
         
-    
-        return collect($mergedData);
     }
+    
+    foreach ($absenceSummaries as $key => $summary) {
+        $userId = $summary[0]['user_id'];
+        $categoryData = collect($absenceCategories)->first(function ($item) use ($userId) {
+            return $item[0]['user_id'] === $userId;
+        });
+        
+        $mergedData[] = array_fill_keys(array_keys(($summary[0] ?? []) + ($categoryData[0] ?? [])), '');
+    }
+    
+    foreach ($totalCategoryData as $key => $totalData) {
+        if (!isset($mergedData[$key])) {
+            $mergedData[$key] = []; 
+        }
+        $mergedData[$key] = array_merge($mergedData[$key], $totalData);
+    }
+    
+    return collect($mergedData);
+}
     
     
     public function columnWidths(): array
