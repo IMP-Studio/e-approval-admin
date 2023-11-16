@@ -362,6 +362,7 @@ class PresenceResumByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
                 ['','',4, 'Cuti', 'C', $leave],
                 ['','',5, 'Sakit', 'S', $sick],
                 ['','',6, 'Bolos', 'B', $skip],
+                [' '],
             ];
         
             return $totalCategoryData;
