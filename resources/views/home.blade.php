@@ -39,7 +39,7 @@
                             <div class="report-box zoom-in">
                                 <div class="box p-5">
                                     <div class="flex">
-                                        <i data-lucide="home" class="report-box__icon text-pending"></i>
+                                        <i data-lucide="monitor" class="report-box__icon text-pending"></i>
                                         <div class="ml-auto">
                                             <div class="report-box__indicator {{ $telework_percentage < 50 ? 'bg-success' : ($telework_percentage < 70 ? 'bg-pending' : 'bg-danger') }} tooltip cursor-pointer"
                                                 title="{{ $telework_percentage < 50 ? '50% Lower based on check-in' : ($telework_percentage < 70 ? 'Below 70% based on check-in' : '70% Higher based on check-in') }}">
@@ -79,7 +79,7 @@
                             <div class="report-box zoom-in">
                                 <div class="box p-5">
                                     <div class="flex">
-                                        <i data-lucide="logout" class="report-box__icon text-success"></i>
+                                        <i data-lucide="power-off" class="report-box__icon text-success"></i>
                                         <div class="ml-auto">
                                             <div class="report-box__indicator {{ $leave_percentage < 50 ? 'bg-success' : ($leave_percentage < 70 ? 'bg-pending' : 'bg-danger') }} tooltip cursor-pointer"
                                                 title="{{ $leave_percentage < 50 ? '50% Lower based on check-in' : ($leave_percentage < 70 ? 'Below 70%' : '70% Higher based on check-in') }}">

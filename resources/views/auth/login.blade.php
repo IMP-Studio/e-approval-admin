@@ -133,7 +133,7 @@
                         <br>
                         sign in to your account.
                     </div>
-                    <div class="-intro-x mt-5 text-lg text-white text-opacity-70 dark:text-slate-400">Manage all your e-commerce accounts in one place</div>
+                    <div class="-intro-x mt-5 text-lg text-white text-opacity-70 dark:text-slate-400">Manage all your employee's presence in one place</div>
                 </div>
             </div>
 
@@ -144,7 +144,7 @@
                     </h2>
                     <form action="{{ route('login') }}" method="post">
                         @csrf
-                        <div class="intro-x mt-2 text-slate-400 xl:hidden text-center">A few more clicks to sign in to your account. Manage all your e-commerce accounts in one place</div>
+                        <div class="intro-x mt-2 text-slate-400 xl:hidden text-center">A few more clicks to sign in to your account. Manage all your employee's presence in one place</div>
                         <div class="intro-x mt-8">
                             <input type="email" id="email" class="intro-x login__input form-control py-3 px-4 block @error('email') is-invalid @enderror" placeholder="Email" name="email" value="{{ old('email') }}" required autocomplete="email">
                             <input type="password" id="password" class="intro-x login__input form-control py-3 px-4 block mt-4 @error('password') is-invalid @enderror" placeholder="Password" name="password" required autocomplete="current-password">
