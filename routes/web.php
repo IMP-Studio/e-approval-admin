@@ -1,10 +1,10 @@
 <?php
 
 use App\Models\Partner;
-use App\Http\Controllers\ApproveController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ApproveController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DivisionController;
@@ -13,6 +13,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\superAdminController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -136,6 +137,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/leavehr/reject/LeaveWorkHr/{id}', [ApproveController::class,'rejectLeaveHumanRes'])->name('approvehr.rejectLeaveHr');
     });
 
-
+    Route::prefix('notification')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notification');
+        Route::get('/detail/{id}', [NotificationController::class, 'notificationDetail'])->name('notification.detail');
+    });
 });
 
