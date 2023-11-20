@@ -168,10 +168,10 @@
                     @csrf
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
-                            <label for="modal-form-1" class="form-label">Nama Project</label>
+                            <label for="modal-form-1" class="form-label">Choose Partner</label>
                             <select name="partner_id" class="tom-select w-full" id="">
                                 @foreach ($partnerall as $item)
-                                    <option value="0" selected disabled>Choose Division</option>
+                                    <option value="0" selected disabled>Choose Partner</option>
                                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                                 @endforeach
                             </select>

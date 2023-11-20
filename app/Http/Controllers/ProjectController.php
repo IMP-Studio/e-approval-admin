@@ -16,7 +16,6 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        $employee = Employee::findOrFail(2);
         $project = Project::paginate(5);
         $partnerall = Partner::all();
 
@@ -75,7 +74,7 @@ class ProjectController extends Controller
             return response($output);
         }
 
-        return view('project.index', compact('project', 'partnerall', 'employee'));
+        return view('project.index', compact('project', 'partnerall'));
     }
 
     /**
@@ -107,7 +106,7 @@ class ProjectController extends Controller
             $user_name = $input['name'];
             return redirect()->route('project')->with(['success' => "$user_name added successfully"]);
         } catch (\Throwable $th) {
-            return redirect()->route('project')->with(['error' => "Failed to add employee"]);
+            return redirect()->route('project')->with(['error' => "Failed to add project"]);
         }
     }
 
