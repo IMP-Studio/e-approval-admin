@@ -1225,7 +1225,7 @@ class ApiController extends Controller
                     $workTrip = WorkTrip::create([
                         'user_id' => $userId,
                         'presence_id' => $presence->id,
-                        'file' => $storedFilePath, 
+                        'file' => $storedFilePath, // This will now also be the original filename
                         'face_point' => $facePointBase64,
                     ]);
             
@@ -1261,14 +1261,83 @@ class ApiController extends Controller
     
             $user->facePoint = $request->input('face_point');
             $user->save();
+
+            $idUser = $request->input('user_id');
+            $user = User::with('employee')->find($idUser);
+
+            if ($user) {
+                $userName = $user->name ?? '';
+                $userDivision = $user->employee->division_id ?? '';
+            } else {
+                return response()->json(['message' => 'Failed: ' . $e->getMessage()], 500);
+            }
+
+            $category = $request->input('category');
+
+            $inputDate = $request->input('date');
+
+            $formattedDate = Carbon::parse($inputDate)->format('d F Y');
+
+            switch ($category) {
+                case 'telework':
+                    $notificationMessage = $userName . ' Telah Mengajukan Work From Anywhere Pada Tanggal ' . $formattedDate;
+                    break;
+        
+                case 'work_trip':
+                    $notificationMessage = $userName . ' Telah Mengajukan Perjalanan Dinas Pada Tanggal ' . $formattedDate;
+                    break;
+        
+                case 'WFO':
+                    $notificationMessage = $userName . ' Telah Hadir Dengan Presensi Work From Office Pada Tanggal ' . $formattedDate;
+                    break;
+        
+                default:
+                    return response()->json(['message' => 'Presence category not recognized'], 400);
+            }
+     
+            $notificationTitle = $userName ;
+            
+            $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
+            $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
+
+            $notificationData = [
+                'app_id' => $appId,
+                'included_segments' => ['All'],
+                'contents' => ['en' => $notificationMessage], 
+                'headings' => ['en' => $notificationTitle], 
+                'data' => [
+                    'user_id' => $idUser,
+                    'name' => $userName,
+                    'divisi_id' => $userDivision,
+                ],
+            ];
+
+            $responseN = Http::withHeaders([
+                'Authorization' => 'Basic ' . $onesignalApiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://onesignal.com/api/v1/notifications', $notificationData);
+
+            if ($responseN->successful()) {
+                $notificationId = $responseN->json()['id'];
+                $responseData = $responseN->json();
+            } else {
+                $error = $responseN->json();
+            }
+            
     
             DB::commit();  
     
-            return response()->json(['message' => 'Success', 'data' => $presence, 'user' => $user], 200);
+            return response()->json([
+                'message' => 'Success',
+                'data' => $presence,
+                'user' => $user,
+                'notification_id' => $notificationId ?? null,
+                'notif' => $responseData ?? null,
+            ], 200);
     
         } catch (\Exception $e) {
             DB::rollBack();  
-            // \Log::error($e); 
+            \Log::error($e); 
             return response()->json(['message' => 'Failed: ' . $e->getMessage()], 500);
             
         }
@@ -2057,33 +2126,33 @@ class ApiController extends Controller
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
-        if($request->has('file')){
+    
+        if ($request->has('file')) {
             $file = $request->file('file');
-
-                $originalFilename = $file->getClientOriginalName();
-                $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : '';
-                
-                $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
-                $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
-
-                if (!$storedFilePath) {
-                    throw new \Exception("Error storing the file.");
-                }
+    
+            $originalFilename = $file->getClientOriginalName();
+            $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : '';
+    
+            $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
+            $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
+    
+            if (!$storedFilePath) {
+                throw new \Exception("Error storing the file.");
+            }
         }
-
-        DB::beginTransaction();  
-
+    
+        DB::beginTransaction();
+    
         try {
-            
+    
             $presence = Presence::create([
                 'user_id' => $request->input('user_id'),
                 'category' => 'leave',
-                'entry_time' => '00:00:00',  
-                'exit_time' => '00:00:00',  
+                'entry_time' => '00:00:00',
+                'exit_time' => '00:00:00',
                 'date' => $startDate->toDateString(),
             ]);
-
+    
             $leave = Leave::create([
                 'user_id' => $request->input('user_id'),
                 'leave_detail_id' => $request->input('leave_detail_id'),
@@ -2096,7 +2165,7 @@ class ApiController extends Controller
                 'presence_id' => $presence->id,
                 'entry_date' => $request->input('entry_date'),
             ]);
-            
+    
             if (!$leave->statusCommit()->exists()) {
                 $leave->statusCommit()->create([
                     'approver_id' => null,
@@ -2104,18 +2173,61 @@ class ApiController extends Controller
                     'description' => null,
                 ]);
             }
-
-            DB::commit();  
-            /// bikin notifikasi untuk ht.
-
-            return response()->json(['message' => 'Success', 'data' => $leave]);
-
+    
+            // Mengambil informasi user untuk notifikasi
+            $userName = $user->name ?? '';
+            $userDivision = $user->employee->division_id ?? '';
+    
+            // Membuat pesan notifikasi berdasarkan kategori
+            $notificationMessage = $userName . ' Telah Mengajukan Cuti Pada Tanggal ' . $startDate->format('d F Y');
+    
+            // Mengambil API key dan app ID OneSignal
+            $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
+            $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
+    
+            // Menyiapkan data notifikasi
+            $notificationData = [
+                'app_id' => $appId,
+                'included_segments' => ['All'],
+                'contents' => ['en' => $notificationMessage],
+                'headings' => ['en' => $userName],
+                'data' => [
+                    'user_id' => $userId,
+                    'name' => $userName,
+                    'divisi_id' => $userDivision,
+                ],
+                'vibrate' => [500, 250, 500], 
+            ];
+    
+            // Mengirim notifikasi ke OneSignal
+            $responseN = Http::withHeaders([
+                'Authorization' => 'Basic ' . $onesignalApiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://onesignal.com/api/v1/notifications', $notificationData);
+    
+            if ($responseN->successful()) {
+                $notificationId = $responseN->json()['id'];
+                $responseData = $responseN->json();
+            } else {
+                $error = $responseN->json();
+            }
+    
+            DB::commit();
+    
+            return response()->json([
+                'message' => 'Success',
+                'data' => $leave,
+                'notification_id' => $notificationId ?? null,
+                'notif' => $responseData ?? null,
+            ]);
+    
         } catch (\Exception $e) {
-            DB::rollBack();  
-
+            DB::rollBack();
+            \Log::error($e);
             return response()->json(['message' => 'Failed to create leave: ' . $e->getMessage()], 500);
         }
     }
+    
 
     public function updateLeave(Request $request, $id) {
 
