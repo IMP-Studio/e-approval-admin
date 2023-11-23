@@ -78,11 +78,13 @@ class HomeController extends Controller
                     $query->where('status', 'allowed');
             })->get();
 
-            $workTrip_today = WorkTrip::whereDate('start_date', '<=', $now)
-                ->whereDate('end_date', '>=', $now)
-                ->whereHas('statusCommit', function ($query) {
-                    $query->where('status', 'allowed');
-            })->get();
+            $workTrip_today = WorkTrip::whereHas('presence',
+            function ($query) use ($now) {
+                $query->whereDate('date', $now);
+            })->whereHas('statusCommit', function ($query) {
+                $query->where('status', 'allowed');
+        })->get();
+
 
             $leave_today = Leave::whereDate('start_date', '<=', $now)
                 ->whereDate('end_date', '>=', $now)
@@ -227,31 +229,22 @@ class HomeController extends Controller
             $query->where('status', 'allowed');
         };
 
-        $tele_wfo = StandUp::where(function ($query) use ($today, $allowedStatusCheck) {
+        $tele_wfo_wk = StandUp::where(function ($query) use ($today, $allowedStatusCheck) {
             $query->whereHas('presence', function ($subQuery) use ($today) {
                 $subQuery->whereDate('date', $today)
-                    ->where('category', 'WFO');
+                    ->whereIn('category', ['WFO', 'telework', 'work_trip']);
             });
             $query->orWhereHas('presence', function ($subQuery) use ($today, $allowedStatusCheck) {
                 $subQuery->whereDate('date', $today)
-                    ->where('category', 'telework')
-                    ->whereHas('telework.statusCommit', $allowedStatusCheck);
+                    ->whereIn('category', ['telework', 'work_trip'])
+                    ->whereHas('telework.statusCommit', $allowedStatusCheck)
+                    ->orWhereHas('worktrip.statusCommit', $allowedStatusCheck);
             });
         })->get();
+        
 
-        $workTripData = StandUp::whereHas('presence', function ($query) use ($today) {
-            $query->where('category', 'work_trip');
-        })
-        ->whereHas('presence.worktrip', function ($query) use ($today) {
-            $query->whereDate('start_date', '<=', $today)
-                ->whereDate('end_date', '>=', $today)
-                ->whereHas('statusCommit', function ($query) {
-                    $query->where('status', 'allowed');
-                });
-        })
-        ->get();
 
-        $gabungData = $tele_wfo->concat($workTripData);
+        $gabungData = $tele_wfo_wk;
         $perPage = 5;
         $currentPage = $request->input('page', 1);
 

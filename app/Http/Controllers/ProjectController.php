@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Partner;
 use App\Models\Project;
-use Carbon\Carbon;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,10 +17,32 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        $employee = Employee::findOrFail(2);
         $project = Project::paginate(5);
         $partnerall = Partner::all();
 
+        $contributors = [];
+foreach ($project as $item) {
+    $contributorsInfo = User::whereIn('id', $item->standups()->distinct()->pluck('user_id')->toArray())
+    ->with('employee')
+    ->select('id', 'name')
+    ->get()
+    ->toArray();
+
+// Map the data to include only necessary information
+$contributorsInfo = array_map(function ($contributor) {
+    return [
+        'id' => $contributor['id'],
+        'name' => $contributor['name'],
+        'avatar' => $contributor['employee']['avatar'] ?? null,
+        'gender' => $contributor['employee']['gender'] ?? null,
+    ];
+}, $contributorsInfo);
+
+
+    $contributors[$item->id] = $contributorsInfo;
+}
+
+            //   dd($contributors);
         if ($request->ajax()) {
             $query = $request->input('query');
             $project = Project::where('name', 'LIKE', '%' . $query . '%')->paginate(5);
@@ -75,7 +98,7 @@ class ProjectController extends Controller
             return response($output);
         }
 
-        return view('project.index', compact('project', 'partnerall', 'employee'));
+        return view('project.index', compact('project', 'partnerall', 'contributors'));
     }
 
     /**
@@ -107,7 +130,7 @@ class ProjectController extends Controller
             $user_name = $input['name'];
             return redirect()->route('project')->with(['success' => "$user_name added successfully"]);
         } catch (\Throwable $th) {
-            return redirect()->route('project')->with(['error' => "Failed to add employee"]);
+            return redirect()->route('project')->with(['error' => "Failed to add project"]);
         }
     }
 

@@ -22,7 +22,63 @@
 
         <div class="intro-x dropdown mr-4 sm:mr-6">
             <div class="dropdown-toggle notification notification--bullet cursor-pointer" role="button" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="bell" class="notification__icon dark:text-slate-500"></i> </div>
-
+            <div class="notification-content pt-2 dropdown-menu">
+                <div class="notification-content__box dropdown-content">
+                    <div class="notification-content__title">Notifications</div>
+                    <div class="cursor-pointer relative flex items-center ">
+                        
+                        <div class="overflow-hidden">
+                            <div class="flex items-center">
+                                <a href="javascript:;" class="font-medium truncate mr-5">Mahesa Alfian Dhika</a> 
+                                <div class="text-xs text-slate-400 ml-auto whitespace-nowrap">01:10 PM</div>
+                            </div>
+                            <div class="w-full truncate text-slate-500 mt-0.5">Mahesa Alfian Dhika telah mengajukan Work From Anywhere Pada Tanggal 17 November 2023</div>
+                        </div>
+                    </div>
+                    <div class="cursor-pointer relative flex items-center mt-5">
+                        
+                        <div class="overflow-hidden">
+                            <div class="flex items-center">
+                                <a href="javascript:;" class="font-medium truncate mr-5">Ibrahim Khalish</a> 
+                                <div class="text-xs text-slate-400 ml-auto whitespace-nowrap">06:05 PM</div>
+                            </div>
+                            <div class="w-full truncate text-slate-500 mt-0.5">Ibrahim Khalish telah mengajukan Work From Anywhere Pada Tanggal 17 November 2023</div>
+                        </div>
+                    </div>
+                    <div class="cursor-pointer relative flex items-center mt-5">
+                        
+                        <div class="overflow-hidden">
+                            <div class="flex items-center">
+                                <a href="javascript:;" class="font-medium truncate mr-5">Mukhamad Arrafi</a> 
+                                <div class="text-xs text-slate-400 ml-auto whitespace-nowrap">05:09 AM</div>
+                            </div>
+                            <div class="w-full truncate text-slate-500 mt-0.5">Mukhamad Arrafi telah mengajukan Perjalanan Dinas Pada Tanggal 17 November 2023</div>
+                        </div>
+                    </div>
+                    <div class="cursor-pointer relative flex items-center mt-5">
+                        
+                        <div class="overflow-hidden">
+                            <div class="flex items-center">
+                                <a href="javascript:;" class="font-medium truncate mr-5">Fathir Akmal Burhanudin</a> 
+                                <div class="text-xs text-slate-400 ml-auto whitespace-nowrap">05:09 AM</div>
+                            </div>
+                            <div class="w-full truncate text-slate-500 mt-0.5">Fathir Akmal Burhanudin telah mengajukan Perjalanan Dinas Pada Tanggal 17 November 2023</div>
+                        </div>
+                    </div>
+                    <div class="cursor-pointer relative flex items-center mt-5">
+                        
+                        <div class="overflow-hidden">
+                            <div class="flex items-center">
+                                <a href="javascript:;" class="font-medium truncate mr-5">Mahesa Alfian Dhika</a> 
+                                <div class="text-xs text-slate-400 ml-auto whitespace-nowrap">01:10 PM</div>
+                            </div>
+                            <div class="w-full truncate text-slate-500 mt-0.5">Mahesa Alfian Dhika telah mengajukan Cuti Darurat Pada Tanggal 16 November 2023</div>
+                        </div>
+                    </div>
+                    <hr class="mt-2" style="border-top: solid 2px #64748b">
+                    <a class="flex items-center mt-1 py-2 hover:bg-white/5 font-medium" href="{{ route('notification')}}"><i data-lucide="info" class="w-4 h-4 mr-2"></i>Show All</a>
+                </div>
+            </div>
         </div>
 
         <div class="intro-x dropdown w-8 h-8">
