@@ -20,8 +20,9 @@
                                 <i data-lucide="user" class="report-box__icon text-pending"></i>
                             </div>
                             <div class="text-3xl font-medium leading-8 mt-6">
+                                {{ $adminCount }}
                             </div>
-                            <div class="text-base text-slate-500 mt-1">1 Admin</div>
+                            <div class="text-base text-slate-500 mt-1">Admin</div>
                         </div>
                     </div>
                 </div>
@@ -33,8 +34,9 @@
                                 <i data-lucide="user" class="report-box__icon text-cyan-300"></i>
                             </div>
                             <div class="text-3xl font-medium leading-8 mt-6">
+                                {{ $htCount }}
                             </div>
-                            <div class="text-base text-slate-500 mt-1">3 HT</div>
+                            <div class="text-base text-slate-500 mt-1">HT</div>
                         </div>
                     </div>
                 </div>
@@ -46,8 +48,9 @@
                                 <i data-lucide="user" class="report-box__icon text-pink-500"></i>
                             </div>
                             <div class="text-3xl font-medium leading-8 mt-6">
+                                {{ $hrCount }}
                             </div>
-                            <div class="text-base text-slate-500 mt-1">2 HR</div>
+                            <div class="text-base text-slate-500 mt-1">HR</div>
                         </div>
                     </div>
                 </div>
@@ -58,8 +61,8 @@
                             <div class="flex">
                                 <i data-lucide="user" class="report-box__icon text-primary"></i>
                             </div>
-                            <div class="text-3xl font-medium leading-8 mt-6"></div>
-                            <div class="text-base text-slate-500 mt-1">8 Employee</div>
+                            <div class="text-3xl font-medium leading-8 mt-6">{{ $ordinaryEmployeeCount }}</div>
+                            <div class="text-base text-slate-500 mt-1">Employee</div>
                         </div>
                     </div>
                 </div>
@@ -118,14 +121,23 @@
                             </div>
                         </div>
 
-                        @foreach ($permissions->groupBy('group') as $group => $groupPermissions)
+                        @php
+                        $sortedGroups = $permissions->groupBy('group')->sortByDesc(function($groupPermissions) {
+                            return count($groupPermissions);
+                        });
+                        @endphp
+
+                        @foreach ($sortedGroups as $group => $groupPermissions)
                             <div class="col-span-12 sm:col-span-6 xl:col-span-4 intro-y mb-4">
                                 <form action="">
                                     @csrf
                                     <div class="report-box zoom-in">
                                         <div class="box p-5">
                                             <div class="font-medium leading-8">{{ $group }}</div>
-                                            @foreach ($groupPermissions as $key => $permission)
+                                            @php
+                                            $sortedPermissions = $groupPermissions->sortBy('id');
+                                            @endphp
+                                            @foreach ($sortedPermissions as $key => $permission)
                                                 <div class="form-check mt-2">
                                                     <input id="checkbox-{{ $permission->name }}" class="form-check-input permission-checkbox" type="checkbox" value="{{ $permission->id }}" data-employee-id="{{ $employee->id }}" data-employee-name="{{ $employee->name }}" {{ in_array($permission->name, $hasPermissions) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="checkbox-{{ $permission->id }}">{{ $permission->name }}</label>
@@ -153,49 +165,8 @@ jQuery(document).ready(function($) {
             var isSecondForeachVisible = !$('#permission-employee-container').hasClass('hidden');
             $('#select-user-message').toggleClass('hidden', isSecondForeachVisible);
         }
-    function getUserPermissions(userId, employeePermissions, selectedRole) {
-        console.log('Fetching permissions for user ID:', userId);
-        $.ajax({
-            url: `/permission/user/${userId}/permissions`,
-            type: 'GET',
-            success: function(response) {
-                console.log('Permissions for user:', response);
 
-                // Uncheck all checkboxes
-                $('.permission-checkbox').prop('checked', false);
-
-                // Check the checkboxes corresponding to the user's permissions
-                response.forEach(function(permissionName) {
-                    console.log('Checking checkbox for permission:', permissionName);
-                    $('#checkbox-' + permissionName).prop('checked', true);
-                });
-
-                // initializeCheckboxStates(employeePermissions);
-
-                // Check if all checkboxes are checked
-                var allChecked = true;
-                $('.permission-checkbox[data-employee-id="' + userId + '"]').each(function() {
-                    if (!$(this).prop('checked')) {
-                        allChecked = false;
-                        return false; // Break the loop
-                    }
-                });
-
-                console.log('All checkboxes checked:', allChecked);
-                $('#all-permissions-checkbox').prop('checked', allChecked);
-            },
-            error: function(error) {
-                console.error('Error fetching permissions:', error);
-            }
-        });
-    }
-    
-    // Handle click event on employee items
-    $(document).on('click', '.employee-item', function() {
-        var userId = $(this).data('employee-id');
-        console.log('User clicked. ID:', userId);
-        var employeePermissions = $(this).data('employee-permissions');
-        console.log('Data in data-employee-permissions:', employeePermissions);
+    function getUpdatedSelectRole() {
         var permissions = [];
                 $('[id^="checkbox-"]:checked').each(function() {
                     permissions.push($(this).val());
@@ -225,13 +196,78 @@ jQuery(document).ready(function($) {
                 // Update the role select
                 roleSelect.val(selectedRole);
 
-                console.log('role select: ', selectedRole)
+    }
+    function getUserPermissions(userId, employeePermissions, selectedRole) {
+        console.log('Fetching permissions for user ID:', userId);
+        $.ajax({
+            url: `/permission/user/${userId}/permissions`,
+            type: 'GET',
+            success: function(response) {
+                console.log('Permissions for user:', response);
+
+                // Uncheck all checkboxes
+                $('.permission-checkbox').prop('checked', false);
+
+                // Check the checkboxes corresponding to the user's permissions
+                response.forEach(function(permissionName) {
+                    console.log('Checking checkbox for permission:', permissionName);
+                    $('#checkbox-' + permissionName).prop('checked', true);
+                });
+
+                // initializeCheckboxStates(employeePermissions);
+                getUpdatedSelectRole(response);
+
+                // Check if all checkboxes are checked
+                var allChecked = true;
+                $('.permission-checkbox[data-employee-id="' + userId + '"]').each(function() {
+                    if (!$(this).prop('checked')) {
+                        allChecked = false;
+                        return false; // Break the loop
+                    }
+                });
+
+                var selectedRole = $('#role-select').val();
+
+                $('.permission-checkbox').each(function() {
+                    var permissionId = parseInt($(this).val());
+                    var isHR = selectedRole === 'hr';
+                    var isHT = selectedRole === 'ht';
+
+                    if ((isHR && (permissionId === 39 || permissionId === 43)) ||
+                        (isHT && (permissionId === 38 || permissionId === 42))) {
+                        $(this).prop('disabled', true);
+                    } else {
+                        $(this).prop('disabled', false);
+                    }
+                });
+
+                console.log('All checkboxes checked:', allChecked);
+                $('#all-permissions-checkbox').prop('checked', allChecked);
+            },
+            error: function(error) {
+                console.error('Error fetching permissions:', error);
+            }
+        });
+    }
+    
+    // Handle click event on employee items
+    $(document).on('click', '.employee-item', function() {
+        var userId = $(this).data('employee-id');
+        console.log('User clicked. ID:', userId);
+        var employeePermissions = $(this).data('employee-permissions');
+        console.log('Data in data-employee-permissions:', employeePermissions);
+        var permissions = [];
+                $('[id^="checkbox-"]:checked').each(function() {
+                    permissions.push($(this).val());
+                });
 
 
         // Add the employee's permissions to the permissions array
         $('[id^="checkbox-"]:checked').each(function() {
             employeePermissions.push($(this).val());
         });
+
+        getUpdatedSelectRole(permissions);
         
         // Get the employee's name
         var employeeName = $(this).find('.employee-text').text();
@@ -310,8 +346,25 @@ jQuery(document).ready(function($) {
                 }
             });
 
-            // Add an event listener for the change event on #role-select dropdown
-            $('#role-select').on('change', function() {
+});
+
+    toggleSelectUserMessage();
+
+    // Handle search input
+    $('#search-input').on('keyup', function() {
+        var query = $(this).val().toLowerCase();
+        $('.employee-item').each(function() {
+            var employeeText = $(this).find('.employee-text').text().toLowerCase();
+            if (employeeText.includes(query)) {
+                $(this).removeClass('hidden');
+            } else {
+                $(this).addClass('hidden');
+            }
+        });
+    });
+
+    // Add an event listener for the change event on #role-select dropdown
+    $('#role-select').on('change', function() {
                 var selectedRole = $(this).val(); // Get the selected role
 
                 // Define a mapping of roles to permission IDs
@@ -351,8 +404,8 @@ jQuery(document).ready(function($) {
                 updatePermissions(userId, selectedPermissions, names, selectedRole);
             }); 
 
-                // Handle updating user permissions on checkbox change
-            $('[id^="checkbox-"]').on('change', function() {
+        // Handle updating user permissions on checkbox change
+        $('[id^="checkbox-"]').on('change', function() {
                 // Collect all checked permissions and their IDs
                 var permissions = [];
                 $('[id^="checkbox-"]:checked').each(function() {
@@ -405,22 +458,6 @@ jQuery(document).ready(function($) {
                 updatePermissions(userId, permissions, names);
             });
 
-});
-
-    toggleSelectUserMessage();
-
-    // Handle search input
-    $('#search-input').on('keyup', function() {
-        var query = $(this).val().toLowerCase();
-        $('.employee-item').each(function() {
-            var employeeText = $(this).find('.employee-text').text().toLowerCase();
-            if (employeeText.includes(query)) {
-                $(this).removeClass('hidden');
-            } else {
-                $(this).addClass('hidden');
-            }
-        });
-    });
 
         // Function to update user permissions based on multiple checkbox change
         function updatePermissions(userId, permissions, names, selectedRole) {
