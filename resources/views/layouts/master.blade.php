@@ -74,6 +74,17 @@
                 padding-bottom: 100px !important;
             }
         </style>
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script>
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(async function(OneSignal) {
+                await OneSignal.init({
+                    appId: "d0249df4-3456-48a0-a492-9c5a7f6a875e",
+                    serviceWorkerParam: { scope: "/dist/js/onesignal/" },
+                    serviceWorkerPath: "/dist/js/onesignal/OneSignalSDKWorker.js",
+                });
+            });
+        </script>
 
         @stack('css')
 
