@@ -83,6 +83,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             'F' => 28,
             'G' => 28,
             'H' => 28,
+            'I' => 28,
         ];
     }
 
@@ -90,16 +91,84 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
     {
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
+
+        $blankRow = $lastRow + 1;
+    
+        $sheet->getStyle('A2:' . $lastColumn . '2')->applyFromArray([
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8EAADB'], 
+            ],
+            'font' => [
+                'color' => ['rgb' => 'FFFFFF'], 
+            ],
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+    
+
+        $sheet->getStyle('A3:' . $lastColumn . '3')->applyFromArray([
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8EAADB'],
+            ],
+            'font' => [
+                'color' => ['rgb' => 'FFFFFF'], 
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'], 
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('A1:' . $lastColumn . $lastRow)->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('A' . $blankRow . ':' . $lastColumn . $blankRow)->applyFromArray([
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '8EAADB'], 
+            ],
+            'font' => [
+                'color' => ['rgb' => 'FFFFFF'], 
+            ],
+            'borders' => [
+                'outline' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'], 
+                ],
+            ],
+        ]);
+    
         for ($col = 'C'; $col <= $lastColumn; $col++) {
             $sheet->getStyle($col)->getAlignment()->setVertical('center');
             $sheet->getStyle($col)->getAlignment()->setIndent(1);
         }
+
+        $sheet->getParent()->getActiveSheet()->getSheetView()->setZoomScale(85);
+    
         return [
             2 => [
-                'font' => ['size' => 13,'bold' => true],
+                'font' => ['size' => 13, 'bold' => true],
             ],
             3 => [
-                'font' => ['size' => 12,'bold' => true],
+                'font' => ['size' => 12, 'bold' => true],
             ],
             'B3:B' . $lastRow => [
                 'alignment' => [
@@ -115,8 +184,12 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             ],
             'H' => [
                 'alignment' => ['wrapText' => true],
+            ],
+            'I' => [
+                'alignment' => ['wrapText' => true],
             ]
         ];
-    }
+    }    
+
 }
 
