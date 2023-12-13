@@ -430,7 +430,7 @@
 
         projectContributors.forEach(function (contributor) {
         if (contributor.avatar) {
-            var contributorHtml = '<a href="" class="mr-4 cursor-pointer">' +
+            var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
                 '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
                 '<img alt="Midone - HTML Admin Template" class="rounded-full" src="http://127.0.0.1:8000/storage/' + contributor.avatar + '">' +
                 '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
@@ -441,17 +441,17 @@
             $("#contributorsContainer").append(contributorHtml);
         } else {
             if(contributor.gender == 'male'){
-                var contributorHtml = '<a href="" class="mr-4 cursor-pointer">' +
+                var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
                 '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
-                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="public/images/default-boy.jpg">' +
+                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="images/default-boy.jpg">' +
                 '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
                 '</div>' +
                 '<div class="text-xs text-slate-500 truncate text-center">' + contributor.name + '</div>' +
                 '</a>';
             }else{
-                var contributorHtml = '<a href="" class="mr-4 cursor-pointer">' +
+                var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
                 '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
-                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="public/images/default-girl.jpg">' +
+                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="images/default-women.jpg">' +
                 '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
                 '</div>' +
                 '<div class="text-xs text-slate-500 truncate text-center">' + contributor.name + '</div>' +
