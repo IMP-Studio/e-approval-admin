@@ -98,6 +98,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
     {
         $lastColumn = $sheet->getHighestColumn();
         $lastRow = $sheet->getHighestRow();
+
         for ($col = 'C'; $col <= $lastColumn; $col++) {
             $sheet->getStyle($col)->getAlignment()->setVertical('center');
             $sheet->getStyle($col)->getAlignment()->setIndent(1);
@@ -312,10 +313,10 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
         
         return [
             2 => [
-                'font' => ['size' => 13,'bold' => true],
+                'font' => ['size' => 13, 'bold' => true],
             ],
             3 => [
-                'font' => ['size' => 12,'bold' => true],
+                'font' => ['size' => 12, 'bold' => true],
             ],
             'B3:B' . $lastRow => [
                 'alignment' => [
@@ -347,8 +348,12 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             ],
             'H' => [
                 'alignment' => ['wrapText' => true],
+            ],
+            'I' => [
+                'alignment' => ['wrapText' => true],
             ]
         ];
-    }
+    }    
+
 }
 

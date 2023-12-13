@@ -34,6 +34,26 @@ class PermissionController extends Controller
      */
     public function index(Request $request)
 {
+    $adminCount = User::whereHas('roles', function ($query) {
+        $query->where('name', 'super-admin');
+    })->count();
+
+    $hrCount = User::whereHas('permissions', function ($query) {
+        $query->whereIn('id', [38, 42]);
+    })->count();
+
+    $htCount = User::whereHas('permissions', function ($query) {
+        $query->whereIn('id', [39, 43]);
+    })->count();
+
+    $ordinaryEmployeeCount = User::whereHas('roles', function ($query) {
+            $query->where('name', 'employee')
+                ->whereNotIn('id', function ($subQuery) {
+                    $subQuery->select('model_id')
+                        ->from('model_has_permissions');
+                });
+        })->count();
+
     $employees = User::whereHas('roles', function ($query) {
             $query->where('name', 'employee');
         })
@@ -50,11 +70,10 @@ class PermissionController extends Controller
     $loggedInUser = auth()->user();
 
     if ($loggedInUser) {
-        // Assuming userHasPermissions is a method in UserRepository
         $hasPermissions = $loggedInUser->permissions()->pluck('name')->toArray();
     }
 
-    return view('permission.index', compact('employees', 'permissions', 'roleName', 'roleSelected', 'hasPermissions', ));
+    return view('permission.index', compact('employees', 'permissions', 'roleName', 'roleSelected', 'hasPermissions', 'adminCount', 'hrCount', 'htCount', 'ordinaryEmployeeCount'));
 }
 
 

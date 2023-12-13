@@ -1,25 +1,25 @@
 <?php
+// DivisionExport.php
 
 namespace App\Exports;
 
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Models\Division;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\FromView;
-use Illuminate\Contracts\View\View;
 
-
-class DivisionExport implements FromView
+class DivisionExport implements WithMultipleSheets
 {
-    /**
-    * @return \Illuminate\Support\Collection
-    */
-    public function collection()
-    {
-        return Division::all();
-    }
+    use Exportable;
 
-    public function view(): View
+    public function sheets(): array
     {
-        return view('divisi.export-excel',['division' => Division::all()]);
+        // Fetch all divisions
+        $divisions = Division::all();
+
+        // Pass all divisions to a single instance of DivisionSheet
+        $sheet = new DivisionSheet($divisions);
+
+        return [$sheet];
     }
 }
