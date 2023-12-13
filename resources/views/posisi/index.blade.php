@@ -75,7 +75,7 @@
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
                                         @can('edit_positions')
-                                            <a class="flex items-center text-warning mr-3 edit-modal-search-class" data-Positionid="{{ $item->id }}" data-PositionName="{{ $item->name }}" data-DivisionId="{{ $item->division_id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-position-search">
+                                            <a class="flex items-center text-success mr-3 edit-modal-search-class" data-Positionid="{{ $item->id }}" data-PositionName="{{ $item->name }}" data-DivisionId="{{ $item->division_id }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-position-search">
                                                 <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                             </a>
                                         @endcan
