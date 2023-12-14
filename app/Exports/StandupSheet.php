@@ -91,6 +91,10 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             'B' => 5,
             'F' => 22,
             'G' => 8,
+            'H' => 38,
+            'I' => 38,
+            'J' => 38,
+            'K' => 38,
         ];
     }
 
@@ -298,19 +302,17 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             ],
         ]);
 
-            $sheet->getColumnDimension('D')->setAutoSize(true);
+        $sheet->getStyle('G5:G' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+        ]);
 
-            $sheet->getColumnDimension('E')->setAutoSize(true);
+        $sheet->getColumnDimension('D')->setAutoSize(true);
 
-            $sheet->getColumnDimension('H')->setAutoSize(true);
+        $sheet->getColumnDimension('E')->setAutoSize(true);
 
-            $sheet->getColumnDimension('I')->setAutoSize(true);
-
-            $sheet->getColumnDimension('J')->setAutoSize(true);
-
-            $sheet->getColumnDimension('K')->setAutoSize(true);
-
-        
         return [
             2 => [
                 'font' => ['size' => 13, 'bold' => true],
@@ -351,6 +353,12 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             ],
             'I' => [
                 'alignment' => ['wrapText' => true],
+            ],
+            'J' => [
+                'alignment' => ['wrapText' => true],
+            ],
+            'K' => [
+                  'alignment' => ['wrapText' => true],
             ]
         ];
     }    
