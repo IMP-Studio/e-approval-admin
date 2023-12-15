@@ -184,11 +184,31 @@ class EmployeeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
+
+    public function getDataPosition(Request $request)
+    {
+        $divisionId = $request->input('division_id');
+        $positionId = $request->input('position_id');
+        $positions = Position::where('division_id', $divisionId)->get();
+
+        // {{ $positions->id == $positionId ? 'selected' : '' }}
+    
+        // Kembalikan data posisi dalam bentuk HTML
+        $options = '';
+        foreach ($positions as $position) {
+            $selected = ($position->id == $positionId) ? 'selected' : '';
+            $options .= '<option value="' . $position->id . '" ' . $selected . '>' . $position->name . '</option>';
+        }
+    
+        return response()->json(['options' => $options]);
+    }
+
     public function edit(string $id)
     {
         $employee = Employee::findOrFail($id);
-        $position = Position::all();
-        return view('employee.edit',compact('employee','position'));
+        $division = Division::all();
+        $position = Position::where('division_id',$employee->division_id)->get();
+        return view('employee.edit',compact('employee','position', 'division'));
     }
 
     public function update(Request $request, $id)
