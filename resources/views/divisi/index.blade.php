@@ -178,7 +178,7 @@
                 </div>
                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 </div>
-                <table id="table" class="table table-report -mt-2">
+                <table id="table" class="table table-striped">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
