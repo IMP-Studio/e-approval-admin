@@ -1,74 +1,48 @@
-FROM php:8.1-alpine AS deps
+FROM php:8.1-alpine as deps
 
+RUN apt-get update && apt-get install -y libzip-dev libpng-dev zlib1g-dev libwebp-dev
+
+# install composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+# RUN php -r "if (hash_file('sha384', 'composer-setup.php') === #'55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae') { echo 'Installer #verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+
 RUN php composer-setup.php
 RUN php -r "unlink('composer-setup.php');"
 RUN mv composer.phar /usr/local/bin/composer
 
+RUN apt-get install -y nano curl build-essential libssl-dev zlib1g-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev libicu-dev && apt-get update && apt-get clean
+
+# install php dependencies
+RUN pecl install redis
+RUN docker-php-ext-install bcmath mysqli gettext gd zip pdo pdo_mysql
+RUN docker-php-ext-enable redis
+RUN docker-php-ext-configure gd --with-webp
+
 WORKDIR /app
+
 COPY composer.json composer.lock ./
+
 RUN composer install
 
-FROM php:8.1-alpine
-
-RUN apk update && \
-    apk add --no-cache \
-        libzip \
-        libpng \
-        zlib \
-        libwebp \
-        nano \
-        curl \
-        build-base \
-        libssl1.1 \
-        zlib \
-        libpng \
-        libjpeg-turbo \
-        freetype \
-        libzip \
-        icu-dev \
-    && apk del build-base \
-    && rm -rf /var/cache/apk/*
-
-# Copy only necessary files from the composer stage
-COPY --from=composer /app/vendor /var/www/html/app/vendor
+FROM php:8.1-apache-buster
+COPY --from=deps /app/vendor /var/www/html/app/vendor
 COPY . /var/www/html/app
 
-# Install PHP extensions
-RUN docker-php-ext-install bcmath mysqli gettext gd zip pdo pdo_mysql && \
-    pecl install redis && \
-    docker-php-ext-enable redis && \
-    docker-php-ext-configure gd --with-webp
-
-# Set working directory
-WORKDIR /var/www/html/app
-
-# Optimize autoloader
-RUN composer dump-autoload --optimize --classmap-authoritative
-
-# Cleanup unnecessary files
-RUN rm -rf /var/www/html/app/vendor/composer /var/www/html/app/composer.json /var/www/html/app/composer.lock
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html/app
-
-# Enable Apache rewrite module
 RUN a2enmod rewrite
 
-# Copy Apache vhost configuration
+# set vhost
 COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+RUN chown -R www-data:www-data /var/www/html/app
 
-# Copy custom php.ini configuration
-COPY ./docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+# set max upload
+COPY ./docker/php.ini /usr/local/etc/php
 
-# Cleanup unnecessary packages
-RUN apk del libzip-dev libpng-dev zlib1g-dev libwebp-dev libicu-dev
-
-# Remove cached files
-RUN rm -rf /var/cache/apk/*
-
-# Expose port
 EXPOSE 80
 
 # Entrypoint
-CMD ["apache2-foreground"]
+ADD start.sh /start.sh
+RUN chmod 777 /start.sh
+
+ENTRYPOINT ["/start.sh"]
+
+
