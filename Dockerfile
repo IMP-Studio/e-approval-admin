@@ -7,7 +7,7 @@ RUN mv composer.phar /usr/local/bin/composer
 
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-scripts --no-autoloader --no-dev
+RUN composer install
 
 FROM php:8.1-alpine
 
