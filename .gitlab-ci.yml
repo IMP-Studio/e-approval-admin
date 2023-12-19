@@ -1,0 +1,63 @@
+.for_development:
+  environment:
+    name: development
+  variables:
+    DOCKER_IMAGE_TAG: latest
+  only:
+    - develop
+
+.for_production:
+  environment:
+    name: production
+  only:
+    - tags
+
+.build:
+  stage: build
+  image: ${CI_REGISTRY}/pub/docker-images:docker20-stable
+  services:
+    - docker:20-dind
+  script:
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker pull ${CI_REGISTRY_IMAGE}:${DOCKER_IMAGE_TAG} || true
+      .
+    - docker build
+      --cache-from ${CI_REGISTRY_IMAGE}:${DOCKER_IMAGE_TAG}
+      --tag ${CI_REGISTRY_IMAGE}:${DOCKER_IMAGE_TAG}
+      --label org.label-schema.schema-version="1.0"
+      --label org.label-schema.vcs-url="${CI_PROJECT_URL}.git"
+      --label org.label-schema.vcs-ref="${CI_COMMIT_SHA}"
+      .
+    - docker push ${CI_REGISTRY_IMAGE}:${DOCKER_IMAGE_TAG}
+
+.prepare_production:
+  extends: .build
+  stage: build
+  before_script:
+    - DOCKER_IMAGE_TAG=${CI_COMMIT_TAG}
+
+production:publish:
+  extends:
+    - .prepare_production
+    - .for_production
+
+development:publish:
+  extends:
+    - .build
+    - .for_development
+sonarqube-check:
+  image: 
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script: 
+    - sonar-scanner
+  allow_failure: true
+  only:
+    - develop
