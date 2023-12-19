@@ -1,38 +1,53 @@
-FROM php:8.1-apache-buster
+FROM php:8.1-fpm-alpine
+# Install the php extension installer from its image
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+# Install dependencies
+RUN apk add --no-cache \
+    openssl \
+    ca-certificates \
+    libxml2-dev \
+    oniguruma-dev \
+    vim
+# Install php extensions
+RUN install-php-extensions \
+    bcmath \
+    ctype \
+    dom \
+    fileinfo \
+    mbstring \
+    pdo pdo_mysql \
+    tokenizer \
+    pcntl \
+    redis-stable \
+    gd \
+    zip
 
-RUN apt-get update && apt-get install -y libzip-dev libpng-dev zlib1g-dev libwebp-dev
-
-# install composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-
-RUN php composer-setup.php
-RUN php -r "unlink('composer-setup.php');"
-RUN mv composer.phar /usr/local/bin/composer
-
-RUN apt-get install -y nano curl build-essential libssl-dev zlib1g-dev libpng-dev libjpeg-dev libfreetype6-dev libzip-dev libicu-dev && apt-get update && apt-get clean
-
-# install php dependencies
-RUN pecl install redis
-RUN docker-php-ext-install bcmath mysqli gettext gd zip pdo pdo_mysql
-RUN docker-php-ext-enable redis
-RUN docker-php-ext-configure gd --with-webp
-
-WORKDIR /var/www/html/app
-
-COPY . /var/www/html/app
-
+# Install the composer packages using www-data user
+WORKDIR /app
+RUN chown www-data:www-data /app
+COPY --chown=www-data:www-data . .
+COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
+USER www-data
 RUN composer install
 
-RUN a2enmod rewrite
+RUN mkdir -p storage/framework/sessions
+RUN mkdir -p storage/framework/views
+RUN mkdir -p storage/framework/cache
 
-# set vhost
-COPY ./docker/vhost.conf /etc/apache2/sites-available/000-default.conf
-RUN chown -R www-data:www-data /var/www/html/app
+RUN chmod -R 775 storage/framework
+RUN chown -R www-data:www-data storage/framework
 
-# set max upload
-COPY ./docker/php.ini /usr/local/etc/php
+# Setup nginx & supervisor as root user
+USER root
+RUN apk add --no-progress --quiet --no-cache nginx supervisor
+COPY ./docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY ./docker/supervisord.conf /etc/supervisord.conf
 
-ADD start.sh /start.sh
-RUN chmod 777 /start.sh
+# Apply the required changes to run nginx as www-data user
+RUN chown -R www-data:www-data /run/nginx /var/lib/nginx /var/log/nginx && \
+    sed -i '/user nginx;/d' /etc/nginx/nginx.conf
+# Switch to www-user
+USER www-data
 
-ENTRYPOINT ["/start.sh"]
+EXPOSE 8000
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
