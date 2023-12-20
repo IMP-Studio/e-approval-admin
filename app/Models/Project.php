@@ -16,4 +16,9 @@ class Project extends Model
     {
         return $this->belongsTo(Partner::class);
     }
+
+    public function standups()
+    {
+        return $this->hasMany(StandUp::class);
+    }
 }

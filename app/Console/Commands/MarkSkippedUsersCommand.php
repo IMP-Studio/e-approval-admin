@@ -16,9 +16,11 @@ class MarkSkippedUsersCommand extends Command
     public function handle()
     {
         $today = now()->toDateString();
-    
-        $usersWhoHaveNotMarked = DB::table('users')
-            ->leftJoin('presences', function($join) use ($today) {
+        $currentTime = now()->format('H:i');
+
+        if ($currentTime >= '11:00') {
+
+            $usersWhoHaveNotMarked = User::leftJoin('presences', function($join) use ($today) {
                 $join->on('users.id', '=', 'presences.user_id')
                     ->where('presences.date', $today);
             })
@@ -28,20 +30,27 @@ class MarkSkippedUsersCommand extends Command
             })
             ->select('users.id')
             ->get();
-    
-        foreach ($usersWhoHaveNotMarked as $user) {
-            DB::table('presences')->insert([
-                'user_id' => $user->id,
-                'category' => 'skip',
-                'entry_time' => '00:00:00',
-                'exit_time' => '00:00:00',
-                'temporary_entry_time' => '00:00:00',
-                'date' => $today,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            
+
+            foreach ($usersWhoHaveNotMarked as $user) {
+                DB::table('presences')->insert([
+                    'user_id' => $user->id,
+                    'category' => 'skip',
+                    'entry_time' => '00:00:00',
+                    'exit_time' => '00:00:00',
+                    'temporary_entry_time' => '00:00:00',
+                    'date' => $today,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
+
+            $this->info('Marked users who skipped work today. (Menandakan users yang bolos kerja hari ini)');
+            $this->info('Found ' . $usersWhoHaveNotMarked ->count() . ' users to checkout.');
+
+        } else {
+            $this->info('The command is only executable after 11:00.');
         }
-    
-        $this->info('Marked users who skipped work today. (Menandakan users yang bolos kerja hari ini)');
-    }      
+    }
+  
 }

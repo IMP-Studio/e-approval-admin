@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PresenceByRangeExport;
 use App\Exports\PresenceExport;
 use App\Exports\PresenceSheet;
 use App\Models\Leave;
@@ -31,20 +32,27 @@ class PresenceController extends Controller
             $query->where('status', 'allowed');
         };
 
-        $tele_wfo = Presence::whereDate('date', $today)
-            ->whereIn('category', ['WFO', 'telework'])
-            ->where(function ($query) use ($allowedStatusCheck) {
-                $query->where('category', 'WFO')
-                    ->orWhere(function($query) use ($allowedStatusCheck) {
-                        $query->where('category', 'telework')
-                            ->whereHas('telework.statusCommit', $allowedStatusCheck);
-                    });
-            })
-            ->with([
-                'telework.statusCommit' => $allowedStatusCheck,
-            ])
-            ->orderBy('entry_time','asc')
+
+    $tele_wfo_wk = Presence::whereDate('date', $today)
+        ->whereIn('category', ['WFO', 'telework', 'work_trip'])
+        ->where(function ($query) use ($allowedStatusCheck) {
+            $query->where('category', 'WFO')
+                ->orWhere(function ($query) use ($allowedStatusCheck) {
+                    $query->where('category', 'telework')
+                        ->whereHas('telework.statusCommit', $allowedStatusCheck);
+                })
+                ->orWhere(function ($query) use ($allowedStatusCheck) {
+                    $query->where('category', 'work_trip')
+                        ->whereHas('worktrip.statusCommit', $allowedStatusCheck);
+                });
+        })
+        ->with([
+            'telework.statusCommit' => $allowedStatusCheck,
+            'worktrip.statusCommit' => $allowedStatusCheck,
+        ])
+        ->orderBy('entry_time', 'asc')
         ->get();
+
         $leaveData = Leave::whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today)
             ->whereHas('statusCommit', $allowedStatusCheck)
@@ -54,23 +62,9 @@ class PresenceController extends Controller
             ->map(function ($item) {
                 $item->category = 'leave';
                 return $item;
-        });
-
-        $workTripData = WorkTrip::whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
-            ->whereHas('statusCommit', $allowedStatusCheck)
-            ->join('presences', 'work_trips.presence_id', '=', 'presences.id')
-            ->orderBy('presences.entry_time', 'asc')
-            ->get()
-            ->map(function ($item) {
-                $item->category = 'work_trip';
-                return $item;
-        });
-
-
+        });        
         
-        
-        $gabungData = $tele_wfo->concat($leaveData)->concat($workTripData);
+        $gabungData = $tele_wfo_wk->concat($leaveData);
         $perPage = 5;
         $currentPage = $request->input('page', 1);
 
@@ -141,14 +135,11 @@ class PresenceController extends Controller
                     </a>';
                     }
                     elseif ($item->category == 'leave') {
-                        $output .= '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="' . $item->user->employee->avatar . '" data-gender="' . $item->user->employee->gender . '" data-firstname="' . $item->user->employee->first_name . '" data-LastName="' . $item->user->employee->last_name . '" data-stafId="' . $item->user->employee->id_number . '" data-Category="' . ($item->category === 'work_trip' ? 'Work Trip' : $item->category) . '" data-Position="' . $item->user->employee->position->name . '" data-startDate="' . $item->start_date . '" data-endDate="' . $item->end_date . '" data-entryDate="' . $item->entry_date . '" data-typeLeave="' . $item->type . '" data-typeDesc="' . $item->type_description . '" data-submisDate="' . $item->submission_date . '" data-totalDays="' . $item->total_leave_days . '" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                        $output .= '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="' . $item->user->employee->avatar . '" data-gender="' . $item->user->employee->gender . '" data-firstname="' . $item->user->employee->first_name . '" data-LastName="' . $item->user->employee->last_name . '" data-stafId="' . $item->user->employee->id_number . '" data-Category="' . ($item->category === 'work_trip' ? 'Work Trip' : $item->category) . '" data-Position="' . $item->user->employee->position->name . '" data-startDate="' . $item->start_date . '" data-endDate="' . $item->end_date . '" data-entryDate="' . $item->entry_date . '" data-typeLeave="' . $item->leavedetail->typeOfLeave->leave_name . '" data-typeDesc="' . $item->leavedetail->description_leave . '" data-submisDate="' . $item->submission_date . '" data-totalDays="' . $item->total_leave_days . '" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail
                         </a>';
                     }                    
-                    $output .=
-                    '<a data-id="'. $item->id .'" data-name="'. $item->user->employee->first_name.' '.$item->user->employee->last_name .'"  class="flex items-center text-danger delete-modal-search-presence" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search-presence">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="trash-2" data-lucide="trash-2" class="lucide lucide-trash-2 w-4 h-4 mr-1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete
-                    </a>';
+                   
                     '</div>' .
                     '</td>' .
                     '</tr>';
@@ -174,6 +165,16 @@ class PresenceController extends Controller
     public function exportExcel($year)
     {
         return Excel::download(new PresenceExport($year), "Presence $year.xlsx");
+    }
+
+
+    public function exportExcelByRange(Request $request)
+    {
+        
+        $startDate = Carbon::createFromFormat('d M, Y', $request->startDate)->format('Y-m-d');
+        $endDate = Carbon::createFromFormat('d M, Y', $request->endDate)->format('Y-m-d');
+        
+        return Excel::download(new PresenceByRangeExport($startDate, $endDate), "Presence.xlsx");
     }
 
     /**

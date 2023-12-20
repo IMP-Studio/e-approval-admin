@@ -1,10 +1,10 @@
 <?php
 
 use App\Models\Partner;
-use App\Http\Controllers\ApproveController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ApproveController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DivisionController;
@@ -13,6 +13,7 @@ use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PresenceController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\superAdminController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/presence', [PresenceController::class, 'index'])->middleware('permission:view_presences')->name('presence');
     Route::get('/attendance/export/{year}', [PresenceController::class, 'exportExcel'])->name('presence.excel');
+
+    Route::post('/attendance/exportByRange', [PresenceController::class, 'exportExcelByRange'])->name('presence.excelByRange');
 
     Route::prefix('presence')->group(function () {
         Route::delete('/destroy/{id}', [PresenceController::class, 'destroy'])->name('presence.destroy');
@@ -75,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/store', [EmployeeController::class,'store'])->name('employee.store');
         Route::get('/edit/{id}', [EmployeeController::class,'edit'])->name('employee.edit');
         Route::put('/update/{id}', [EmployeeController::class,'update'])->name('employee.update');
+        Route::get('/getPositionEdit', [EmployeeController::class,'getDataPosition'])->name('employee.editGetposition');
         Route::delete('/destroy/{id}', [EmployeeController::class,'destroy'])->name('employee.destroy');
         Route::get('/trash', [EmployeeController::class,'trash'])->name('employee.trash');
         Route::get('/export_excel', [EmployeeController::class,'export_excel'])->name('employee.excel');
@@ -91,7 +95,10 @@ Route::middleware(['auth'])->group(function () {
         });
         
         Route::prefix('permission')->group(function () {
-            Route::get('/', [PermissionController::class,'index'])->name('permission');
+            Route::get('/', [PermissionController::class, 'index'])->name('permission');
+            // Route::get('/set-permission/{modelType}/{modelId}', [PermissionController::class, 'setModelPermission'])->name('permission.set_permission');
+            Route::get('/user/{userId}/permissions', [PermissionController::class, 'getUserPermissions'])->name('permission.user_permissions');
+            Route::post('/user/{userId}/permissions', [PermissionController::class, 'setModelPermissions'])->name('permission.user.set_permissions');
         });
 
     Route::prefix('project')->middleware('permission:view_projects')->group(function () {
@@ -131,6 +138,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/leavehr/reject/LeaveWorkHr/{id}', [ApproveController::class,'rejectLeaveHumanRes'])->name('approvehr.rejectLeaveHr');
     });
 
-
+    Route::prefix('notification')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notification');
+        Route::get('/detail/{id}', [NotificationController::class, 'notificationDetail'])->name('notification.detail');
+    });
 });
 

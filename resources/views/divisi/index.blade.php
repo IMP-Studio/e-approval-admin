@@ -74,7 +74,7 @@
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
                                         @can('edit_divisions')
-                                        <a class="flex items-center text-warning mr-3 edit-modal-divisi-search-class" data-Divisiid="{{ $item->id }}" data-DivisiName="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
+                                        <a class="flex items-center text-success mr-3 edit-modal-divisi-search-class" data-Divisiid="{{ $item->id }}" data-DivisiName="{{ $item->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-divisi-search">
                                             <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Edit
                                         </a>
                                         @endcan
@@ -178,7 +178,7 @@
                 </div>
                 <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                 </div>
-                <table id="table" class="table table-report -mt-2">
+                <table id="table" class="table table-striped">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>

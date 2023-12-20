@@ -9,7 +9,7 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchPartner">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWorktriphr">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
@@ -59,9 +59,6 @@
                                             data-stafId="{{ $item->user->employee->id_number }}"
                                             data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
                                             data-Position="{{ $item->user->employee->position->name }}"
-                                            data-startDate="{{ $item->worktrip->start_date }}"
-                                            data-endDate="{{ $item->worktrip->end_date }}"
-                                            data-enrtyDate="{{ $item->worktrip->entry_date }}"
                                             data-file="{{ $item->worktrip->file }}"
                                             href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-approve-worktrip">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
@@ -184,40 +181,25 @@
                         <label class="text-xs">Category :</label>
                         <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
                     </div>
-                    {{-- if work trip --}}
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">Start Date :</label>
-                        <input disabled id="Show-StartDate-work" type="text" class="form-control" value="">
-                    </div>
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">End Date :</label>
-                        <input disabled id="Show-EndDate-work" type="text" class="form-control" value="">
-                    </div>
-                    <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">Entry Date :</label>
-                        <input disabled id="Show-EntryDate-work" type="text" class="form-control" value="">
-                    </div>
-                    @if ($item->worktrip->file != null)
-                        <div class="col-span-12 sm:col-span-6">
-                            <div class="flex items-center p-5 form-control">
-                                <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
-                                <div class="ml-4">
-                                    <p id="filename" class="font-medium"></p> 
-                                    <div id="file-size" class="text-slate-500 text-xs mt-0.5"></div>
-                                </div>
-                                <div class="dropdown ml-auto">
-                                    <a class="dropdown-toggle w-5 h-5 block" href="javascript:;" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal" class="w-5 h-5 text-slate-500"></i> </a>
-                                    <div class="dropdown-menu w-40">
-                                        <ul class="dropdown-content">
-                                            <li>
-                                                <a id="put-href-file" href="" class="dropdown-item "> <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download </a>
-                                            </li>
-                                        </ul>
-                                    </div>
+                    <div class="col-span-12 sm:col-span-6" id="detail-file">
+                        <div class="flex items-center p-5 form-control">
+                            <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
+                            <div class="ml-4">
+                                <p id="filename" class="font-medium"></p> 
+                                <div id="file-size" class="text-slate-500 text-xs mt-0.5"></div>
+                            </div>
+                            <div class="dropdown ml-auto">
+                                <a class="dropdown-toggle w-5 h-5 block" href="javascript:;" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal" class="w-5 h-5 text-slate-500"></i> </a>
+                                <div class="dropdown-menu w-40">
+                                    <ul class="dropdown-content">
+                                        <li>
+                                            <a id="put-href-file" href="" class="dropdown-item "> <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download </a>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    </div>
                 </div>
             </div>
         </div>
@@ -225,6 +207,22 @@
     {{-- detail modal attendance search work_trip end--}}
 
     <script type="text/javascript">
+        // search
+        jQuery(document).ready(function($) {
+            $('#searchWorktriphr').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('approvehr.worktripHr') }}',
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
+                        $('tbody').html(data);
+                    }
+                });
+            });
+        });
         
          // detail work trip modal
          $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
@@ -235,15 +233,13 @@
             var ShowStafId = $(this).attr('data-stafId');
             var ShowPosisi = $(this).attr('data-Position');
             var ShowCategory = $(this).attr('data-Category');
-            var ShowStartDate = $(this).attr('data-startDate');
-            var ShowEndDate = $(this).attr('data-endDate');
-            var ShowEntryDate = $(this).attr('data-enrtyDate');
 
             var fileUrl = $(this).attr('data-file');
             var fileName = fileUrl.split('/').pop();
            
             if (fileUrl) {
                 var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
+                
                 $("#put-href-file").attr('href', fileInput);
                 $("#filename").text(fileName);
 
@@ -278,10 +274,7 @@
             $("#Show-LastName-work").attr('value', ShowLastName);
             $("#Show-StafId-work").attr('value', ShowStafId);
             $("#Show-Posisi-work").attr('value', ShowPosisi);
-            $("#Show-Category-work").attr('value', ShowCategory);
-            $("#Show-StartDate-work").attr('value', ShowStartDate);
-            $("#Show-EndDate-work").attr('value', ShowEndDate);
-            $("#Show-EntryDate-work").attr('value', ShowEntryDate);
+            $("#Show-Category-work").attr('value', ShowCategory);x  
         });
 
         $(document).on("click", ".approve_wk_Ht", function() {

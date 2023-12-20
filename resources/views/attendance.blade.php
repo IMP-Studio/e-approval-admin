@@ -15,6 +15,9 @@
                 <div class="dropdown-menu w-40 items-end">
                     <ul class="dropdown-content">
                         <li>
+                            <a class="dropdown-item ExcelByRange" href="javascript:;" data-tw-toggle="modal" data-tw-target="#rangeDateModal"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Range Date </a>
+                        </li>
+                        <li>
                             <a href="{{ route('presence.excel',['year' => $today->year]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Excel {{ $today->year }} </a>
                         </li>
                         <li>
@@ -40,7 +43,7 @@
                         <th class="whitespace-nowrap">No</th>
                         <th class="text-center whitespace-nowrap">Image</th>
                         <th class="text-center whitespace-nowrap">Username</th>
-                        <th class="text-center whitespace-nowrap">Position</th>
+                        <th class="text-center whitespace-nowrap">Entry time</th>
                         <th class="text-center whitespace-nowrap">Jenis Kehadiran</th>
                         <th class="text-center whitespace-nowrap">Actions</th>
                     </tr>
@@ -118,15 +121,11 @@
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @elseif ($item->category == 'leave')
-                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->type }}" data-typeDesc="{{ $item->type_description }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->leavedetail->typeOfLeave->leave_name }}" data-typeDesc="{{ $item->leavedetail->description_leave }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @endif
                 
-                                {{-- berfungsi --}}
-                                {{-- <a data-id="{{ $item->id }}" data-name="{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}"  class="flex items-center text-danger delete-modal-search-presence" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search-presence">
-                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
-                                </a> --}}
                             </div>
                         </td>
                     </tr>
@@ -148,6 +147,46 @@
         </div>
     </div>
 </div>
+
+{{-- date range modal  --}}
+<div id="rangeDateModal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ route("presence.excelByRange") }}" id="exportExcelByRangeID">
+                @csrf
+                @method('POST')
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="calendar" class="w-16 h-16 text-success mx-auto mt-3"></i>
+                        <div class="text-xl mt-2 mb-2">Date range</div>
+                        {{-- <div class="text-slate-500 mt-2 mb-2" id="subjuduldelete-confirmation">
+                            Please input date range
+                        </div> --}}
+                        <div class="relative w-56 mx-auto">
+                            <div
+                                class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
+                                <i data-lucide="calendar" class="w-4 h-4"></i> </div> <input name="startDate" type="text"
+                                class="datepicker form-control pl-12 startdateinput" data-single-mode="true">
+                        </div>
+                        <div class="relative w-56 mx-auto">
+                            <div
+                                class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
+                                <i data-lucide="calendar" class="w-4 h-4"></i> </div> <input name="endDate" type="text"
+                                class="datepicker form-control pl-12 enddateinput" data-single-mode="true">
+                        </div>
+                        {{-- <input type="text" data-daterange="true" class="datepicker form-control w-56 block mx-auto" value="">  --}}
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal"
+                            class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-success w-24">Export</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{{-- date range modal  end --}}
 
 {{-- delete modal live search --}}
 <div id="delete-confirmation-modal-search-presence" class="modal" tabindex="-1" aria-hidden="true">
@@ -307,19 +346,6 @@
                     <label class="text-xs">Category :</label>
                     <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
                 </div>
-                {{-- if work trip --}}
-                <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">Start Date :</label>
-                    <input disabled id="Show-StartDate-work" type="text" class="form-control" value="">
-                </div>
-                <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">End Date :</label>
-                    <input disabled id="Show-EndDate-work" type="text" class="form-control" value="">
-                </div>
-                <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">Entry Date :</label>
-                    <input disabled id="Show-EntryDate-work" type="text" class="form-control" value="">
-                </div>
             </div>
         </div>
     </div>
@@ -365,10 +391,6 @@
                     <input disabled id="Show-TypeLeave-leave" type="text" class="form-control capitalize" value="">
                 </div>
                 <div class="col-span-12 sm:col-span-6">
-                    <label class="text-xs">Type Description :</label>
-                    <input disabled id="Show-TypeDesc-leave" type="text" class="form-control" value="">
-                </div>
-                <div class="col-span-12 sm:col-span-6">
                     <label class="text-xs">Submission Date :</label>
                     <input disabled id="Show-SubmissDesch-leave" type="text" class="form-control" value="">
                 </div>
@@ -387,6 +409,10 @@
                 <div class="col-span-12 sm:col-span-6">
                     <label class="text-xs">Entry Date :</label>
                     <input disabled id="Show-EntryDate-leave" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-12">
+                    <label class="text-xs">Type Description :</label>
+                    <textarea disabled id="Show-TypeDesc-leave" type="text" class="form-control" ></textarea>
                 </div>
             </div>
         </div>
@@ -408,6 +434,8 @@
                 });
             });
     });
+
+
 
     $(document).on("click", ".delete-modal-search-presence", function () {
         var DeleteModalid = $(this).attr('data-id');
@@ -437,7 +465,7 @@
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
@@ -473,7 +501,7 @@
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
@@ -506,15 +534,12 @@
         var ShowStafId = $(this).attr('data-stafId');
         var ShowPosisi = $(this).attr('data-Position');
         var ShowCategory = $(this).attr('data-Category');
-        var ShowStartDate = $(this).attr('data-startDate');
-        var ShowEndDate = $(this).attr('data-endDate');
-        var ShowEntryDate = $(this).attr('data-enrtyDate');
 
 
         console.log(ShowFirstname);
         var imgSrc;
         if(showAvatar){
-            imgSrc = '{{ asset('storage/'.$item->user->employee->avatar) }}';
+            imgSrc = '{{ asset('storage/') }}/' + showAvatar;
         }else if(ShowGender == 'male'){
             imgSrc = '{{ asset('images/default-boy.jpg') }}';
         }else if(ShowGender == 'female'){
@@ -572,7 +597,7 @@
         $("#Show-EndDate-leave").attr('value', ShowEndDate);
         $("#Show-EntryDate-leave").attr('value', ShowEntryDate);
         $("#Show-TypeLeave-leave").attr('value', ShowtypeLeave);
-        $("#Show-TypeDesc-leave").attr('value', ShowTypeDesc);
+        $("#Show-TypeDesc-leave").text(ShowTypeDesc);
         $("#Show-SubmissDesch-leave").attr('value', ShowSubmisDate);
         $("#Show-TotalDesch-leave").attr('value', ShowTotalDays + ' Days');
     });

@@ -91,17 +91,11 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
-                $start_date = $presenceDate->addDays(2)->toDateString();
-                $end_date = $presenceDate->addDays(random_int(1,3))->toDateString();
-                $entry_date = $presenceDate->addDays(random_int(1,2))->toDateString();
 
                 $workTrip = WorkTrip::create([
                     'user_id' => $users_id,
                     'presence_id' => $presenceId,
                     'file' => 'contoh_file',
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'entry_date' => $entry_date,
                     'face_point' => $faker->text(100),
                 ]);
 
@@ -237,17 +231,11 @@ class PresenceSeeder extends Seeder
                     'status' => $status,
                 ]);
             } elseif ($category === 'work_trip') {
-                $start_date = Carbon::now();
-                $end_date = $date->addDays(random_int(1, 3))->toDateString();
-                $entry_date = $date->addDays(random_int(1, 2))->toDateString();
 
                 $workTrip = WorkTrip::create([
                     'user_id' => $user_id,
                     'presence_id' => $presenceId,
                     'file' => 'contoh_file',
-                    'start_date' => $start_date,
-                    'end_date' => $end_date,
-                    'entry_date' => $entry_date,
                     'face_point' => $faker->text(100),
                 ]);
 

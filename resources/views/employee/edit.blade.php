@@ -88,7 +88,7 @@
                             </div>
                         </div>
                         <div class="col-span-12 xl:col-span-6">
-                            <div>
+                            <div class="mt-3">
                                 <label for="crud-form-6" class="form-label">Gender :</label>
                                 <div class="flex flex-col sm:flex-row mt-1">
                                     <div class="form-check mr-2">
@@ -103,10 +103,17 @@
                             </div>
                             <div class="mt-3">
                                 <label for="crud-form-5" class="form-label">Divisi :</label>
-                                <select name="position" data-placeholder="Select your favorite actors" class="tom-select w-full capitalize" id="crud-form-5">
+                                <select name="position" data-placeholder="Select your favorite actors" data-positionId="{{ $employee->position_id }}" class="tom-select w-full capitalize" id="inputDivisiEmploye">
+                                    @foreach ($division as $item)
+                                        <option value="{{ $item->id }}" {{ $employee->division_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mt-3">
+                                <label for="crud-form-5" class="form-label">Position :</label>
+                                <select name="position" data-placeholder="Select your favorite actors" class="form-select w-full" id="inputPositionEmploye">
                                     @foreach ($position as $item)
-                                        <option value="{{ $employee->position_id }}" selected>{{ $employee->position->name }}</option>
-                                        <option value="{{ $item->id }}">{{ $item->name }}</option>
+                                        <option value="{{ $item->id }}" {{ $employee->position_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -136,6 +143,32 @@
 
 @push('js')
     <script>
+    jQuery(document).ready(function($) {
+       $('#inputDivisiEmploye').change(function () {
+        var selectedDivisionId = $(this).val();
+        var positionid = $(this).attr('data-positionId');
+
+        $.ajax({
+            url: '/employee/getPositionEdit',
+            method: 'GET',
+            data: { 
+                division_id: selectedDivisionId, 
+                position_id: positionid 
+            },
+            dataType: 'json',
+            success: function (data) {
+                console.log(data);
+                var positionSelect = $('#inputPositionEmploye');
+                    positionSelect.empty();
+                $('#inputPositionEmploye').html(data.options);
+            },
+            error: function (error) {
+                console.log(error);
+            }
+        });
+    });
+    });
+
 
     function previewImage(event) {
         let input = event.target;

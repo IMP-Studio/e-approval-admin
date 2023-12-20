@@ -9,7 +9,7 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchPartner">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchLeaveHt">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
@@ -64,6 +64,7 @@
                                             data-startDate="{{ $item->leave->start_date }}" 
                                             data-endDate="{{ $item->leave->end_date }}"
                                             data-entryDate="{{ $item->leave->entry_date }}" 
+                                            data-file="{{ $item->leave->file }}" 
                                             data-typeLeave="{{ $item->leave->leavedetail->description_leave }}"
                                             data-typeDesc="{{ $item->leave->leavedetail->typeofleave->leave_name }}"
                                             data-submisDate="{{ $item->leave->submission_date }}"
@@ -222,6 +223,25 @@
                         <label class="text-xs">Entry Date :</label>
                         <input disabled id="Show-EntryDate-leave" type="text" class="form-control" value="">
                     </div>
+                    <div id="detaildiv-file" class="col-span-12 sm:col-span-6" hidden>
+                        <div class="flex items-center p-5 form-control">
+                            <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
+                            <div class="ml-4">
+                                <p id="filename" class="font-medium"></p> 
+                                <div id="file-size" class="text-slate-500 text-xs mt-0.5"></div>
+                            </div>
+                            <div class="dropdown ml-auto">
+                                <a class="dropdown-toggle w-5 h-5 block" href="javascript:;" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal" class="w-5 h-5 text-slate-500"></i> </a>
+                                <div class="dropdown-menu w-40">
+                                    <ul class="dropdown-content">
+                                        <li>
+                                            <a id="put-href-file" href="" class="dropdown-item "> <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download </a>
+                                        </li>
+                                     </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -229,6 +249,23 @@
     {{-- detail modal attendance search leave end --}}
 
     <script type="text/javascript">
+        // search
+        jQuery(document).ready(function($) {
+            $('#searchLeaveHt').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('approveht.leaveHt') }}',
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
+                        $('tbody').html(data);
+                    }
+                });
+            });
+        });
+
         $(document).on("click", ".approve_leave_Ht", function() {
             var ApproveWkModalid = $(this).attr('data-leaveHtid');
             var ApproveWkModalMessage = $(this).attr('data-messageLeaveHt');
@@ -259,6 +296,31 @@
             var ShowSubmisDate = $(this).attr('data-submisDate');
             var ShowTotalDays = $(this).attr('data-totalDays');
 
+            var fileUrl = $(this).attr('data-file');
+            var fileName = fileUrl.split('/').pop();
+           
+            if (fileUrl && fileUrl.trim() !== '') {
+                $('#detaildiv-file').removeAttr('hidden');
+                var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
+                console.log(fileInput);
+
+                $("#put-href-file").attr('href', fileInput);
+                $("#filename").text(fileName);
+
+                jQuery(document).ready(function($) {
+                $.ajax({
+                    type: "HEAD",
+                    url: fileInput,
+                    success: function (message, text, jqXhr) {
+                        var fileSize = jqXhr.getResponseHeader('Content-Length');
+                        var fileSizeKB = (fileSize / 1024).toFixed(2) + ' KB';
+                        $("#file-size").text(fileSizeKB);
+                    },
+                });
+            })
+            }else{
+                $('#detaildiv-file').attr('hidden', 'hidden');
+            }
 
             console.log(ShowFirstname);
             var imgSrc;

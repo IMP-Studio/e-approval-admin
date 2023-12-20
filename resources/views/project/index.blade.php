@@ -96,7 +96,7 @@
                                             </a>
                                         @endcan
 
-                                        <a data-projectnameD="{{ $item->name }}" data-partnerNameD="{{ $item->partner->name }}" data-startdateD="{{ $item->start_date }}" data-enddateD="{{ $item->end_date }}"
+                                        <a data-projectid="{{ $item->id }}"  data-projectnameD="{{ $item->name }}" data-partnerNameD="{{ $item->partner->name }}" data-startdateD="{{ $item->start_date }}" data-enddateD="{{ $item->end_date }}"
                                             class="mr-3 flex items-center text-warning detail-project-modal-search"
                                             href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#detail-project-modal">
@@ -168,10 +168,10 @@
                     @csrf
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
-                            <label for="modal-form-1" class="form-label">Nama Project</label>
+                            <label for="modal-form-1" class="form-label">Choose Partner</label>
                             <select name="partner_id" class="tom-select w-full" id="">
                                 @foreach ($partnerall as $item)
-                                    <option value="0" selected disabled>Choose Division</option>
+                                    <option value="0" selected disabled>Choose Partner</option>
                                     <option value="{{ $item->id }}">{{ $item->name }}</option>
                                 @endforeach
                             </select>
@@ -220,11 +220,11 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-lg mx-auto" id="show-detailName">Detail Partner</h2>
+                    <h2 class="font-medium text-lg mx-auto" id="show-detailName">Detail Project</h2>
                 </div>
                 <div class="modal-body grid grid-cols-1 gap-4 gap-y-3">
                     <div class="">
-                        <label class="form-label">name :</label>
+                        <label class="form-label">Name :</label>
                         <input disabled id="show-projectname" type="text" class="form-control" value="">
                     </div>
 
@@ -242,6 +242,24 @@
                         <label class="form-label">End date :</label>
                         <input disabled id="show-enddate" type="text" class="form-control" value="">
                     </div>
+
+                        <div class="">
+                            <label class="form-label">Contributors :</label>
+                            <div class="pr-1">
+                                <div class="box px-5 pt-5 pb-5" style="background-color: rgba(27, 37, 59, 0.5);">
+                                    <div class="overflow-x-auto scrollbar-hidden">
+                                        <div class="flex flex-wrap" id="contributorsContainer">
+
+                                          
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    
+                    
                 </div>
             </div>
         </div>
@@ -391,18 +409,66 @@
         })
 
          // detail
-         $(document).on("click", ".detail-project-modal-search", function() {
-            var projectnameD = $(this).attr('data-projectnameD');
-            var partnerNameD = $(this).attr('data-partnerNameD');
-            var startdateD = $(this).attr('data-startdateD');
-            var enddateD = $(this).attr('data-enddateD');
+         var contributorsData = @json($contributors);
+
+    $(document).on("click", ".detail-project-modal-search", function () {
+        var projectnameD = $(this).attr('data-projectnameD');
+        var partnerNameD = $(this).attr('data-partnerNameD');
+        var startdateD = $(this).attr('data-startdateD');
+        var enddateD = $(this).attr('data-enddateD');
+
+        // Extract projectId using data attribute
+        var projectId = $(this).data('projectid');
+
+        var projectContributors = contributorsData[projectId] || [];
+
+        var contributorsContainer = document.getElementById("contributorsContainer");
+        if (contributorsContainer) {
+            contributorsContainer.innerHTML = '';
+        }
 
 
+        projectContributors.forEach(function (contributor) {
+        if (contributor.avatar) {
+            var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
+                '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
+                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="http://127.0.0.1:8000/storage/' + contributor.avatar + '">' +
+                '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
+                '</div>' +
+                '<div class="text-xs text-slate-500 truncate text-center">' + contributor.name + '</div>' +
+                '</a>';
 
-            $("#show-projectname").attr('value', projectnameD);
-            $("#show-partnername").attr('value', partnerNameD);
-            $("#show-startdate").attr('value', startdateD);
-            $("#show-enddate").attr('value', enddateD);
+            $("#contributorsContainer").append(contributorHtml);
+        } else {
+            if(contributor.gender == 'male'){
+                var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
+                '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
+                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="images/default-boy.jpg">' +
+                '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
+                '</div>' +
+                '<div class="text-xs text-slate-500 truncate text-center">' + contributor.name + '</div>' +
+                '</a>';
+            }else{
+                var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
+                '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
+                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="images/default-women.jpg">' +
+                '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
+                '</div>' +
+                '<div class="text-xs text-slate-500 truncate text-center">' + contributor.name + '</div>' +
+                '</a>';
+            }
+
+            $("#contributorsContainer").append(contributorHtml);
+        }
+
+
         });
+
+        $("#show-projectname").attr('value', projectnameD);
+        $("#show-partnername").attr('value', partnerNameD);
+        $("#show-startdate").attr('value', startdateD);
+        $("#show-enddate").attr('value', enddateD);
+    });
+    
     </script>
 @endsection

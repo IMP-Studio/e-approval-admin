@@ -10,7 +10,7 @@
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
                         <input type="text" class="form-control w-56 box pr-10" placeholder="Search..."
-                            id="searchPartner">
+                            id="searchTeleworkhr">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
@@ -211,6 +211,23 @@
     {{-- detail modal attendance search TeleWork end--}}
 
     <script type="text/javascript">
+        // search
+        jQuery(document).ready(function($) {
+            $('#searchTeleworkhr').on('keyup', function() {
+                var query = $(this).val();
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('approvehr.teleworkHr') }}',
+                    data: {
+                        query: query
+                    },
+                    success: function(data) {
+                        $('tbody').html(data);
+                    }
+                });
+            });
+        });
+
         $(document).on("click", ".approve_tele_Hr", function() {
             var ApproveTeleModalid = $(this).attr('data-teleHrid');
             var ApproveTeleModalMessage = $(this).attr('data-messageTeleHr');
