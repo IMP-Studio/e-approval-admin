@@ -126,7 +126,7 @@
                                             <a class="flex items-center text-warning delete-button mr-3 show-modal-search" data-email="{{ $item->user->email }}" data-name="{{ $item->user->name }}" data-avatar="{{ $item->avatar }}" data-gender="{{ $item->gender }}" data-firstname="{{ $item->first_name }}" data-LastName="{{ $item->last_name }}" data-stafId="{{ $item->id_number }}" data-Divisi="{{ $item->division->name }}" data-Posisi="{{ $item->position->name }}" data-Address="{{ $item->address }}" data-BirthDate="{{ $item->birth_date }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">
                                                 <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Show
                                             </a>
-                                            
+
                                             @can('delete_employees')
                                             <a class="flex items-center text-danger delete-modal-search" data-id="{{ $item->id  }}" data-name="{{ $item->first_name }} {{ $item->last_name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
                                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Delete
@@ -157,9 +157,11 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Broadcast Message</h2> <button
-                        class="btn btn-outline-secondary hidden sm:flex"> <i data-lucide="file" class="w-4 h-4 mr-2"></i>
-                        Download Docs </button>
+                    <h2 class="font-medium text-base mr-auto">Import Data Employee</h2>
+                    <a class="btn btn-outline-secondary hidden sm:flex" href="{{ route('employee.downloadTemplate') }}">
+                        <i data-lucide="file" class="w-4 h-4 mr-2"></i>
+                        Download Template
+                    </a>
                     <div class="dropdown sm:hidden"> <a class="dropdown-toggle w-5 h-5 block" href="javascript:;"
                             aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal"
                                 class="w-5 h-5 text-slate-500"></i> </a>
@@ -176,8 +178,7 @@
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
                             <label for="modal-form-1" class="form-label">File Import</label>
-                            <input id="modal-form-1" name="import_file" type="file" class="form-control"
-                                placeholder="example@gmail.com">
+                            <input id="modal-form-1" name="import_file" type="file" class="form-control">
                         </div>
                     </div>
                     <div class="modal-footer">
