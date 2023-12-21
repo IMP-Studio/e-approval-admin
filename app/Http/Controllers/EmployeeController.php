@@ -33,20 +33,20 @@ class EmployeeController extends Controller
     public function index(Request $request)
     {
         $query = $request->input('query');
-      
+
         if ($request->ajax()) {
             $employee = Employee::where('first_name','LIKE', '%' . $query . '%')->paginate(5);
 
             $output = '';
             $iteration = 0;
-            
+
             foreach ($employee as $item) {
                 $iteration++;
                 $output .= '<tr class="intro-x h-16" id="data-search">
                     <td class="w-4 text-center">' . $iteration . '.</td>
                     <td class="flex justify-center align-center">
                         <div class="w-12 h-12 image-fit zoom-in">';
-            
+
                 if ($item->avatar) {
                     $output .= '<img data-action="zoom" class="tooltip rounded-full" src="' . asset('storage/' . $item->avatar) . '" title="Uploaded at ' . ($item->updated_at ? $item->updated_at->format('d M Y') : '?') . '">';
                 } elseif ($item->gender == 'male') {
@@ -54,7 +54,7 @@ class EmployeeController extends Controller
                 } elseif ($item->gender == 'female') {
                     $output .= '<img data-action="zoom" class="tooltip rounded-full" src="' . asset('images/default-women.jpg') . '" title="Uploaded at ' . ($item->updated_at ? $item->updated_at->format('d M Y') : '?') . '">';
                 }
-            
+
                 $output .= '</div>
                     </td>
                     <td class="w-50 text-center">' . $item->user->name . '</td>
@@ -62,7 +62,7 @@ class EmployeeController extends Controller
                     <td class="text-center capitalize">' . ($item->position ? $item->position->name : '-') . '</td>
                     <td class="w-40">
                         <div class="flex items-center justify-center">';
-            
+
                 if ($item->gender === 'male') {
                     $output .= '<div class="text-success flex">
                         <i data-lucide="user" class="w-4 h-4 mr-2"></i> ' . $item->gender . '
@@ -72,7 +72,7 @@ class EmployeeController extends Controller
                         <i data-lucide="user" class="w-4 h-4 mr-2"></i> ' . $item->gender . '
                     </div>';
                 }
-            
+
                 $output .= '</div>
                     </td>
                     <td class="table-report__action w-56">
@@ -95,11 +95,11 @@ class EmployeeController extends Controller
                                 '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete '.
                             '</a>';
                         }
-                        $output .= '</div>';   
+                        $output .= '</div>';
                     '</td>'.
                '</tr>';
             }
-            
+
             return response($output);
 
         }else {
@@ -107,7 +107,7 @@ class EmployeeController extends Controller
             return view('employee.index',compact('employee'));
         }
 
-        
+
     }
 
     public function create()
@@ -124,8 +124,8 @@ class EmployeeController extends Controller
     {
         try {
             $input = $request->all();
-            
-            
+
+
             if ($request->hasFile('avatar')) {
                 $image = $request->file('avatar');
                 $destinationPath = 'storage/';
@@ -136,7 +136,7 @@ class EmployeeController extends Controller
                 // Jika input 'avatar' tidak diisi, atur nilai 'avatar' menjadi null atau sesuai kebijakan Anda.
                 $input['avatar'] = null;
             }
-            
+
             $birthDate = Carbon::createFromFormat('d M, Y', $input['birth_date'])->format('Y-m-d');
             $user = User::create([
                 'name' => $input['first_name'] . ' ' . $input['last_name'],
@@ -145,7 +145,7 @@ class EmployeeController extends Controller
             ]);
 
             $user->givePermissionTo('can_access_mobile');
-            
+
 
             Employee::create([
                 'user_id' => $user->id,
@@ -163,7 +163,7 @@ class EmployeeController extends Controller
 
             $user->assignRole('employee');
 
-            
+
             $user_name = $user->firstname;
             return redirect()->route('employee')->with(['success' => "$user_name added successfully"]);
         } catch (\Throwable $th) {
@@ -192,14 +192,14 @@ class EmployeeController extends Controller
         $positions = Position::where('division_id', $divisionId)->get();
 
         // {{ $positions->id == $positionId ? 'selected' : '' }}
-    
+
         // Kembalikan data posisi dalam bentuk HTML
         $options = '';
         foreach ($positions as $position) {
             $selected = ($position->id == $positionId) ? 'selected' : '';
             $options .= '<option value="' . $position->id . '" ' . $selected . '>' . $position->name . '</option>';
         }
-    
+
         return response()->json(['options' => $options]);
     }
 
@@ -259,12 +259,12 @@ class EmployeeController extends Controller
     {
         try {
             $employee = Employee::findOrFail($id);
-            
+
             $user = User::where('id', $employee->user_id)->first();
             $inputName= $request->input('validNameEmployee');
-            
+
             $employee_name = $user->name;
-            
+
             if ($user && $inputName === $user->name) {
                 if ($employee->avatar) {
                     $imagePath = public_path('storage/') . $employee->avatar;
@@ -306,23 +306,38 @@ class EmployeeController extends Controller
     	return $pdf->download('Data-Employee.pdf');
     }
 
-    public function import_excel(Request $request)
+    public function downloadTemplate()
     {
-        $this->validate($request, [
-            'import_file' => 'required|mimes:csv,xls,xlsx'
-        ]);
+        $file_path = public_path("import/Template-Employee.xlsx");
 
-        $file = $request->file('import_file');
-
-        $nama_file = rand().$file->getClientOriginalName();
-
-        $file->move('export',$nama_file);
-
-        Excel::import(new EmployeeImport, public_path('export/'.$nama_file));
-        // Excel::import(new EmployeeImport,$request->file('import_file')->store('export'));
-
-        return redirect('/employee');
+        if (file_exists($file_path)) {
+            return response()->download($file_path);
+        } else {
+            return redirect('/employee')->with('error', 'File not found.');
+        }
     }
+
+    public function importExcel(Request $request)
+    {
+        try {
+            $this->validate($request, [
+                'import_file' => 'required|mimes:csv,xls,xlsx'
+            ]);
+
+            $file = $request->file('import_file');
+
+            $nama_file = rand() . $file->getClientOriginalName();
+
+            $file->move('storage/export', $nama_file);
+
+            Excel::import(new EmployeeImport, public_path('storage/export/' . $nama_file));
+
+            return redirect('/employee')->with('success', 'Data imported successfully');
+        } catch (\Throwable $th) {
+            return redirect('/employee')->with('error', 'Make sure there is no duplicate data');
+        }
+    }
+
     public function getPositions($divisionId)
     {
         $positions = Position::where('division_id', $divisionId)->get();
