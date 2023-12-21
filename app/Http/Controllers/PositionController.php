@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\PositionImport;
 use App\Models\Division;
 use App\Models\Employee;
 use Carbon\Carbon;
 use App\Models\Position;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PositionController extends Controller
 {
@@ -30,7 +32,7 @@ class PositionController extends Controller
                 $item->jumlah_pegawai = $jumlah_pegawai;
             }
 
-            
+
             $output = '';
             $iteration = 0;
             $divisi = Division::all();
@@ -59,7 +61,7 @@ class PositionController extends Controller
                                                 '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete'.
                                           '</a>';
                                 }
-                            $output .= '</div>';   
+                            $output .= '</div>';
                         '</td>'.
                     '</tr>';
                 }
@@ -73,9 +75,9 @@ class PositionController extends Controller
 
     public function detailPosition(Request $request)
     {
-        $perPage = 5; 
+        $perPage = 5;
         $positions = Employee::where('position_id', $request->id)->with('division')->paginate($perPage);
-    
+
         return response()->json(['positionData' => $positions]);
     }
     /**
@@ -162,6 +164,38 @@ class PositionController extends Controller
         } catch (\Throwable $th) {
             return redirect()->back()->with(['error' => "Failed to delete position"]);
             //throw $th;
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        $file_path = public_path("import/Template-Position.xlsx");
+
+        if (file_exists($file_path)) {
+            return response()->download($file_path);
+        } else {
+            return redirect('/position')->with('error', 'File not found.');
+        }
+    }
+
+    public function importExcel(Request $request)
+    {
+        try {
+            $this->validate($request, [
+                'import_file' => 'required|mimes:csv,xls,xlsx'
+            ]);
+
+            $file = $request->file('import_file');
+
+            $nama_file = rand() . $file->getClientOriginalName();
+
+            $file->move('storage/export', $nama_file);
+
+            Excel::import(new PositionImport, public_path('storage/export/' . $nama_file));
+
+            return redirect('/position')->with('success', 'Data imported successfully');
+        } catch (\Throwable $th) {
+            return redirect('/position')->with('error', 'Make sure there is no duplicate data');
         }
     }
 }
