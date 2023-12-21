@@ -22,42 +22,42 @@ public function detailDivisi(Request $request)
      {
          $divisionId = $request->id;
          $perPage = 5; // Number of items per page
-     
+
          // Get the requested page from the AJAX request
          $page = $request->input('page', 1);
-     
+
          $positions = Position::where('division_id', $divisionId)->paginate($perPage, ['*'], 'page', $page);
-     
+
          $positionData = [];
-     
+
          foreach ($positions as $position) {
              $jumlah_pegawai = Employee::where('position_id', $position->id)->count();
-     
+
              // Menambahkan data posisi dan jumlah pegawai ke dalam array
              $positionData[] = [
                  'position' => $position,
                  'positionCount' => $jumlah_pegawai,
              ];
          }
-     
+
          return response()->json([
              'positionData' => $positionData,
              'currentPage' => $positions->currentPage(),
              'lastPage' => $positions->lastPage(),
          ]);
      }
-    
+
 
 
     public function index(Request $request)
     {
         $divisi = Division::paginate(5);
-        
+
         foreach ($divisi as $item) {
             $jumlah_posisi = Position::where('division_id', $item->id)->count();
             $item->jumlah_posisi = $jumlah_posisi;
         }
-        
+
         if ($request->ajax()) {
             $query = $request->input('query');
             $divisi = Division::where('name', 'LIKE', '%' . $query . '%')->paginate(5);
@@ -84,18 +84,18 @@ public function detailDivisi(Request $request)
                         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit'.
                     '</a>';
                     }
-                    
+
                     $output .= '<a data-divisionId="'. $item->id .'" class="mr-3 flex items-center text-warning detail-division-modal-search" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-division-modal">'.
                         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail'.
                     '</a>';
-                    
+
                     if (auth()->user()->can('delete_divisions')) {
                     $output .= '<a class="flex items-center text-danger delete-divisi-modal-search" data-DeleteDivisiId="'. $item->id .'" data-DeleteDivisiName="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">'.
                         '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete'.
                     '</a>';
                     }
-                    
-                    $output .= '</div>';                    
+
+                    $output .= '</div>';
                 '</td>'.
             '</tr>';
         }
@@ -183,7 +183,7 @@ public function detailDivisi(Request $request)
                 $posisiItem->delete();
             }
 
-         if($inputName === $divisi->name){            
+         if($inputName === $divisi->name){
              $nama_divisi = $divisi->division;
              $divisi->delete();
              return redirect()->back()->with(['delete' => "$nama_divisi deleted successfully"]);
@@ -204,21 +204,36 @@ public function detailDivisi(Request $request)
 
     }
 
-    public function import_excel(Request $request)
+    public function downloadTemplate()
     {
-        $this->validate($request, [
-            'import_file' => 'required|mimes:csv,xls,xlsx'
-        ]);
+        $file_path = public_path("import/Template-Division.xlsx");
 
-        $file = $request->file('import_file');
+        if (file_exists($file_path)) {
+            return response()->download($file_path);
+        } else {
+            return redirect('/division')->with('error', 'File not found.');
+        }
+    }
 
-        $nama_file = $file->getClientOriginalName();
+    public function importExcel(Request $request)
+    {
+        try {
+            $this->validate($request, [
+                'import_file' => 'required|mimes:csv,xls,xlsx'
+            ]);
 
-        $file->move('export',$nama_file);
+            $file = $request->file('import_file');
 
-        Excel::import(new DivisionImport, public_path('export/'.$nama_file));
+            $nama_file = rand() . $file->getClientOriginalName();
 
-        return redirect('/divisi');
+            $file->move('storage/export', $nama_file);
+
+            Excel::import(new DivisionImport, public_path('storage/export/' . $nama_file));
+
+            return redirect('/division')->with('success', 'Data imported successfully');
+        } catch (\Throwable $th) {
+            return redirect('/division')->with('error', 'Make sure there is no duplicate data');
+        }
     }
 
     public function search(Request $request)
