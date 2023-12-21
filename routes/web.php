@@ -60,7 +60,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/update/{id}', [DivisionController::class, 'update'])->name('divisi.update');
         Route::delete('/destroy/{id}', [DivisionController::class, 'destroy'])->name('divisi.destroy');
         Route::get('/export_excel', [DivisionController::class,'export_excel'])->name('division.excel');
-        Route::post('/import', [DivisionController::class,'import_excel'])->name('division.import');
+        Route::get('/template_excel', [DivisionController::class,'downloadTemplate'])->name('division.downloadTemplate');
+        Route::post('/import_excel', [DivisionController::class,'importExcel'])->name('division.import');
         Route::get('/detail/{id}', [DivisionController::class,'detailDivisi'])->name('division.detail');
     });
 
@@ -70,6 +71,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/update/{id}', [PositionController::class, 'update'])->name('position.update');
         Route::delete('/destroy/{id}', [PositionController::class, 'destroy'])->name('position.destroy');
         Route::get('/detail/{id}', [PositionController::class,'detailPosition'])->name('position.detail');
+        Route::get('/template_excel', [PositionController::class,'downloadTemplate'])->name('position.downloadTemplate');
+        Route::post('/import_excel', [PositionController::class,'importExcel'])->name('position.import');
     });
 
     Route::prefix('employee')->middleware('permission:view_employees')->group(function () {
@@ -83,8 +86,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/trash', [EmployeeController::class,'trash'])->name('employee.trash');
         Route::get('/export_excel', [EmployeeController::class,'export_excel'])->name('employee.excel');
         Route::get('/export_pdf', [EmployeeController::class,'export_pdf'])->name('employee.pdf');
-        Route::post('/import_excel', [EmployeeController::class,'import_excel'])->name('employee.import');
-        Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);    });
+        Route::get('/template_excel', [EmployeeController::class,'downloadTemplate'])->name('employee.downloadTemplate');
+        Route::post('/import_excel', [EmployeeController::class,'importExcel'])->name('employee.import');
+        Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);
+    });
 
         Route::prefix('partner')->middleware('permission:view_partners')->group(function () {
             Route::get('/', [PartnerController::class,'index'])->name('partner');
@@ -93,7 +98,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
             Route::get('/detail/{id}', [PartnerController::class,'detailpartner'])->name('partner.detail');
         });
-        
+
         Route::prefix('permission')->group(function () {
             Route::get('/', [PermissionController::class, 'index'])->name('permission');
             // Route::get('/set-permission/{modelType}/{modelId}', [PermissionController::class, 'setModelPermission'])->name('permission.set_permission');
@@ -128,11 +133,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/worktriphr', [ApproveController::class,'workTripHumanRes'])->name('approvehr.worktripHr');
         Route::post('/worktriphr/approveWorktripHr/{id}', [ApproveController::class,'approveWkHumanRes'])->name('approvehr.approvedWorkTripHr');
         Route::put('/worktriphr/rejectWorkTripHr/{id}', [ApproveController::class,'rejectWkHumanRes'])->name('approvehr.rejectWorokTripHr');
-    
+
         Route::get('/teleworkhr', [ApproveController::class,'teleworkHumanRes'])->name('approvehr.teleworkHr');
         Route::put('/teleworkhr/approve/TeleWorkHr/{id}', [ApproveController::class,'approveTeleHumanRes'])->name('approvehr.approvedTeleHr');
         Route::put('/teleworkhr/reject/TeleWorkHr/{id}', [ApproveController::class,'rejectTeleHumanRes'])->name('approvehr.rejectTeleHr');
-    
+
         Route::get('/leavehr', [ApproveController::class,'leaveHumanRes'])->name('approvehr.leaveHr');
         Route::put('/leavehr/approve/LeaveWorkHr/{id}', [ApproveController::class,'approveLeaveHumanRes'])->name('approvehr.approvedLeaveHr');
         Route::put('/leavehr/reject/LeaveWorkHr/{id}', [ApproveController::class,'rejectLeaveHumanRes'])->name('approvehr.rejectLeaveHr');
