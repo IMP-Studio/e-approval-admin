@@ -2,33 +2,21 @@
 
 namespace App\Exports;
 
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Models\Employee;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Events\BeforeSheet;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use Maatwebsite\Excel\Concerns\WithDrawings;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\WithCustomStartCell;
-use Illuminate\Contracts\View\View;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Worksheet\setSize;
-use PhpOffice\PhpSpreadsheet\Style\Padding;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class EmployeeExport implements FromView
+class EmployeeExport implements WithMultipleSheets
 {
-    private $iteration = 0;
-    /**
-    * @return \Illuminate\Support\Collection
-    */
+    use Exportable;
 
-    public function view(): View
+    public function sheets(): array
     {
-        return view('employee.export-excel',['employee' => Employee::all()]);
+        $employees = Employee::with('user.standups')->get();
+
+        $employeeSheet = new EmployeeSheet($employees);
+
+        return [$employeeSheet];
     }
 }
