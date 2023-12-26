@@ -90,9 +90,30 @@ class DivisionSheet implements FromCollection, WithTitle, WithHeadings, WithMapp
 
     public function headings(): array
     {
+        $monthNamesMapping = [
+            'January' => 'JANUARI',
+            'February' => 'FEBRUARI',
+            'March' => 'MARET',
+            'April' => 'APRIL',
+            'May' => 'MEI',
+            'June' => 'JUNI',
+            'July' => 'JULI',
+            'August' => 'AGUSTUS',
+            'September' => 'SEPTEMBER',
+            'October' => 'OKTOBER',
+            'November' => 'NOVEMBER',
+            'December' => 'DESEMBER',
+        ];
+
+        $formattedDate = strtoupper(now()->format('d F Y'));
+
+        foreach ($monthNamesMapping as $englishMonth => $indonesianMonth) {
+            $formattedDate = str_replace(' ' . strtoupper($englishMonth) . ' ', ' ' . $indonesianMonth . ' ', $formattedDate);
+        }
+        
         return [
             ['REKAP PEGAWAI'],
-            ['30 DESEMBER 2023'],
+            [$formattedDate],
             [
                 'NO',
                 'Nama Divisi',
