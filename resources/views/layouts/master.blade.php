@@ -19,6 +19,11 @@
  
          <!-- Include Toastr CSS -->
          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+         <!-- Add DataTables CDN -->
+         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+         <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
         <style>
             /* width */
             ::-webkit-scrollbar {
