@@ -42,7 +42,9 @@ USER root
 RUN apk add --no-progress --quiet --no-cache nginx supervisor
 COPY ./docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY ./docker/supervisord.conf /etc/supervisord.conf
-COPY ./docker/php.ini  /usr/local/etc/php.ini
+COPY ./docker/php.ini  /usr/local/etc/php/php.ini-production 
+COPY ./docker/php.ini  /usr/local/etc/php/php.ini-development
+
 
 # Apply the required changes to run nginx as www-data user
 RUN chown -R www-data:www-data /run/nginx /var/lib/nginx /var/log/nginx && \
