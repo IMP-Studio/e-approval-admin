@@ -47,7 +47,7 @@ class PresenceRekapByRangeSheet implements WithTitle, WithHeadings,  WithStyles,
         $startDate = Carbon::parse($this->startDate);
         $endDate = Carbon::parse($this->endDate);
 
-        $dateRange = $startDate->format('d F') . ' - ' . $endDate->format('d F Y');
+        $dateRange = $startDate->format('d F Y') . ' - ' . $endDate->format('d F Y');
 
         return [
             ["REKAP ABSENSI ".$dateRange],
