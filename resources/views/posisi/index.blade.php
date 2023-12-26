@@ -27,10 +27,6 @@
                                             class="w-4 h-4 mr-2"></i> Export to Excel </a>
                                 </li>
                             @endcan
-                            <li>
-                                <a href="" class="dropdown-item"> <i data-lucide="file-text"
-                                        class="w-4 h-4 mr-2"></i> Export to PDF </a>
-                            </li>
                             @can('import_positions')
                                 <li>
                                         <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
