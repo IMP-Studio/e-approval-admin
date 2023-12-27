@@ -31,6 +31,7 @@ class EmployeeSheet implements FromArray, WithHeadings, WithStyles, WithCustomSt
 
     public function array(): array
     {
+        Carbon::setLocale('id');
         $data = [];
         foreach ($this->employees as $key => $employee) {
             $user = $employee->user;
@@ -84,7 +85,7 @@ class EmployeeSheet implements FromArray, WithHeadings, WithStyles, WithCustomSt
             ->count();
             
             $birthDate = \Carbon\Carbon::parse($employee->birth_date);
-            $monthName = $this->getMonthNameIndonesia($birthDate->month);
+            // $monthName = $this->getMonthNameIndonesia($birthDate->month);
 
             $presenceStatus = '';
             if ($todayPresence || $sick > 0) {
@@ -152,7 +153,7 @@ class EmployeeSheet implements FromArray, WithHeadings, WithStyles, WithCustomSt
                 'Nama Lengkap' => $user->name,
                 'Divisi' => $employee->division->name,
                 'Posisi' => $employee->position->name,
-                'Tanggal Lahir' => $birthDate->format('d') . ' ' . $monthName . ' ' . $birthDate->format('Y'),
+                'Tanggal Lahir' => ucfirst(Carbon::parse($birthDate)->isoFormat('DD MMMM YYYY')),
                 'Role' => $this->determineRole($employee),
                 'L / P' => ($employee->gender == 'male') ? 'L' : 'P',
                 'Hadir' => $hadirStatus ? '✓' : 0,
@@ -175,26 +176,10 @@ class EmployeeSheet implements FromArray, WithHeadings, WithStyles, WithCustomSt
 
     public function headings(): array
     {
-        $monthNamesMapping = [
-            'January' => 'JANUARI',
-            'February' => 'FEBRUARI',
-            'March' => 'MARET',
-            'April' => 'APRIL',
-            'May' => 'MEI',
-            'June' => 'JUNI',
-            'July' => 'JULI',
-            'August' => 'AGUSTUS',
-            'September' => 'SEPTEMBER',
-            'October' => 'OKTOBER',
-            'November' => 'NOVEMBER',
-            'December' => 'DESEMBER',
-        ];
+        Carbon::setLocale('id');
 
-        $formattedDate = strtoupper(now()->format('d F Y'));
-
-        foreach ($monthNamesMapping as $englishMonth => $indonesianMonth) {
-            $formattedDate = str_replace(' ' . strtoupper($englishMonth) . ' ', ' ' . $indonesianMonth . ' ', $formattedDate);
-        }
+        $formattedDate = strtoupper(Carbon::now()->isoFormat('DD MMMM YYYY'));
+        
         return [
             ['REKAP PEGAWAI'],
             [$formattedDate],
@@ -470,25 +455,5 @@ class EmployeeSheet implements FromArray, WithHeadings, WithStyles, WithCustomSt
         } else {
             return 'Ordinary Employee';
         }
-    }
-
-    private function getMonthNameIndonesia($monthNumber)
-    {
-        $monthNames = [
-            1 => 'Januari',
-            2 => 'Februari',
-            3 => 'Maret',
-            4 => 'April',
-            5 => 'Mei',
-            6 => 'Juni',
-            7 => 'Juli',
-            8 => 'Agustus',
-            9 => 'September',
-            10 => 'Oktober',
-            11 => 'November',
-            12 => 'Desember',
-        ];
-
-        return $monthNames[$monthNumber] ?? '';
     }
 }
