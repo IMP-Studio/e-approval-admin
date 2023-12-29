@@ -112,7 +112,7 @@ class DivisionSheet implements FromCollection, WithTitle, WithHeadings, WithMapp
         }
         
         return [
-            ['REKAP PEGAWAI'],
+            ['REKAP DIVISI'],
             [$formattedDate],
             [
                 'NO',
