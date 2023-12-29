@@ -68,7 +68,7 @@ class EmployeeController extends Controller
             if ($request->hasFile('avatar')) {
                 $image = $request->file('avatar');
                 $destinationPath = 'storage/';
-                $profileImage = $image->getClientOriginalName();
+                $profileImage = date('Ymdhis') . rand() . $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
                 $input['avatar'] = $profileImage;
             } else {
@@ -160,7 +160,7 @@ class EmployeeController extends Controller
 
             if ($image = $request->file('avatar')) {
                 $destinationPath = 'storage/';
-                $profileImage = $image->getClientOriginalName();
+                $profileImage = date('Ymdhis') . rand() . $image->getClientOriginalName();
                 $image->storeAs($destinationPath, $profileImage);
                 $input['avatar'] = $profileImage;
 
