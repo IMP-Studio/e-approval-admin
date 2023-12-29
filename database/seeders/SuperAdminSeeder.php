@@ -16,8 +16,8 @@ class SuperAdminSeeder extends Seeder
     {
         $superadmin = User::create([
             'name' => 'SuperAdmin',
-            'email' => 'superadmin@gmail.com',
-            'password' => bcrypt('123'),
+            'email' => 'superadmin@approval.com',
+            'password' => bcrypt('impstudio@123'),
             'created_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
             'updated_at' => Carbon::now()->setTimezone('Asia/Jakarta'),
         ]);

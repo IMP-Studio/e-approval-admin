@@ -25,7 +25,7 @@ class TypeOfLeaveSeeder extends Seeder
                 'id' => 1,
                 'type_of_leave_id' => '1',
                 'description_leave' =>'Cuti tahunan', 
-                'days' => 0 
+                'days' => 3
             ],
 
             //EXCLUSIVE

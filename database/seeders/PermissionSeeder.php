@@ -77,15 +77,6 @@ class PermissionSeeder extends Seeder
             'export_standups',
         ],
 
-        // 'roles' => [
-        //     'view_roles',
-        //     'add_roles',
-        //     'edit_roles',
-        //     'delete_roles',
-        //     'import_roles',
-        //     'export_roles',
-        // ],
-
         'user permission' => [
             'view_permission',
             'assign_permission',
