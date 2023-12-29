@@ -135,16 +135,6 @@
                         @endif
                     </tbody>
                 </table>
-                {{-- @if ($employee->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $employee->links('pagination.custom', [
-                            'paginator' => $employee,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif --}}
             </div>
         </div>
     </div>
@@ -271,22 +261,6 @@
     {{-- end show modal --}}
 
     <script type="text/javascript">
-        // jQuery(document).ready(function($) {
-        //     $('#searchEmployee').on('keyup', function() {
-        //         var query = $(this).val();
-        //         $.ajax({
-        //             type: 'GET',
-        //             url: '{{ route('employee') }}',
-        //             data: {
-        //                 query: query
-        //             },
-        //             success: function(data) {
-        //                 $('#result').html(data);
-        //             }
-        //         });
-        //     });
-        // });
-
         $(document).on("click", ".delete-modal-search", function() {
             var DeleteModalid = $(this).attr('data-id');
             var DeleteModalName = $(this).attr('data-name');

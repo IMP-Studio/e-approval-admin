@@ -95,16 +95,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                {{-- @if ($posisi->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $posisi->links('pagination.custom', [
-                            'paginator' => $posisi,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif --}}
             </div>
         </div>
     </div>
@@ -283,23 +273,6 @@
     {{-- delete modal live search end --}}
 
     <script type="text/javascript">
-        // search
-        // jQuery(document).ready(function($) {
-        //     $('#searchPosition').on('keyup', function() {
-        //         var query = $(this).val();
-        //         $.ajax({
-        //             type: 'GET',
-        //             url: '{{ route('position') }}',
-        //             data: {
-        //                 query: query
-        //             },
-        //             success: function(data) {
-        //                 $('tbody').html(data);
-        //             }
-        //         });
-        //     });
-        // });
-
         //detail
         $(document).on("click", ".detail-presence-modal-search", function() {
         var divisionId = $(this).data('presenceId');
