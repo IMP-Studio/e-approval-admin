@@ -78,6 +78,13 @@
             .content{
                 padding-bottom: 100px !important;
             }
+
+            table.dataTable.no-footer {
+                border-bottom: 0 !important;
+            }
+            table.dataTable thead th, table.dataTable thead td, table.dataTable tfoot th, table.dataTable tfoot td {
+                text-align: center;
+            }
         </style>
         <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
         <script>

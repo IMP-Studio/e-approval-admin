@@ -35,75 +35,14 @@ class EmployeeController extends Controller
         $query = $request->input('query');
 
         if ($request->ajax()) {
-            $employee = Employee::where('first_name','LIKE', '%' . $query . '%')->paginate(5);
+            $employee = Employee::all();
 
             $output = '';
             $iteration = 0;
 
-            foreach ($employee as $item) {
-                $iteration++;
-                $output .= '<tr class="intro-x h-16" id="data-search">
-                    <td class="w-4 text-center">' . $iteration . '.</td>
-                    <td class="flex justify-center align-center">
-                        <div class="w-12 h-12 image-fit zoom-in">';
-
-                if ($item->avatar) {
-                    $output .= '<img data-action="zoom" class="tooltip rounded-full" src="' . asset('storage/' . $item->avatar) . '" title="Uploaded at ' . ($item->updated_at ? $item->updated_at->format('d M Y') : '?') . '">';
-                } elseif ($item->gender == 'male') {
-                    $output .= '<img data-action="zoom" class="tooltip rounded-full" src="' . asset('images/default-boy.jpg') . '" title="Uploaded at ' . ($item->updated_at ? $item->updated_at->format('d M Y') : '?') . '">';
-                } elseif ($item->gender == 'female') {
-                    $output .= '<img data-action="zoom" class="tooltip rounded-full" src="' . asset('images/default-women.jpg') . '" title="Uploaded at ' . ($item->updated_at ? $item->updated_at->format('d M Y') : '?') . '">';
-                }
-
-                $output .= '</div>
-                    </td>
-                    <td class="w-50 text-center">' . $item->user->name . '</td>
-                    <td class="text-center">' . $item->id_number . '</td>
-                    <td class="text-center capitalize">' . ($item->position ? $item->position->name : '-') . '</td>
-                    <td class="w-40">
-                        <div class="flex items-center justify-center">';
-
-                if ($item->gender === 'male') {
-                    $output .= '<div class="text-success flex">
-                        <i data-lucide="user" class="w-4 h-4 mr-2"></i> ' . $item->gender . '
-                    </div>';
-                } else {
-                    $output .= '<div class="text-warning flex">
-                        <i data-lucide="user" class="w-4 h-4 mr-2"></i> ' . $item->gender . '
-                    </div>';
-                }
-
-                $output .= '</div>
-                    </td>
-                    <td class="table-report__action w-56">
-                        <div class="flex justify-center items-center">';
-                        if (auth()->user()->can('edit_employees')) {
-                            $output .=
-                            '<a class="flex items-center text-success mr-3" href="' . route('employee.edit', $item->id) . '">'.
-                            '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit '.
-                            '</a>';
-                        }
-
-                        $output .=
-                            '<a class="flex items-center text-warning delete-button mr-3 show-modal-search" data-email="'. $item->user->email .'" data-name="'. $item->user->name .'" data-avatar="'. $item->avatar .'" data-gender="'. $item->gender .'" data-firstname="'. $item->first_name .'" data-LastName="'. $item->last_name .'" data-stafId="'. $item->id_number .'" data-Divisi="'. $item->division->name .'" data-Posisi="'.$item->position->name .'" data-Address="'. $item->address .'" data-BirthDate="'. $item->birth_date .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search">'.
-                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Show '.
-                            '</a>';
-
-                        if (auth()->user()->can('delete_employees')) {
-                        $output .=
-                            '<a class="flex items-center text-danger delete-modal-search" data-id="'.  $item->id  .'" data-name="'. $item->first_name .' '. $item->last_name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">'.
-                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete '.
-                            '</a>';
-                        }
-                        $output .= '</div>';
-                    '</td>'.
-               '</tr>';
-            }
-
-            return response($output);
 
         }else {
-            $employee = Employee::paginate(5);
+            $employee = Employee::all();
             return view('employee.index',compact('employee'));
         }
 
@@ -298,7 +237,7 @@ class EmployeeController extends Controller
     }
 
     public function export_pdf()
-    {
+    {   
         $employee = Employee::all();
         $division = Division::all();
 

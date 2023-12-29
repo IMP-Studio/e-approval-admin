@@ -43,14 +43,14 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 pr-10" placeholder="Search..." id="searchEmployee">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchEmployee">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
             <!-- BEGIN: Data List -->
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th class="whitespace-nowrap">No</th>
@@ -74,7 +74,7 @@
                                         <div class="w-12 h-12 image-fit zoom-in">
                                             @if ($item->avatar)
                                                 <img data-action="zoom" class="tooltip rounded-full"
-                                                    src="{{ asset('storage/' . $item->avatar) }} "
+                                                    src="{{ asset('storage/' . $item->avatar)}} "
                                                     title="Uploaded at {{ $item->updated_at ? $item->updated_at->format('d M Y') : '?' }}">
                                             @elseif($item->gender == 'male')
                                                 <img data-action="zoom" class="tooltip rounded-full"
@@ -135,7 +135,7 @@
                         @endif
                     </tbody>
                 </table>
-                @if ($employee->count() > 0)
+                {{-- @if ($employee->count() > 0)
                     <div class="flex justify-center items-center">
                         {{ $employee->links('pagination.custom', [
                             'paginator' => $employee,
@@ -144,7 +144,7 @@
                             'slider_text' => 'Showing items from {start} to {end} out of {total}',
                         ]) }}
                     </div>
-                @endif
+                @endif --}}
             </div>
         </div>
     </div>
@@ -271,21 +271,21 @@
     {{-- end show modal --}}
 
     <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            $('#searchEmployee').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('employee') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('#result').html(data);
-                    }
-                });
-            });
-        });
+        // jQuery(document).ready(function($) {
+        //     $('#searchEmployee').on('keyup', function() {
+        //         var query = $(this).val();
+        //         $.ajax({
+        //             type: 'GET',
+        //             url: '{{ route('employee') }}',
+        //             data: {
+        //                 query: query
+        //             },
+        //             success: function(data) {
+        //                 $('#result').html(data);
+        //             }
+        //         });
+        //     });
+        // });
 
         $(document).on("click", ".delete-modal-search", function() {
             var DeleteModalid = $(this).attr('data-id');
@@ -315,14 +315,11 @@
             var ShowEmail = $(this).attr('data-email');
 
 
-            var imgSrc;
-            if (showAvatar) {
-                imgSrc = '{{ asset('storage/' . $item->avatar) }}';
-            } else if (ShowGender == 'male') {
-                imgSrc = '{{ asset('images/default-boy.jpg') }}';
-            } else if (ShowGender == 'female') {
-                imgSrc = '{{ asset('images/default-women.jpg') }}';
-            }
+            var imgSrc = showAvatar
+        ? '{{ asset('storage/') }}' + '/' + showAvatar
+        : (ShowGender == 'male'
+            ? '{{ asset('images/default-boy.jpg') }}'
+            : '{{ asset('images/default-women.jpg') }}');
 
             $("#show-detailName").text('Detail ' + showitemid);
             $("#show-modal-image").attr('src', imgSrc);
@@ -336,6 +333,21 @@
             $("#Show-Address").attr('value', ShowAddress);
             $("#Show-BirthDate").attr('value', ShowBirthDate);
             $("#Show-Email").attr('value', ShowEmail);
+        });
+
+         // data table
+         jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchEmployee').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
+            });
         });
     </script>
 @endsection
