@@ -18,10 +18,10 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             RoleSeeder::class,
             SuperAdminSeeder::class,
-            EmployeeSeeder::class,
-            ProjectSeeder::class,
+            // EmployeeSeeder::class,
+            // ProjectSeeder::class,
             TypeOfLeaveSeeder::class,
-            PresenceSeeder::class
+            // PresenceSeeder::class
         ]);
         // \App\Models\User::factory(10)->create();
 
