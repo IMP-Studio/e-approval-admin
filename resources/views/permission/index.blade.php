@@ -20,7 +20,7 @@
                                 <i data-lucide="user" class="report-box__icon text-pending"></i>
                             </div>
                             <div class="text-3xl font-medium leading-8 mt-6">
-                                {{ $adminCount }}
+                                {{ $adminCount ?? '0'}}
                             </div>
                             <div class="text-base text-slate-500 mt-1">Admin</div>
                         </div>
@@ -106,16 +106,16 @@
                     <h3 class="font-medium leading-8 text-center mt-6">Select employee on the box to grant access rights.</h3>
                 </div>                
                 
-                <div id="permission-employee-container" class="col-span-12 lg:col-span-8 2xl:col-span-8 intro-y mt-6 hidden" data-employee-id="{{ $employee->id }}" data-employee-name="{{ $employee->name }}">
+                <div id="permission-employee-container" class="col-span-12 lg:col-span-8 2xl:col-span-8 intro-y mt-6 hidden" data-employee-id="{{ $employee->id ?? '' }}" data-employee-name="{{ $employee->name ?? '' }}">
                     <div id="permission-cards-container" class="grid grid-cols-12 gap-4">
                         <div class="col-span-12 sm:col-span-6 xl:col-span-12 intro-y mb-4">
                             <div class="report-box">
                                 <div class="box p-5">
                                     <div class="font-medium leading-8">Auto select permission by positions.</div>
                                     <select id="role-select" class="form-select">
-                                        <option data-employee-permissions="{{ json_encode($employee->permissions) }}" value="hr">Human Resource</option>
-                                        <option data-employee-permissions="{{ json_encode($employee->permissions) }}" value="ht">Head of Tribe</option>
-                                        <option data-employee-permissions="{{ json_encode($employee->permissions) }}" value="ordinary">Ordinary Employee</option>
+                                        <option data-employee-permissions="{{ json_encode($employee->permissions ?? '0') }}" value="hr">Human Resource</option>
+                                        <option data-employee-permissions="{{ json_encode($employee->permissions ?? '0') }}" value="ht">Head of Tribe</option>
+                                        <option data-employee-permissions="{{ json_encode($employee->permissions ?? '0') }}" value="ordinary">Ordinary Employee</option>
                                     </select>
                                 </div>
                             </div>
@@ -139,7 +139,7 @@
                                             @endphp
                                             @foreach ($sortedPermissions as $key => $permission)
                                                 <div class="form-check mt-2">
-                                                    <input id="checkbox-{{ $permission->name }}" class="form-check-input permission-checkbox" type="checkbox" value="{{ $permission->id }}" data-employee-id="{{ $employee->id }}" data-employee-name="{{ $employee->name }}" {{ in_array($permission->name, $hasPermissions) ? 'checked' : '' }}>
+                                                    <input id="checkbox-{{ $permission->name }}" class="form-check-input permission-checkbox" type="checkbox" value="{{ $permission->id }}" data-employee-id="{{ $employee->id ?? '' }}" data-employee-name="{{ $employee->name ?? ''}}" {{ in_array($permission->name, $hasPermissions) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="checkbox-{{ $permission->id }}">{{ $permission->name }}</label>
                                                 </div>
                                             @endforeach
