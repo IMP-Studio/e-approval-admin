@@ -47,7 +47,7 @@
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th class="whitespace-nowrap">No</th>
@@ -95,7 +95,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($posisi->count() > 0)
+                {{-- @if ($posisi->count() > 0)
                     <div class="flex justify-center items-center">
                         {{ $posisi->links('pagination.custom', [
                             'paginator' => $posisi,
@@ -104,7 +104,7 @@
                             'slider_text' => 'Showing items from {start} to {end} out of {total}',
                         ]) }}
                     </div>
-                @endif
+                @endif --}}
             </div>
         </div>
     </div>
@@ -220,7 +220,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Edit Division</h2>
+                    <h2 class="font-medium text-base mr-auto">Edit Position</h2>
                 </div>
                 <form id="edit-form-search" method="POST" action="">
                     @csrf
@@ -284,21 +284,21 @@
 
     <script type="text/javascript">
         // search
-        jQuery(document).ready(function($) {
-            $('#searchPosition').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('position') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
-            });
-        });
+        // jQuery(document).ready(function($) {
+        //     $('#searchPosition').on('keyup', function() {
+        //         var query = $(this).val();
+        //         $.ajax({
+        //             type: 'GET',
+        //             url: '{{ route('position') }}',
+        //             data: {
+        //                 query: query
+        //             },
+        //             success: function(data) {
+        //                 $('tbody').html(data);
+        //             }
+        //         });
+        //     });
+        // });
 
         //detail
         $(document).on("click", ".detail-presence-modal-search", function() {
@@ -407,6 +407,21 @@
             $("#subjuduldelete-confirmation").text('Please type the username "' + DeleteModalName +
                 '" of the data to confrim.');
             $("#delete-form-search").attr('action', formAction);
+        });
+
+        // data table
+        jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchPosition').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
+            });
         });
     </script>
 @endsection
