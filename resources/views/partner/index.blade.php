@@ -27,7 +27,7 @@
                                             class="w-4 h-4 mr-2"></i> Export to Excel </a>
                                 </li>
                             @endcan
-                            
+
                             @can('import_partners')
                                 <li>
                                     <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#import-modal"
@@ -140,13 +140,16 @@
             </div>
         </div>
     </div>
+
     <div id="import-modal" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="font-medium text-base mr-auto">Broadcast Message</h2> <button
-                        class="btn btn-outline-secondary hidden sm:flex"> <i data-lucide="file" class="w-4 h-4 mr-2"></i>
-                        Download Docs </button>
+                    <h2 class="font-medium text-base mr-auto">Import Data Partner</h2>
+                    <a class="btn btn-outline-secondary hidden sm:flex" href="{{ route('partner.downloadTemplate') }}">
+                        <i data-lucide="file" class="w-4 h-4 mr-2"></i>
+                        Download Template
+                    </a>
                     <div class="dropdown sm:hidden"> <a class="dropdown-toggle w-5 h-5 block" href="javascript:;"
                             aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal"
                                 class="w-5 h-5 text-slate-500"></i> </a>
@@ -158,13 +161,12 @@
                         </div>
                     </div>
                 </div>
-                <form action="" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('partner.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
                             <label for="modal-form-1" class="form-label">File Import</label>
-                            <input id="modal-form-1" name="import_file" type="file" class="form-control"
-                                placeholder="example@gmail.com">
+                            <input id="modal-form-1" name="import_file" type="file" class="form-control">
                         </div>
                     </div>
                     <div class="modal-footer">
