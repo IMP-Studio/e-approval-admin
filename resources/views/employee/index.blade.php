@@ -33,10 +33,6 @@
                                     </a>
                                 </li>
                             @endcan
-                            <li>
-                                <a href="{{ route('employee.trash') }}" class="dropdown-item"><i data-lucide="archive"
-                                        class="w-4 h-4 mr-2"></i> Restore Data </a>
-                            </li>
                         </ul>
                     </div>
                 </div>
@@ -224,7 +220,7 @@
                     </div>
                     <div class="col-span-12 sm:col-span-6">
                         <label class="text-xs">Lastname :</label>
-                        <input disabled id="Show-LastName"" type="text" class="form-control" value="">
+                        <input disabled id="Show-LastName" type="text" class="form-control" value="">
                     </div>
                     <div class="col-span-12 sm:col-span-6">
                         <label class="text-xs">Email :</label>

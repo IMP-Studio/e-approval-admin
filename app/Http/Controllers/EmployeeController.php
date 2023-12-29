@@ -236,15 +236,6 @@ class EmployeeController extends Controller
         return Excel::download(new EmployeeExport, 'Data-Employee.xlsx');
     }
 
-    public function export_pdf()
-    {   
-        $employee = Employee::all();
-        $division = Division::all();
-
-    	$pdf = PDF::loadview('employee.export-pdf',compact('employee','division'));
-    	return $pdf->download('Data-Employee.pdf');
-    }
-
     public function downloadTemplate()
     {
         $file_path = public_path("import/Template-Employee.xlsx");
@@ -267,9 +258,9 @@ class EmployeeController extends Controller
 
             $nama_file = rand() . $file->getClientOriginalName();
 
-            $file->move('storage/export', $nama_file);
+            $file->move('storage/import', $nama_file);
 
-            Excel::import(new EmployeeImport, public_path('storage/export/' . $nama_file));
+            Excel::import(new EmployeeImport, public_path('storage/import/' . $nama_file));
 
             return redirect('/employee')->with('success', 'Data imported successfully');
         } catch (\Throwable $th) {
