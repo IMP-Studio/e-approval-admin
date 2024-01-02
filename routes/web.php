@@ -33,6 +33,10 @@ Route::get('/apaboy', [HomeController::class, 'boy'])->name('boy');
 
 Route::get('/back', [HomeController::class, 'back'])->name('back');
 
+Route::get('/privacy-policy', function(){
+    return view('privacypolicy');
+});
+
 Auth::routes();
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
