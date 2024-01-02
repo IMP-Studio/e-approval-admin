@@ -16,7 +16,7 @@ class DivisionImport implements ToModel, WithStartRow
     {
         return 5;
     }
-    
+
     /**
     * @param array $row
     *
@@ -24,8 +24,11 @@ class DivisionImport implements ToModel, WithStartRow
     */
     public function model(array $row)
     {
-        return new Division([
-            'name' => $row[2]
-        ]);
+        $division = Division::updateOrCreate(
+            ['name' => $row[2]],
+        );
+        $division->touch();
+
+        return $division;
     }
 }

@@ -29,45 +29,49 @@ class EmployeeImport implements ToModel, WithStartRow
     */
     public function model(array $row)
     {
-        $user = User::create([
-            'name' => $row[2],
-            'email' => $row[3],
-            'role' => 'employees',
-            'password' => bcrypt('password@123'),
-        ]);
+        $user = User::updateOrCreate(
+            ['email' => $row[3]],
+            [
+                'name' => $row[2],
+                'role' => 'employees',
+                'password' => bcrypt('password@123'),
+            ]
+        );
+        $user->touch();
 
-        $division = Division::where('name', $row[7])->first();
-        $position = Position::where('name', $row[8])->first();
+        $division = Division::updateOrCreate(['name' => $row[7]]);
+        $division->touch();
 
-        if (!$division) {
-            $division = Division::create([
-                'name' => $row[7]
-            ]);
-        }
+        $position = Position::updateOrCreate(
+            ['division_id' => $division->id],
+            ['name' => $row[8]]
+        );
+        $position->touch();
 
-        if (!$position) {
-            $position = Position::create([
-                'position_id' => $division->id,
-                'name' => $row[8]
-            ]);
-        }
         $excelDate = intval($row[10]);
 
         $unixTimestamp = ($excelDate - 25569) * 86400;
 
         $formattedDate = Carbon::createFromTimestamp($unixTimestamp)->format('Y-m-d');
 
-        return new Employee([
-            'user_id' => $user->id,
-            'first_name' => $row[4],
-            'last_name' => $row[5],
-            'id_number' => $row[6],
-            'division_id' => $division->id,
-            'position_id' => $position->id,
-            'gender' => $row[9],
-            'birth_date' => $formattedDate,
-            'address' => $row[11]
-        ]);
+        $employee = Employee::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'id_number' => $row[6],
+            ],
+            [
+                'first_name' => $row[4],
+                'last_name' => $row[5],
+                'division_id' => $division->id,
+                'position_id' => $position->id,
+                'gender' => $row[9],
+                'birth_date' => $formattedDate,
+                'address' => $row[11],
+            ]
+        );
+        $employee->touch();
+
+        return $employee;
 
     }
 }
