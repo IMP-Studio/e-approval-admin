@@ -33,10 +33,10 @@ class EmployeeImport implements ToModel, WithStartRow
             ['email' => $row[3]],
             [
                 'name' => $row[2],
-                'role' => 'employees',
                 'password' => bcrypt('password@123'),
             ]
         );
+        $user->assignRole('employee');
         $user->touch();
 
         $division = Division::updateOrCreate(['name' => $row[7]]);
