@@ -148,9 +148,9 @@ class PositionController extends Controller
 
             $nama_file = rand() . $file->getClientOriginalName();
 
-            $file->move('storage/export', $nama_file);
+            $file->move('storage/import', $nama_file);
 
-            Excel::import(new PositionImport, public_path('storage/export/' . $nama_file));
+            Excel::import(new PositionImport, public_path('storage/import/' . $nama_file));
 
             return redirect('/position')->with('success', 'Data imported successfully');
         } catch (\Throwable $th) {

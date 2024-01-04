@@ -2,12 +2,12 @@
 
 namespace App\Imports;
 
-use App\Models\Division;
+use App\Models\Partner;
+use FontLib\Table\Type\name;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 
-class DivisionImport implements ToModel, WithStartRow
+class PartnerImport implements ToModel, WithStartRow
 {
     /**
      * @return int
@@ -18,17 +18,15 @@ class DivisionImport implements ToModel, WithStartRow
     }
 
     /**
-    * @param array $row
+    * @param array<int, mixed> $row
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
     public function model(array $row)
     {
-        $division = Division::updateOrCreate(
-            ['name' => $row[2]],
-        );
-        $division->touch();
-
-        return $division;
+        return new Partner([
+            'name' => $row[2],
+            'description' => $row[3]
+        ]);
     }
 }

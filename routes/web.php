@@ -85,7 +85,6 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/destroy/{id}', [EmployeeController::class,'destroy'])->name('employee.destroy');
         Route::get('/trash', [EmployeeController::class,'trash'])->name('employee.trash');
         Route::get('/export_excel', [EmployeeController::class,'export_excel'])->name('employee.excel');
-        Route::get('/export_pdf', [EmployeeController::class,'export_pdf'])->name('employee.pdf');
         Route::get('/template_excel', [EmployeeController::class,'downloadTemplate'])->name('employee.downloadTemplate');
         Route::post('/import_excel', [EmployeeController::class,'importExcel'])->name('employee.import');
         Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);
@@ -97,6 +96,8 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/update/{id}', [PartnerController::class,'update'])->name('partner.update');
             Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
             Route::get('/detail/{id}', [PartnerController::class,'detailpartner'])->name('partner.detail');
+            Route::get('/template_excel', [PartnerController::class,'downloadTemplate'])->name('partner.downloadTemplate');
+            Route::post('/import_excel', [PartnerController::class,'importExcel'])->name('partner.import');
         });
 
         Route::prefix('permission')->group(function () {
@@ -111,6 +112,9 @@ Route::middleware(['auth'])->group(function () {
            Route::post('/store', [ProjectController::class,'store'])->name('project.store');
            Route::put('/update/{id}', [ProjectController::class,'update'])->name('project.update');
            // Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
+           Route::get('/template_excel', [ProjectController::class,'downloadTemplate'])->name('project.downloadTemplate');
+           Route::post('/import_excel', [ProjectController::class,'importExcel'])->name('project.import');
+           Route::get('/export_excel', [ProjectController::class,'exportExcel'])->name('project.export');
      });
 
     Route::prefix('approveht')->group(function () {
