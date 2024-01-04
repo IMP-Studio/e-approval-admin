@@ -513,8 +513,12 @@ class ApiController extends Controller
                 // Handle Pending Status
         if (($teleworkStatus && $teleworkStatus == 'pending') || ($worktripStatus && $worktripStatus == 'pending') || ($leaveStatus && $leaveStatus == 'pending')) {
             return response()->json(['status' => 'pendingStatus', 'message' => 'Your request is still pending. Wait for a moment for a response.', 'data' => $attendance,'carbon_date' => $currentDate]);
-        }
+        } 
 
+        if (($teleworkStatus && $teleworkStatus == 'preliminary') || ($worktripStatus && $worktripStatus == 'preliminary') || ($leaveStatus && $leaveStatus == 'preliminary')) {
+            return response()->json(['status' => 'preliminaryStatus', 'message' => 'Your request is still preliminary. Wait for a moment for a response.', 'data' => $attendance,'carbon_date' => $currentDate]);
+        } 
+    
         // Handle other cases, like skipping
         if($attendance->category == 'skip' && $attendance->exit_time == '00:00:00' && $attendance->entry_time == '00:00:00' && $attendance->temporary_entry_time == '00:00:00') {
             return response()->json(['status' => 'Skipped', 'message' => 'You skipped work','carbon_date' => $currentDate, 'attendance_date' => $attendance->date]);
@@ -533,6 +537,7 @@ class ApiController extends Controller
         $attendanceToday = Presence::with(['worktrip.statusCommit', 'telework.statusCommit', 'leave.statusCommit'])
                                   ->where('user_id', $id)
                                   ->whereDate('date', $currentDate)
+                                  ->orderByDesc('created_at')
                                   ->first();
 
         if (!$attendanceToday) {
@@ -603,11 +608,7 @@ class ApiController extends Controller
             'user_id' => $id
         ]);
     }
-
-
-
-
-
+    
     public function getPresenceTodayID($id) {
         $currentDate = Carbon::now('Asia/Jakarta')->toDateString();
 
@@ -935,6 +936,12 @@ class ApiController extends Controller
                     $data['status_commit_id'] = $mostRecentStatus->id;
                     $data['status'] = $mostRecentStatus->status;
                     $data['status_description'] = $mostRecentStatus->description;
+                    $data['approver_name'] = $mostRecentStatus->approver_id
+                    ? Employee::where('user_id', $mostRecentStatus->approver_id)
+                        ->pluck(DB::raw("CONCAT(first_name, ' ', last_name) as full_name"))
+                        ->first()
+                    : null;
+                    $data['approver_id'] = $mostRecentStatus->approver_id;
                 }
 
                 return $data;
@@ -1121,6 +1128,12 @@ class ApiController extends Controller
             $data['status_commit_id'] = $mostRecentStatus->id;
             $data['status'] = $mostRecentStatus->status;
             $data['status_description'] = $mostRecentStatus->description;
+            $data['approver_name'] = $mostRecentStatus->approver_id
+            ? Employee::where('user_id', $mostRecentStatus->approver_id)
+                ->pluck(DB::raw("CONCAT(first_name, ' ', last_name) as full_name"))
+                ->first()
+            : null;
+            $data['approver_id'] = $mostRecentStatus->approver_id;
         }
 
         return response()->json(['message' => 'Success', 'data' => $data]);
@@ -1134,10 +1147,8 @@ class ApiController extends Controller
 
     public function getResumePresence(Request $request, $id) {
         $userPresences = Presence::where('user_id', $id)->get();
-
-        $wfo = $userPresences->where('category', 'WFO')->filter(function ($presence) {
-            return $presence->statusCommit->where('status', 'allowed')->count() > 0;
-        });
+    
+        $wfo = $userPresences->where('category', 'WFO');
 
         $telework = $userPresences->where('category', 'telework')->filter(function ($presence) {
             return $presence->telework->statusCommit->where('status', 'allowed')->count() > 0;
@@ -1146,11 +1157,10 @@ class ApiController extends Controller
         $work_trip = $userPresences->where('category', 'work_trip')->filter(function ($presence) {
             return $presence->worktrip->statusCommit->where('status', 'allowed')->count() > 0;
         });
+    
+        $skip = $userPresences->where('category', 'skip');
 
-        $skip = $userPresences->where('category', 'skip')->filter(function ($presence) {
-            return $presence->statusCommit->where('status', 'allowed')->count() > 0;
-        });
-
+    
         $leave = $userPresences->where('category', 'leave')->filter(function ($presence) {
             return $presence->leave->statusCommit->where('status', 'allowed')->count() > 0;
         });
@@ -1917,6 +1927,7 @@ class ApiController extends Controller
                 'leave_detail_id' => $leave->leave_detail_id,
                 'description_leave' => $leave->leavedetail->description_leave,
                 'entry_time' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->entry_time : null,
+                'exit_time' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->exit_time : null,
                 'category' => ($mostRecentStatus && $mostRecentStatus->status == 'allowed') ? $leave->presence->category : null,
                 'posisi' => $leave->user->employee->position->name,
                 'submission_date' => $leave->submission_date,
@@ -1927,9 +1938,10 @@ class ApiController extends Controller
                 'file' => $leave->file,
                 'originalFile' => basename($leave->file),
                 'status' => $mostRecentStatus ? $mostRecentStatus->status : null,
-                'status_description' => $mostRecentStatus ? $mostRecentStatus->description : null,
-                'approver_id' => $mostRecentStatus ? $mostRecentStatus->approver_id : null,
-                'approver_name' => $approver_name,
+                'status_description' => $mostRecentStatus ? $mostRecentStatus->description : null, 
+                'approver_id' => $mostRecentStatus ? $mostRecentStatus->approver_id : null, 
+                'approver_name' => $approver_name, 
+                'status_commit_id' => $mostRecentStatus ? $mostRecentStatus->id : null,
                 'created_at' => $leave->created_at,
                 'updated_at' => $leave->updated_at,
             ];
@@ -2106,14 +2118,8 @@ class ApiController extends Controller
                 return response()->json(['message' => 'Success', 'data' => $leavedesc]);
             }
         }
-
-
-
-
-
-
+    
     // FUNCTION STORE LEAVE //BISA
-
 
     public function storeLeave(Request $request) {
         $currentDate = Carbon::now();
@@ -2286,11 +2292,7 @@ class ApiController extends Controller
             DB::rollBack();
             return response()->json(['message' => 'Failed to update leave: ' . $e->getMessage()], 500);
         }
-    }
-
-
-
-
+    }  
 
     //FUNCTION DELETE LEAVE //BISA
     public function destroyLeave($id) {
@@ -2310,10 +2312,6 @@ class ApiController extends Controller
 
         return response()->json(['message' => 'Delete successful']);
     }
-
-
-
-
 
     //---- PROFILE FUNCTION ----\\
 
