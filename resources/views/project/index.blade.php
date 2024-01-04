@@ -23,7 +23,7 @@
                         <ul class="dropdown-content">
                             @can('export_projects')
                                 <li>
-                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                    <a href="{{ route('project.export') }}" class="dropdown-item"> <i data-lucide="file-text"
                                             class="w-4 h-4 mr-2"></i> Export to Excel </a>
                                 </li>
                             @endcan
@@ -246,16 +246,16 @@
                                     <div class="overflow-x-auto scrollbar-hidden">
                                         <div class="flex flex-wrap" id="contributorsContainer">
 
-                                          
-                                            
+
+
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    
-                    
-                    
+
+
+
                 </div>
             </div>
         </div>
@@ -344,6 +344,44 @@
                         <button type="button" data-tw-dismiss="modal"
                             class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
                         <button type="submit" class="kelas btn btn-primary w-20">update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="import-modal" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="font-medium text-base mr-auto">Import Data Project</h2>
+                    <a class="btn btn-outline-secondary hidden sm:flex" href="{{ route('project.downloadTemplate') }}">
+                        <i data-lucide="file" class="w-4 h-4 mr-2"></i>
+                        Download Template
+                    </a>
+                    <div class="dropdown sm:hidden"> <a class="dropdown-toggle w-5 h-5 block" href="javascript:;"
+                            aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal"
+                                class="w-5 h-5 text-slate-500"></i> </a>
+                        <div class="dropdown-menu w-40">
+                            <ul class="dropdown-content">
+                                <li> <a href="javascript:;" class="dropdown-item"> <i data-lucide="file"
+                                            class="w-4 h-4 mr-2"></i> Download Docs </a> </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <form action="{{ route('project.import') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
+                        <div class="col-span-12">
+                            <label for="modal-form-1" class="form-label">File Import</label>
+                            <input id="modal-form-1" name="import_file" type="file" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-tw-dismiss="modal"
+                            class="btn btn-outline-secondary w-20 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-primary w-20">Submit</button>
                     </div>
                 </form>
             </div>
@@ -465,6 +503,6 @@
         $("#show-startdate").attr('value', startdateD);
         $("#show-enddate").attr('value', enddateD);
     });
-    
+
     </script>
 @endsection

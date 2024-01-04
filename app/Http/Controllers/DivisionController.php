@@ -226,9 +226,9 @@ public function detailDivisi(Request $request)
 
             $nama_file = rand() . $file->getClientOriginalName();
 
-            $file->move('storage/export', $nama_file);
+            $file->move('storage/import', $nama_file);
 
-            Excel::import(new DivisionImport, public_path('storage/export/' . $nama_file));
+            Excel::import(new DivisionImport, public_path('storage/import/' . $nama_file));
 
             return redirect('/division')->with('success', 'Data imported successfully');
         } catch (\Throwable $th) {

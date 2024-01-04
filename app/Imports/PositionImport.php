@@ -24,17 +24,18 @@ class PositionImport implements ToModel, WithStartRow
     */
     public function model(array $row)
     {
-        $division = Division::where('name', $row[2])->first();
+        $division = Division::updateOrCreate(
+            ['name' => $row[2]]
+        );
+        $division->touch();
 
-        if (!$division) {
-            $division = Division::create([
-                'name' => $row[2]
-            ]);
-        }
+        $position = Position::updateOrCreate(
+            ['division_id' => $division->id],
+            ['name' => $row[3]]
+        );
+        $position->touch();
 
-        return new Position([
-            'division_id' => $division->id,
-            'name' => $row[3]
-        ]);
+        return $position;
     }
+
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Http\Requests\SetModelPermissionRequest;
+use App\Http\Requests\SetPermissionRequest;
 use App\Repositories\PermissionRepository;
 use App\Repositories\ModelPermissionRepository;
 use App\Repositories\ModelRepository;
@@ -77,7 +77,7 @@ class PermissionController extends Controller
 }
 
 
-public function setModelPermissions(SetModelPermissionRequest $request, $userId)
+public function setModelPermissions(SetPermissionRequest $request, $userId)
 {
     DB::beginTransaction();
     try {
@@ -111,7 +111,6 @@ public function setModelPermissions(SetModelPermissionRequest $request, $userId)
     public function getUserPermissions($userId)
     {
         $user = User::find($userId);
-        
 
         // Assuming `permissions` is a relationship defined in the User model.
         $directPermissions = $user->permissions;

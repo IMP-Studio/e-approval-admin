@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProjectExport;
+use App\Imports\ProjectImport;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Partner;
@@ -9,6 +11,7 @@ use App\Models\Project;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProjectController extends Controller
 {
@@ -161,7 +164,7 @@ $contributorsInfo = array_map(function ($contributor) {
 
             $start_date = $record->start_date; // Default value
             $end_date = $record->end_date; // Default value
-    
+
             // Periksa apakah tanggal berubah
             if ($request->start_date !== $record->start_date) {
                 $start_date = Carbon::createFromFormat('d M, Y', $data['start_date'])->format('Y-m-d');
@@ -169,13 +172,13 @@ $contributorsInfo = array_map(function ($contributor) {
             if ($request->end_date !== $record->end_date) {
                 $end_date = Carbon::createFromFormat('d M, Y', $data['end_date'])->format('Y-m-d');
             }
-    
-                
-    
+
+
+
             if (!$record) {
                 return redirect()->back()->with(['error' => 'Data not found']);
             }
-    
+
             // dd($data);
 
             $record->update([
@@ -197,5 +200,52 @@ $contributorsInfo = array_map(function ($contributor) {
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * @return mixed
+     */
+    public function downloadTemplate()
+    {
+        $file_path = public_path("import/Template-Project.xlsx");
+
+        if (file_exists($file_path)) {
+            return response()->download($file_path);;
+        } else {
+            return redirect('/project')->with('error', 'File not found.');
+        }
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function importExcel(Request $request)
+    {
+        try {
+            $this->validate($request, [
+                'import_file' => 'required|mimes:csv,xls,xlsx'
+            ]);
+
+            $file = $request->file('import_file');
+
+            // @phpstan-ignore-next-line
+            $nama_file = rand() . $file->getClientOriginalName();
+
+            // @phpstan-ignore-next-line
+            $file->move('storage/import', $nama_file);
+
+            Excel::import(new ProjectImport, public_path('storage/import/' . $nama_file));
+
+            return redirect('/project')->with('success', 'Data imported successfully');
+        } catch (\Throwable $th) {
+            return redirect('/project')->with('error', 'Make sure there is no duplicate data');
+        }
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new ProjectExport, 'Data-Project.xlsx');
     }
 }

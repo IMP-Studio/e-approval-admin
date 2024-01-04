@@ -217,20 +217,19 @@
                     @method('PUT')
                     <div class="modal-body grid grid-cols-12 gap-4 gap-y-3">
                         <div class="col-span-12">
-                            <label class="form-label">Nama Posisi</label>
-                            <input id="edit-modal-PositionName" value="" name="name" type="text"
-                                class="form-control" placeholder="nama divisi">
-                        </div>
-                        <div class="col-span-12">
                             <label for="modal-form-1" class="form-label">Nama Divisi</label>
-                            <select name="division_id" id="project-position-select" class="w-full"
-                                style="background-color: #1B253b;">
+                            <select name="division_id" id="project-position-select" class="tom-select w-full">
                                 @foreach ($divisi as $itemDivisi)
                                     <option value="{{ $itemDivisi->id }}">
                                         {{ $itemDivisi->name }}
                                     </option>
                                 @endforeach
                             </select>
+                        </div>
+                        <div class="col-span-12">
+                            <label class="form-label">Nama Posisi</label>
+                            <input id="edit-modal-PositionName" value="" name="name" type="text"
+                                class="form-control" placeholder="nama divisi">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -387,7 +386,7 @@
             var dataTable = new DataTable('#myTable', {
                 buttons: ['showSelected'],
                 dom: 'rtip',
-                select: true, 
+                select: true,
                 pageLength: 5,
                 border: false,
             });
