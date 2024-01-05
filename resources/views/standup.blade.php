@@ -9,19 +9,9 @@
         <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
             @can('export_standups')
             <div class="dropdown" data-tw-placement="bottom-start">
-                <button class="dropdown-toggle btn btn-primary px-2" aria-expanded="false" data-tw-toggle="dropdown">
+                <button class="dropdown-toggle btn btn-primary px-2" aria-expanded="false" data-tw-toggle="modal" data-tw-target="#exportstandup">
                     Export <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i></span>
                 </button>
-                <div class="dropdown-menu w-40">
-                    <ul class="dropdown-content">
-                        <li>
-                            <a href="{{ route('standup.excel',['year' => $today->year]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Excel {{ $today->year }} </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('standup.excel',['year' => $today->subyear()->year ]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> Excel {{ $today->year }} </a>
-                        </li>
-                    </ul>
-                </div>
             </div>
             @endcan
             <div class="hidden md:block mx-auto text-slate-500"></div>
@@ -124,6 +114,48 @@
 
     </div>
 </div>
+
+{{-- export modal --}}
+ <!-- BEGIN: Modal Content -->
+<div id="exportstandup" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- BEGIN: Modal Header -->
+            <div class="modal-header">
+                <h2 class="font-medium text-base mr-auto">Export excel standup</h2>
+                <div class="dropdown sm:hidden"> <a class="dropdown-toggle w-5 h-5 block" href="javascript:;" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal" class="w-5 h-5 text-slate-500"></i> </a>
+                    <div class="dropdown-menu w-40">
+                        <ul class="dropdown-content">
+                            <li> <a href="javascript:;" class="dropdown-item"> <i data-lucide="file" class="w-4 h-4 mr-2"></i> Download Docs </a> </li>
+                        </ul>
+                    </div>
+                </div>
+            </div> <!-- END: Modal Header -->
+            <!-- BEGIN: Modal Body -->
+            <div class="text-center mt-2">
+                @foreach ($months as $index => $month)                    
+                    <div class="dropdown inline-block" data-tw-placement="top-start"> <button class="dropdown-toggle btn btn-primary w-32 mr-1 mb-2" aria-expanded="false" data-tw-toggle="dropdown">{{ $month }}</button>
+                        <div class="dropdown-menu w-40">
+                            <ul class="dropdown-content">
+                                <li>
+                                    <a href="{{ route('standup.excel',['year' => $today->year, 'month' => $index + 1]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> {{ $month }} {{ $today->year }} </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('standup.excel',['year' => $subYear, 'month' => $index + 1]) }}" class="dropdown-item"> <i data-lucide="file-text" class="w-4 h-4 mr-2"></i> {{ $month }} {{ $subYear }} </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <!-- END: Modal Body -->
+            <!-- BEGIN: Modal Footer -->
+            <div class="modal-footer"> <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-20 mr-1">Cancel</button></div> <!-- END: Modal Footer -->
+        </div>
+    </div>
+</div> 
+<!-- END: Modal Content -->
+{{-- end export modal --}}
 
 {{-- detail modal search --}}
 <div id="detail-modal-search" class="modal" tabindex="-1" aria-hidden="true">

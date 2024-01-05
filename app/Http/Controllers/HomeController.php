@@ -225,6 +225,12 @@ class HomeController extends Controller
     public function standup(Request $request)
     {
         $today = Carbon::today()->setTimezone('Asia/Jakarta');
+        $subYear = $today->copy()->subYear()->year;
+
+        $months = [
+            'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+
         $allowedStatusCheck = function ($query) {
             $query->where('status', 'allowed');
         };
@@ -319,13 +325,21 @@ class HomeController extends Controller
 
         $standup_today->setPath('');
 
-        return view('standup', compact('standup_today', 'today'));
+        return view('standup', compact('standup_today', 'today', 'months', 'subYear'));
     }
 
-    public function exportStandup($year)
+    protected function getMonthName($month)
     {
-        return Excel::download(new StandupExport($year), "Standup $year.xlsx");
+        return date('F', mktime(0, 0, 0, $month, 1));
     }
+
+    public function exportStandup($year, $month)
+    {
+        ini_set('max_execution_time', 300);
+        $monthName = $this->getMonthName($month);
+        return Excel::download(new StandupExport($year, $month), "Standup $monthName $year.xlsx");
+    }
+
     public function back()
     {
         return redirect('/home');

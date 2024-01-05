@@ -41,7 +41,7 @@ Auth::routes();
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/standup', [HomeController::class, 'standup'])->middleware('permission:view_standups')->name('standup');
-    Route::get('/standup/export/{year}', [HomeController::class, 'exportStandup'])->name('standup.excel');
+    Route::get('/standup/export/{year}/{month}', [HomeController::class, 'exportStandup'])->name('standup.excel');
 
     Route::get('/presence', [PresenceController::class, 'index'])->middleware('permission:view_presences')->name('presence');
     Route::get('/attendance/export/{year}', [PresenceController::class, 'exportExcel'])->name('presence.excel');
