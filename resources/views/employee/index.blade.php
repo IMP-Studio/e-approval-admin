@@ -33,6 +33,10 @@
                                     </a>
                                 </li>
                             @endcan
+                            <li>
+                                <a href="{{ route('employee.trash') }}" class="dropdown-item"><i data-lucide="archive"
+                                        class="w-4 h-4 mr-2"></i> Restore Data </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -310,7 +314,7 @@
             var dataTable = new DataTable('#myTable', {
                 buttons: ['showSelected'],
                 dom: 'rtip',
-                select: true, 
+                select: true,
                 pageLength: 5,
                 border: false,
             });
