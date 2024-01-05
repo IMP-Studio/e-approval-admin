@@ -77,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/detail/{id}', [PositionController::class,'detailPosition'])->name('position.detail');
         Route::get('/template_excel', [PositionController::class,'downloadTemplate'])->name('position.downloadTemplate');
         Route::post('/import_excel', [PositionController::class,'importExcel'])->name('position.import');
+        Route::get('/export_excel', [PositionController::class,'exportExcelStandup'])->name('position.excel');
     });
 
     Route::prefix('employee')->middleware('permission:view_employees')->group(function () {

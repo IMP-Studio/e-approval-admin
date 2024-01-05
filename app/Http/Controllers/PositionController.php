@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Imports\PositionImport;
+use Carbon\Carbon;
 use App\Models\Division;
 use App\Models\Employee;
-use Carbon\Carbon;
 use App\Models\Position;
 use Illuminate\Http\Request;
+use App\Exports\PositionExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PositionController extends Controller
@@ -156,5 +157,10 @@ class PositionController extends Controller
         } catch (\Throwable $th) {
             return redirect('/position')->with('error', 'Make sure there is no duplicate data');
         }
+    }
+    
+    public function exportExcelStandup()
+    {
+        return Excel::download(new PositionExport, 'Data-position.xlsx');
     }
 }

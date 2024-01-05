@@ -23,7 +23,7 @@
                         <ul class="dropdown-content">
                             @can('export_positions')
                                 <li>
-                                    <a href="{{ route('division.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
+                                    <a href="{{ route('position.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
                                             class="w-4 h-4 mr-2"></i> Export to Excel </a>
                                 </li>
                             @endcan
