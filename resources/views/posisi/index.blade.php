@@ -53,7 +53,7 @@
                             <th class="whitespace-nowrap">No</th>
                             <th class="text-center whitespace-nowrap">Posisi</th>
                             <th class="text-center whitespace-nowrap">Total</th>
-                            <th class="text-center whitespace-nowrap">Actions</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -120,7 +120,7 @@
                         <div class="col-span-12">
                             <label for="modal-form-2" class="form-label">Nama Posisi</label>
                             <input id="modal-form-2" name="name" type="text" class="form-control capitalize"
-                                placeholder="nama divisi" autocomplete="off">
+                                placeholder="nama posisi" autocomplete="off">
                         </div>
                     </div>
                     <div class="modal-footer">
