@@ -30,8 +30,10 @@ class PositionImport implements ToModel, WithStartRow
         $division->touch();
 
         $position = Position::updateOrCreate(
-            ['division_id' => $division->id],
-            ['name' => $row[3]]
+            [
+                'division_id' => $division->id,
+                'name' => $row[3]
+            ],
         );
         $position->touch();
 
