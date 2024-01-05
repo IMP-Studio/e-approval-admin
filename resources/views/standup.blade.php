@@ -15,6 +15,11 @@
             </div>
             @endcan
             <div class="hidden md:block mx-auto text-slate-500"></div>
+                    <div class="w-full sm:w-auto mt-3 mr-2 sm:mt-0 sm:ml-0 md:mr-0 sm:ml-2">
+                <div class="w-24 relative text-slate-500">
+                    <div class="text-center"> <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#datepicker-dataTable-modal" class="btn btn-primary">Filter Date</a> </div>
+                </div>                
+            </div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
                     <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="search">
@@ -24,23 +29,28 @@
         </div>
         <!-- BEGIN: Data List -->
         <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-            <table class="table table-report -mt-2">
+            <table id="myTable" class="table table-report -mt-2">
                 <thead>
                     <tr>
                         <th class="whitespace-nowrap">No</th>
+                        <th class="text-center whitespace-nowrap">Date</th>
                         <th class="text-center whitespace-nowrap">Username</th>
                         <th class="text-center whitespace-nowrap">Position</th>
                         <th class="text-center whitespace-nowrap">Project name</th>
                         <th class="text-center whitespace-nowrap">Doing</th>
                         <th class="text-center whitespace-nowrap">Blocker</th>
-                        <th class="text-center whitespace-nowrap">Actions</th>
+                        <th class="text-center whitespace-nowrap" data-orderable=>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {{-- jika merubak struktur table ini pastikan untuk memperbarui juga di dalam script filter date range di js --}}
                     @foreach ($standup_today as $item)
                     <tr class="intro-x h-16">
                         <td class="w-4 text-center">
                             {{ $loop->iteration }}
+                        </td>
+                        <td class="w-20 text-center dateStandup">
+                            {{ $item->presence->date }}
                         </td>
                         <td class="w-50 text-center">
                             {{ $item->user->name }}
@@ -54,12 +64,12 @@
                         <td class="text-center">
                             {{ $item->doing }}
                         </td>
-                        <td class="w-40 text-center text-warning">
+                        <td class="w-32 text-center text-warning">
                             {{ $item->blocker ? $item->blocker : '-' }}
                         </td>
                         <td class="table-report__action w-56">
                             <div class="flex justify-center items-center">
-                                <a class="flex items-center text-warning  mr-3 detail-standup-modal-search" href="javascript:;" data-tw-toggle="modal" data-StandupDetailId="{{ $item->id }}" data-StandupDetailName="{{ $item->user->name }}" data-StandupDetailDone="{{ $item->done }}" data-StandupDetailDoing="{{ $item->doing }}" data-StandupDetailBlocker="{{ $item->blocker }}" data-tw-target="#detail-modal-search">
+                                <a class="flex items-center text-warning  mr-3 detail-standup-modal-search" href="javascript:;" data-tw-toggle="modal" data-standupProject="{{ $item->project->name }}" data-StandupDetailId="{{ $item->id }}" data-StandupDetailName="{{ $item->user->name }}" data-StandupDetailDone="{{ $item->done }}" data-StandupDetailDoing="{{ $item->doing }}" data-StandupDetailBlocker="{{ $item->blocker }}" data-tw-target="#detail-modal-search">
                                     <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                 </a>
                                 <a class="flex items-center text-danger delete-standup-modal-search" data-DeleteStandupId="{{ $item->id }}" data-DeleteStandupName="{{ $item->user->name }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">
@@ -68,53 +78,38 @@
                             </div>
                         </td>
                     </tr>
-
-                    <div id="delete-confirmation-modal-{{ $item->id }}" class="modal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form id="delete-form" method="POST" action="{{ route('standup.destroy',$item->id) }}">
-                                    @csrf
-                                    @method('delete')
-                                    <div class="modal-body p-0">
-                                        <div class="p-5 text-center">
-                                            <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
-                                            <div class="text-3xl mt-5">Are you sure?</div>
-                                            <div class="text-slate-500 mt-2">
-                                                Please type the username "{{ $item->user->employee->first_name }} {{ $item->user->employee->last_name }}" of the data to confrim.
-                                            </div>
-                                             <input name="validName" id="crud-form-2" type="text" class="form-control w-full" placeholder="User name" required>
-                                        </div>
-                                        <div class="px-5 pb-8 text-center">
-                                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                                            <button type="submit" class="btn btn-danger w-24">Delete</button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     @endforeach
                 </tbody>
             </table>
-            @if ($standup_today->count() > 0)
-            <div class="flex justify-center items-center">
-                {{ $standup_today->links('pagination.custom', [
-                    'paginator' => $standup_today,
-                    'prev_text' => 'Previous',
-                    'next_text' => 'Next',
-                    'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                ]) }}
-            </div>
-            @else
-            <h1 class="text-center">Tidak ada standup hari ini</h1>
-            @endif
         </div>
-
-
-
     </div>
 </div>
 
+{{-- Filter data by range date modal --}}
+<div id="datepicker-dataTable-modal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="font-medium text-base mr-auto">Filter by Date</h2>
+            </div>
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3 input-daterange">
+                <div class="col-span-12 sm:col-span-6"> <label for="modal-datepicker-1"
+                        class="form-label">From</label> <input type="text" name="from_date" id="start_date"
+                        class="datepicker form-control" data-single-mode="true"> 
+                </div>
+                <div class="col-span-12 sm:col-span-6"> <label for="modal-datepicker-2"
+                        class="form-label">To</label> <input type="text" name="to_date" id="end_date"
+                        class="datepicker form-control" data-single-mode="true"> 
+                </div>
+            </div>
+            <div class="modal-footer text-right"> <button type="button" data-tw-dismiss="modal"
+                    class="btn btn-outline-secondary w-20 mr-1">Cancel</button> <button type="button"
+                    id="filter_button" class="btn btn-primary w-20">Submit</button> 
+            </div>
+        </div>
+    </div>
+</div>
+{{-- Filter data by range date modal end --}}
 {{-- export modal --}}
  <!-- BEGIN: Modal Content -->
 <div id="exportstandup" class="modal" tabindex="-1" aria-hidden="true">
@@ -157,7 +152,7 @@
 <!-- END: Modal Content -->
 {{-- end export modal --}}
 
-{{-- detail modal search --}}
+{{-- detail modal --}}
 <div id="detail-modal-search" class="modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -174,15 +169,18 @@
                     <textarea disabled name="" class="form-control" id="show-doing-standup-search" rows="3"></textarea>
                 </div>
                 <div class="col-span-12" id="show-blocker-standup-search">
-                    
+                </div>
+                <div class="col-span-12">
+                    <label class="form-label">Project :</label>
+                    <input disabled id="ProjectList" type="text" class="form-control">
                 </div>
             </div>
         </div>
     </div>
 </div>
-{{-- detail modal search end --}}
+{{-- detail modal end --}}
 
-{{-- delete modal search--}}
+{{-- delete modal --}}
 <div id="delete-confirmation-modal-search" class="modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -206,18 +204,86 @@
         </div>
     </div>
 </div>
-{{-- delete modal search end --}}
+{{-- delete modal end --}}
 
 <script type="text/javascript">
-    jQuery(document).ready(function($) {
-            $('#search').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                type: 'GET',
+     document.addEventListener('DOMContentLoaded', function () {
+        var dateCells = document.querySelectorAll('.dateStandup');
+        dateCells.forEach(function (cell) {
+            var originalDate = cell.textContent.trim();
+            var formattedDate = new Date(originalDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            cell.textContent = formattedDate;
+        });
+    });
+
+     // search
+     jQuery(document).ready(function($) {
+        var dataTable = new DataTable('#myTable', {
+            buttons: ['showSelected'],
+            dom: 'rtip',
+            select: true,
+            pageLength: 5,
+            border: false,
+        });
+
+        $('#search').on('keyup', function() {
+            dataTable.search($(this).val()).draw();
+        });
+
+        // filter data by date range
+        $('#filter_button').on('click', function() {
+            var startDate = $('#start_date').val();
+            var endDate = $('#end_date').val();
+
+            dataTable.clear().destroy();
+
+            $.ajax({
                 url: '{{ route('standup') }}',
-                data: { query: query },
+                type: 'GET',
+                data: {
+                    start_date: startDate,
+                    end_date: endDate
+                },
+                dataType: 'json',
                 success: function(data) {
-                    $('tbody').html(data);
+                    var htmlContent = '';
+                    $('tbody').empty();
+
+                    data.forEach(function(item, index) {
+                        var formattedDate = new Date(item.presence.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                        htmlContent += '<tr class="intro-x h-16">';
+                        htmlContent += '<td class="w-4 text-center">' + (index + 1) + '</td>';
+                        htmlContent += '<td class="w-20 text-center">' + formattedDate + '</td>';
+                        htmlContent += '<td class="w-50 text-center">' + item.user.name + '</td>';
+                        htmlContent += '<td class="text-center capitalize">' + item.user.employee.position.name + '</td>';
+                        htmlContent += '<td class="text-start">' + item.project.name + '</td>';
+                        htmlContent += '<td class="text-center">' + item.doing + '</td>';
+                        htmlContent += '<td class="w-32 text-center text-warning">' + (item.blocker ? item.blocker : '-') + '</td>';
+                        htmlContent += '<td class="table-report__action w-56">';
+                        htmlContent += '<div class="flex justify-center items-center">';
+                        htmlContent += '<a class="flex items-center text-warning  mr-3 detail-standup-modal-search" href="javascript:;" data-tw-toggle="modal" data-standupProject="' + item.project.name + '" data-StandupDetailId="' + item.id + '" data-StandupDetailName="' + item.user.name + '" data-StandupDetailDone="' + item.done + '" data-StandupDetailDoing="' + item.doing + '" data-StandupDetailBlocker="' + (item.blocker ? item.blocker : '-') + '" data-tw-target="#detail-modal-search">';
+                        htmlContent += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail</a>';
+                        htmlContent += '<a class="flex items-center text-danger delete-standup-modal-search" data-DeleteStandupId="' + item.id + '" data-DeleteStandupName="' + item.user.name + '" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">';
+                        htmlContent += '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Delete</a>';
+                        htmlContent += '</div>';
+                        htmlContent += '</td>';
+                        htmlContent += '</tr>';
+                    });
+  
+                    $('tbody').html(htmlContent);
+
+                    dataTable = new DataTable('#myTable', {
+                        buttons: ['showSelected'],
+                        dom: 'rtip',
+                        select: true,
+                        pageLength: 5,
+                        border: false,
+                    });
+
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
                 }
             });
         });
@@ -229,6 +295,7 @@
         var ShowDone = $(this).attr('data-StandupDetailDone');
         var ShowDoing= $(this).attr('data-StandupDetailDoing');
         var ShowBlocker = $(this).attr('data-StandupDetailBlocker');
+        var ShowProject = $(this).attr('data-standupProject');
 
 
         var BlockerContent;
@@ -240,6 +307,7 @@
         $("#show-name-standup-search").text('Detail Standup '+ showName);
         $("#show-done-standup-search").text(ShowDone);
         $("#show-doing-standup-search").text(ShowDoing);
+        $("#ProjectList").attr('value', ShowProject);
     });
 
          $(document).on("click", ".delete-standup-modal-search", function () {
@@ -247,7 +315,7 @@
             var DeleteStandupModalName = $(this).attr('data-DeleteStandupName');
 
             var formAction;
-            formAction = '{{ route("standup.destroy",":id") }}'.replace(':id',  DeleteStandupModalid);
+            formAction = '{{ route('standup.destroy',":id") }}'.replace(':id',  DeleteStandupModalid);
 
             $("#subjuduldelete-confirmation").text('Please type the name "'+ DeleteStandupModalName +'" of the data to confrim.');
             $("#delete-form-search").attr('action', formAction);

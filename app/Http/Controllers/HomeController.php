@@ -235,95 +235,63 @@ class HomeController extends Controller
             $query->where('status', 'allowed');
         };
 
-        $tele_wfo_wk = StandUp::where(function ($query) use ($today, $allowedStatusCheck) {
-            $query->whereHas('presence', function ($subQuery) use ($today) {
-                $subQuery->whereDate('date', $today)
-                    ->whereIn('category', ['WFO', 'telework', 'work_trip']);
-            });
-            $query->orWhereHas('presence', function ($subQuery) use ($today, $allowedStatusCheck) {
-                $subQuery->whereDate('date', $today)
+        if (request()->ajax()) {
+            $startDateDmy = $request->input('start_date');
+            $endDateDmy = $request->input('end_date');
+
+            $startDate = Carbon::createFromFormat('d M, Y', $startDateDmy)->format('Y-m-d');
+            $endDate = Carbon::createFromFormat('d M, Y', $endDateDmy)->format('Y-m-d');
+
+            $standup_today = StandUp::where(function ($query) use ($startDate,$endDate,$allowedStatusCheck) {
+                $query->whereHas('presence', function ($subQuery) use ($startDate,$endDate,) {
+                    $subQuery->whereIn('category', ['WFO', 'telework', 'work_trip'])
+                    ->where(function ($statusQuery) use ($startDate,$endDate,) {
+                        $statusQuery->whereDate('date', '>=', $startDate)
+                        ->whereDate('date', '<=', $endDate);
+                    });
+                });
+                $query->orWhereHas('presence', function ($subQuery) use ($startDate,$endDate, $allowedStatusCheck) {
+                    $subQuery
                     ->whereIn('category', ['telework', 'work_trip'])
-                    ->whereHas('telework.statusCommit', $allowedStatusCheck)
-                    ->orWhereHas('worktrip.statusCommit', $allowedStatusCheck);
-            });
-        })->get();
-        
+                    ->where(function ($statusQuery) use ($allowedStatusCheck) {
+                        $statusQuery->whereHas('telework.statusCommit', $allowedStatusCheck)
+                            ->orWhereHas('worktrip.statusCommit', $allowedStatusCheck);
+                    })
+                    ->where(function ($statusQuery) use ($startDate,$endDate,) {
+                        $statusQuery->whereDate('date', '>=', $startDate)
+                        ->whereDate('date', '<=', $endDate);
+                    });
+                });
+            })
+            ->with([
+                'presence',
+                'user',
+                'user.employee',
+                'user.employee.position',
+                'project', 
+            ])
+            ->orderBy('id', 'desc')
+            ->get();
 
-
-        $gabungData = $tele_wfo_wk;
-        $perPage = 5;
-        $currentPage = $request->input('page', 1);
-
-        if ($request->ajax()) {
-            $query = $request->input('query');
-            $gabungData = $gabungData->filter(function ($item) use ($query) {
-                return stripos($item->user->name, $query) !== false;
-            });
-
-            $perPage = 5;
-            $currentPage = $request->input('page', 1);
-            
-
-            $standup_today = new LengthAwarePaginator(
-                $gabungData->forPage($currentPage, $perPage),
-                $gabungData->count(),
-                $perPage,
-                $currentPage
-            );
-            
-            $standup_today->setPath('');
-
-            $output = '';
-            $iteration = 0; 
-
-            foreach ($standup_today as $item) {
-                $iteration++;
-        
-                $output .= '<tr class="intro-x h-16">' .
-                    '<td class="w-4 text-center">' .
-                    $iteration .
-                    '</td>' .
-                    '<td class="w-50 text-center">' .
-                    $item->user->name .
-                    '</td>' .
-                    '<td class="text-center capitalize">' .
-                    $item->user->employee->position->name .
-                    '</td>' .
-                    '<td class="text-start">' .
-                    $item->project->name .
-                    '</td>' .
-                    '<td class="text-center">' .
-                    $item->doing .
-                    '</td>' .
-                    '<td class="w-40 text-center text-warning">' .
-                    ($item->blocker ? $item->blocker : "-") .
-                    '</td>' .
-                    '<td class="table-report__action w-56">' .
-                    '<div class="flex justify-center items-center">' .
-                    '<a class="flex items-center text-warning  mr-3 detail-standup-modal-search" href="javascript:;" data-tw-toggle="modal" data-StandupDetailId="'. $item->id .'" data-StandupDetailName="'. $item->user->name .'" data-StandupDetailDone="'. $item->done .'" data-StandupDetailDoing="'. $item->doing .'" data-StandupDetailBlocker="'. $item->blocker .'" data-tw-target="#detail-modal-search">' .
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail' .
-                    '</a>' .
-                    '<a class="flex items-center text-danger delete-standup-modal-search" data-DeleteStandupId="'. $item->id .'" data-DeleteStandupName="'. $item->user->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-confirmation-modal-search">' .
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Delete ' .
-                    '</a>' .        
-                    '</div>' .
-                    '</td>' .
-                    '</tr>' ;
-            }
-
-
-            return response($output);
-
+            return response()->json($standup_today);
+        }else {          
+            $standup_today = StandUp::where(function ($query) use ($today, $allowedStatusCheck) {
+                $query->whereHas('presence', function ($subQuery) use ($today) {
+                    $subQuery->whereIn('category', ['WFO', 'telework', 'work_trip'])
+                        ->whereDate('date', $today);
+                });
+                $query->orWhereHas('presence', function ($subQuery) use ($today, $allowedStatusCheck) {
+                    $subQuery->whereDate('date', $today)
+                    ->whereIn('category', ['telework', 'work_trip'])
+                    ->where(function ($statusQuery) use ($allowedStatusCheck) {
+                        $statusQuery->whereHas('telework.statusCommit', $allowedStatusCheck)
+                            ->orWhereHas('worktrip.statusCommit', $allowedStatusCheck);
+                    });
+                });
+            })
+            ->orderBy('id', 'desc')
+            ->get();
         }
-
-        $standup_today = new LengthAwarePaginator(
-            $gabungData->forPage($currentPage, $perPage),
-            $gabungData->count(),
-            $perPage,
-            $currentPage
-        );
-
-        $standup_today->setPath('');
 
         return view('standup', compact('standup_today', 'today', 'months', 'subYear'));
     }
