@@ -51,7 +51,7 @@ class EmployeeImport implements ToModel, WithStartRow
         );
         $position->touch();
 
-        $excelDate = intval($row[10]);
+        $excelDate = intval($row[11]);
 
         $unixTimestamp = ($excelDate - 25569) * 86400;
 
@@ -67,11 +67,21 @@ class EmployeeImport implements ToModel, WithStartRow
                 'last_name' => $row[5],
                 'division_id' => $division->id,
                 'position_id' => $position->id,
-                'gender' => $row[9],
+                'gender' => $row[10],
                 'birth_date' => $formattedDate,
-                'address' => $row[11],
+                'address' => $row[12],
             ]
         );
+        if ($row[9] === 'Head Of Tribe') {
+            $user->givePermissionTo('approve_preliminary');
+            $user->givePermissionTo('view_request_pending');
+            $user->givePermissionTo('reject_presence');
+        } else if ($row[9] === 'Human Resource') {
+            $user->givePermissionTo('approve_allowed');
+            $user->givePermissionTo('view_request_preliminary');
+            $user->givePermissionTo('reject_presence');
+        }
+
         $employee->touch();
 
         return $employee;
