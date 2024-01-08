@@ -40,19 +40,19 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="search">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchDivisi">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Divisi</th>
                             <th class="text-center whitespace-nowrap">Total</th>
-                            <th class="text-center whitespace-nowrap">Actions</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,16 +90,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($divisi->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $divisi->links('pagination.custom', [
-                            'paginator' => $divisi,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -252,115 +242,114 @@
         </div>
     </div>
     {{-- Modal edit search end --}}
-    <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            $('#search').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('divisi') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
-            });
-        });
-
-        $(document).on("click", ".detail-division-modal-search", function() {
-    var divisionId = $(this).data('divisionId');
-    var totalPages = 0;
-    var currentPage = 1;
-    var perPage = 5;
+<script type="text/javascript">
 
     jQuery(document).ready(function($) {
-        function updatePaginationInfo() {
-            // $("#pagination-info").text("Page " + currentPage + "/" + totalPages);
-            $("#page-numbers").text(currentPage + " / " + totalPages);
-        }
-
-        function updatePaginationControls() {
-            $("#prev-page").prop('disabled', currentPage === 1);
-            $("#next-page").prop('disabled', currentPage === totalPages || totalPages === 0);
-        }
-
-        function loadPage(page) {
-            $.ajax({
-                url: '{{ route('division.detail', ':id') }}'.replace(':id', divisionId),
-                type: 'GET',
-                data: { page: page },
-                success: function(response) {
-                    console.log(response);
-                    totalPages = response.lastPage;
-                    var positionList = $('#positionList');
-                    positionList.empty();
-
-                    var startIndex = (page - 1) * perPage;
-
-                    $.each(response.positionData, function(index, positionData) {
-                        var row = '<tr>' +
-                            '<td class="w-4 text-center">' + (startIndex + index + 1) +
-                            '.</td>' +
-                            '<td class="w-50 text-center capitalize">' +
-                            positionData.position.name + '</td>' +
-                            '<td class="w-50 text-center capitalize">' +
-                            positionData.positionCount + ' pegawai' + '</td>' +
-                            '</tr>';
-                        positionList.append(row);
-                    });
-
-                    currentPage = page;
-                    updatePaginationInfo();
-                    updatePaginationControls();
-                }
-            });
-        }
-
-        loadPage(currentPage);
-
-        $("#next-page").click(function() {
-            if (currentPage < totalPages) {
-                loadPage(currentPage + 1);
-            }
+        var dataTable = new DataTable('#myTable', {
+            buttons: ['showSelected'],
+            dom: 'rtip',
+            select: true,
+            pageLength: 5,
+            border: false,
         });
 
-        $("#prev-page").click(function() {
-            if (currentPage > 1) {
-                loadPage(currentPage - 1);
-            }
+        $('#searchDivisi').on('keyup', function() {
+            dataTable.search($(this).val()).draw();
         });
     });
-});
 
+    $(document).on("click", ".detail-division-modal-search", function() {
+        var divisionId = $(this).data('divisionId');
+        var totalPages = 0;
+        var currentPage = 1;
+        var perPage = 5;
 
-        $(document).on("click", ".edit-modal-divisi-search-class", function() {
-            var EditModalid = $(this).attr('data-Divisiid');
-            var EditModalDivisiName = $(this).attr('data-DivisiName');
+        jQuery(document).ready(function($) {
+            function updatePaginationInfo() {
+                // $("#pagination-info").text("Page " + currentPage + "/" + totalPages);
+                $("#page-numbers").text(currentPage + " / " + totalPages);
+            }
 
+            function updatePaginationControls() {
+                $("#prev-page").prop('disabled', currentPage === 1);
+                $("#next-page").prop('disabled', currentPage === totalPages || totalPages === 0);
+            }
 
+            function loadPage(page) {
+                $.ajax({
+                    url: '{{ route('division.detail', ':id') }}'.replace(':id', divisionId),
+                    type: 'GET',
+                    data: { page: page },
+                    success: function(response) {
+                        console.log(response);
+                        totalPages = response.lastPage;
+                        var positionList = $('#positionList');
+                        positionList.empty();
 
-            console.log(EditModalDivisiName);
-            var formAction;
-            formAction = '{{ route('divisi.update', ':id') }}'.replace(':id', EditModalid);
+                        var startIndex = (page - 1) * perPage;
 
-            $("#edit-modal-DivisiName").attr('value', EditModalDivisiName);
-            $("#edit-form-divisi-search").attr('action', formAction);
+                        $.each(response.positionData, function(index, positionData) {
+                            var row = '<tr>' +
+                                '<td class="w-4 text-center">' + (startIndex + index + 1) +
+                                '.</td>' +
+                                '<td class="w-50 text-center capitalize">' +
+                                positionData.position.name + '</td>' +
+                                '<td class="w-50 text-center capitalize">' +
+                                positionData.positionCount + ' pegawai' + '</td>' +
+                                '</tr>';
+                            positionList.append(row);
+                        });
+
+                        currentPage = page;
+                        updatePaginationInfo();
+                        updatePaginationControls();
+                    }
+                });
+            }
+
+            loadPage(currentPage);
+
+            $("#next-page").click(function() {
+                if (currentPage < totalPages) {
+                    loadPage(currentPage + 1);
+                }
+            });
+
+            $("#prev-page").click(function() {
+                if (currentPage > 1) {
+                    loadPage(currentPage - 1);
+                }
+            });
         });
-
-        $(document).on("click", ".delete-divisi-modal-search", function() {
-            var DeleteDivisiModalid = $(this).attr('data-DeleteDivisiId');
-            var DeleteDivisiModalName = $(this).attr('data-DeleteDivisiName');
+    });
 
 
+    $(document).on("click", ".edit-modal-divisi-search-class", function() {
+        var EditModalid = $(this).attr('data-Divisiid');
+        var EditModalDivisiName = $(this).attr('data-DivisiName');
 
-            var formAction;
-            formAction = '{{ route('divisi.destroy', ':id') }}'.replace(':id', DeleteDivisiModalid);
 
-            $("#subjuduldelete-confirmation").text('Please type the Divisi name "' + DeleteDivisiModalName +
-                '" of the data to confrim.');
-            $("#delete-form-search").attr('action', formAction);
-        });
-    </script>
+
+        console.log(EditModalDivisiName);
+        var formAction;
+        formAction = '{{ route('divisi.update', ':id') }}'.replace(':id', EditModalid);
+
+        $("#edit-modal-DivisiName").attr('value', EditModalDivisiName);
+        $("#edit-form-divisi-search").attr('action', formAction);
+    });
+
+    $(document).on("click", ".delete-divisi-modal-search", function() {
+        var DeleteDivisiModalid = $(this).attr('data-DeleteDivisiId');
+        var DeleteDivisiModalName = $(this).attr('data-DeleteDivisiName');
+
+
+
+        var formAction;
+        formAction = '{{ route('divisi.destroy', ':id') }}'.replace(':id', DeleteDivisiModalid);
+
+        $("#subjuduldelete-confirmation").text('Please type the Divisi name "' + DeleteDivisiModalName +
+            '" of the data to confrim.');
+        $("#delete-form-search").attr('action', formAction);
+    });
+</script>
 @endsection
