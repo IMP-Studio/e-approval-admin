@@ -2,9 +2,13 @@
 
 @section('content')
 <div class="content">
-    <h2 class="intro-y text-lg font-medium mt-10">
-        Data Kehadiran
-    </h2>
+    <div class="intro-y flex items-center h-10">
+        <h2 class="intro-y text-lg font-medium mt-10">
+            Data Kehadiran
+        </h2>
+        <a href="" class="ml-auto flex items-center text-primary"> <i data-lucide="refresh-ccw"
+            class="w-4 h-4 mr-3"></i> Reload Data </a>
+    </div>
     <div class="grid grid-cols-12 gap-6 mt-5">
         <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
             @can('export_presences')
@@ -28,6 +32,11 @@
             </div>
             @endcan
             <div class="hidden md:block mx-auto text-slate-500"></div>
+            <div class="w-full sm:w-auto mt-3 mr-2 sm:mt-0 sm:ml-0 md:mr-0 sm:ml-2">
+                <div class="w-24 relative text-slate-500">
+                    <div class="text-center"> <a href="javascript:;" data-tw-toggle="modal" data-tw-target="#datepicker-dataTable-modal" class="btn btn-primary">Filter Date</a> </div>
+                </div>                
+            </div>
             <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                 <div class="w-56 relative text-slate-500">
                     <input type="text" class="form-control w-56 box pr-10" id="search" placeholder="Search...">
@@ -37,44 +46,42 @@
         </div>
         <!-- BEGIN: Data List -->
         <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-            <table class="table table-report -mt-2">
+            <table id="myTable" class="table table-report">
                 <thead>
                     <tr>
                         <th class="whitespace-nowrap">No</th>
-                        <th class="text-center whitespace-nowrap">Image</th>
+                        <th class="text-center whitespace-nowrap">Date</th>
                         <th class="text-center whitespace-nowrap">Username</th>
-                        <th class="text-center whitespace-nowrap">Entry time</th>
+                        <th class="text-center whitespace-nowrap">Position</th>
                         <th class="text-center whitespace-nowrap">Jenis Kehadiran</th>
-                        <th class="text-center whitespace-nowrap">Actions</th>
+                        <th class="text-center whitespace-nowrap">Entry time</th>
+                        <th class="text-center whitespace-nowrap" data-orderable="false">Actions</th>
                     </tr>
+                    
                 </thead>
                 <tbody> 
+                    {{-- jika merubak struktur table ini pastikan untuk memperbarui juga di dalam script filter date range di js --}}
                     @foreach ($presenceData as $item)
                     <tr class="intro-x h-16">
                         <td class="w-4 text-center">
                             {{ $loop->iteration }}
                         </td>
-                        <td class="flex justify-center align-center">
-                            <div class="w-12 h-12 image-fit zoom-in">
-                                @if ($item->user->employee->avatar)
-                                    <img data-action="zoom" class="rounded-full" src="{{ asset('storage/'.$item->user->employee->avatar) }}">
-                                @elseif($item->user->employee->gender == 'male')
-                                    <img data-action="zoom" class="rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                @elseif($item->user->employee->gender == 'female')
-                                    <img data-action="zoom" class="rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                @endif
-                            </div>
+                        <td class="text-center dateStandup">
+                            {{ $item->date }}
                         </td>
                         <td class="w-50 text-center">
                             {{ $item->user->name }}
                         </td>
-                        <td class="text-center capitalize">
-                            {{ $item->entry_time }}
+                        <td class="w-50 text-center">
+                            {{ $item->user->employee->position->name }}
                         </td>
                         <td class="text-center capitalize">
                             {{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}
                         </td>
-                        <td class="table-report__action w-56">
+                        <td class="text-center capitalize">
+                            {{ $item->entry_time }}
+                        </td>
+                        <td class="table-report__action w-46">
                             <div class="flex justify-center items-center">
                                 @if($item->category === 'WFO')
                                 <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-wfo"
@@ -132,23 +139,31 @@
                     @endforeach
                 </tbody>
             </table>
-            @if ($presenceData->count() > 0)
-            <div class="flex justify-center items-center">
-                {{ $presenceData->links('pagination.custom', [
-                    'paginator' => $presenceData,
-                    'prev_text' => 'Previous',
-                    'next_text' => 'Next',
-                    'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                ]) }}
-            </div>
-            @else
-                <h1 class="text-center">Tidak ada data absensi hari ini</h1>
-            @endif
         </div>
     </div>
 </div>
 
-{{-- date range modal  --}}
+{{-- Filter data by range date modal --}}
+<div id="datepicker-dataTable-modal" class="modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- BEGIN: Modal Header -->
+            <div class="modal-header">
+                <h2 class="font-medium text-base mr-auto">Filter by Date</h2> 
+            </div> <!-- END: Modal Header -->
+            <!-- BEGIN: Modal Body -->
+            <div class="modal-body grid grid-cols-12 gap-4 gap-y-3 input-daterange">
+                <div class="col-span-12 sm:col-span-6"> <label for="modal-datepicker-1" class="form-label">From</label> <input type="text" name="from_date" id="start_date" class="datepicker form-control" data-single-mode="true"> </div>
+                <div class="col-span-12 sm:col-span-6"> <label for="modal-datepicker-2" class="form-label">To</label> <input type="text" name="to_date" id="end_date" class="datepicker form-control" data-single-mode="true"> </div>
+            </div> <!-- END: Modal Body -->
+            <!-- BEGIN: Modal Footer -->
+            <div class="modal-footer text-right"> <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-20 mr-1">Cancel</button> <button type="button" id="filter_button" class="btn btn-primary w-20">Submit</button> </div> <!-- END: Modal Footer -->
+        </div>
+    </div>
+</div>
+{{-- Filter data by range date modal end --}}
+
+{{-- date range excel modal  --}}
 <div id="rangeDateModal" class="modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -186,7 +201,7 @@
         </div>
     </div>
 </div>
-{{-- date range modal  end --}}
+{{-- date range excel modal  end --}}
 
 {{-- delete modal live search --}}
 <div id="delete-confirmation-modal-search-presence" class="modal" tabindex="-1" aria-hidden="true">
@@ -421,18 +436,178 @@
 {{-- detail modal attendance search leave end--}}
 
 <script type="text/javascript">
-   jQuery(document).ready(function($) {
-            $('#search').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('presence') }}',
-                    data: { query: query },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
+    document.addEventListener('DOMContentLoaded', function () {
+        var dateCells = document.querySelectorAll('.dateStandup');
+        dateCells.forEach(function (cell) {
+            var originalDate = cell.textContent.trim();
+            var formattedDate = new Date(originalDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            cell.textContent = formattedDate;
+        });
+    });
+    // search & date filter
+    jQuery(document).ready(function($) {
+        var dataTable = new DataTable('#myTable', {
+            buttons: ['showSelected'],
+            dom: 'rtip',
+            select: true,
+            pageLength: 5,
+            border: false,
+        });
+
+        $('#search').on('keyup', function() {
+            dataTable.search($(this).val()).draw();
+        });
+
+        // filter data by date range
+        $('#filter_button').on('click', function() {
+            var startDate = $('#start_date').val();
+            var endDate = $('#end_date').val();
+
+            dataTable.clear().destroy();
+
+            $.ajax({
+                url: '{{ route('presence') }}',
+                type: 'GET',
+                data: {
+                    start_date: startDate,
+                    end_date: endDate
+                },
+                dataType: 'json',
+                success: function(data) {
+                    var htmlContent = '';
+                    $('tbody').empty();
+
+                    data.forEach(function(item, index) {
+                        var formattedDate = new Date(item.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                        htmlContent += '<tr class="intro-x h-16">';
+                        htmlContent += '<td class="w-4 text-center">' + (index +
+                            1) + '</td>';
+                        htmlContent += '<td class="text-center capitalize">' + formattedDate + '</td>';
+                        htmlContent += '<td class="w-50 text-center">' + item.user
+                            .name + '</td>';
+                        htmlContent += '<td class="w-50 text-center">' + item.user
+                            .employee.position.name + '</td>';
+                        htmlContent += '<td class="text-center capitalize">' + (item
+                            .category === 'work_trip' ? 'Work Trip' : item
+                            .category) + '</td>';
+                        htmlContent += '<td class="text-center capitalize">' + item
+                            .entry_time + '</td>';
+
+                        htmlContent += '<td class="table-report__action w-46">';
+                        htmlContent +=
+                            '<div class="flex justify-center items-center">';
+
+                        if (item.category === 'WFO') {
+                            htmlContent +=
+                                '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-wfo" ' +
+                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                'data-gender="' + item.user.employee.gender + '" ' +
+                                'data-firstname="' + item.user.employee.first_name +
+                                '" ' +
+                                'data-LastName="' + item.user.employee.last_name +
+                                '" ' +
+                                'data-stafId="' + item.user.employee.id_number +
+                                '" ' +
+                                'data-Category="' + (item.category === 'work_trip' ?
+                                    'Work Trip' : item.category) + '" ' +
+                                'data-Position="' + item.user.employee.position
+                                .name + '" ' +
+                                'data-entryTime="' + item.entry_time + '" ' +
+                                'data-exitTime="' + item.exit_time + '" ' +
+                                'href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-wfo">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>Detail</a>';
+                        } else if (item.category === 'telework') {
+                            htmlContent +=
+                                '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-telework" ' +
+                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                'data-gender="' + item.user.employee.gender + '" ' +
+                                'data-firstname="' + item.user.employee.first_name +
+                                '" ' +
+                                'data-LastName="' + item.user.employee.last_name +
+                                '" ' +
+                                'data-stafId="' + item.user.employee.id_number +
+                                '" ' +
+                                'data-Category="' + (item.category === 'work_trip' ?
+                                    'Work Trip' : item.category) + '" ' +
+                                'data-Position="' + item.user.employee.position
+                                .name + '" ' +
+                                'data-teleCategory="' + item.telework
+                                .telework_category + '" ' +
+                                'data-tempoEntry="' + item.temporary_entry_time +
+                                '" ' +
+                                'data-catDesc="' + item.telework
+                                .category_description + '" ' +
+                                'href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-telework">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail</a>';
+                        } else if (item.category === 'work_trip') {
+                            htmlContent +=
+                                '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-worktrip" ' +
+                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                'data-gender="' + item.user.employee.gender + '" ' +
+                                'data-firstname="' + item.user.employee.first_name +
+                                '" ' +
+                                'data-LastName="' + item.user.employee.last_name +
+                                '" ' +
+                                'data-stafId="' + item.user.employee.id_number +
+                                '" ' +
+                                'data-Category="' + (item.category === 'work_trip' ?
+                                    'Work Trip' : item.category) + '" ' +
+                                'data-Position="' + item.user.employee.position
+                                .name + '" ' +
+                                'data-startDate="' + item.start_date + '" ' +
+                                'data-endDate="' + item.end_date + '" ' +
+                                'data-enrtyDate="' + item.entry_date + '" ' +
+                                'href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-worktrip">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail</a>';
+                        } else if (item.category === 'leave') {
+                            htmlContent +=
+                                '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" ' +
+                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                'data-gender="' + item.user.employee.gender + '" ' +
+                                'data-firstname="' + item.user.employee.first_name +
+                                '" ' +
+                                'data-LastName="' + item.user.employee.last_name +
+                                '" ' +
+                                'data-stafId="' + item.user.employee.id_number +
+                                '" ' +
+                                'data-Category="' + (item.category === 'work_trip' ?
+                                    'Work Trip' : item.category) + '" ' +
+                                'data-Position="' + item.user.employee.position
+                                .name + '" ' +
+                                'data-startDate="' + item.start_date + '" ' +
+                                'data-endDate="' + item.end_date + '" ' +
+                                'data-entryDate="' + item.entry_date + '" ' +
+                                'data-typeLeave="' + item.leavedetail.typeofleave.leave_name + '" ' +
+                                'data-typeDesc="' + item.leavedetail
+                                .description_leave + '" ' +
+                                'data-submisDate="' + item.submission_date + '" ' +
+                                'data-totalDays="' + item.total_leave_days + '" ' +
+                                'href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">' +
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>Detail</a>';
+                        }
+
+                        htmlContent += '</div>';
+                        htmlContent += '</td>';
+                        htmlContent += '</tr>';
+                    });
+  
+                    $('tbody').html(htmlContent);
+
+                    dataTable = new DataTable('#myTable', {
+                        buttons: ['showSelected'],
+                        dom: 'rtip',
+                        select: true,
+                        pageLength: 5,
+                        border: false,
+                    });
+
+                },
+                error: function(xhr, status, error) {
+                    console.error(error);
+                }
             });
+        });
     });
 
 

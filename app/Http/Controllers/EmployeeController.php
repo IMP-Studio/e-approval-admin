@@ -155,9 +155,31 @@ class EmployeeController extends Controller
         try {
             $employee = Employee::findOrFail($id);
             $old_image = $employee->avatar;
-
+            $oldPosition = $employee->position->name;
+            $getPosition = $request->input('position');
             $input = $request->all();
+            $user = $employee->user;
+            
+            $newPosition = Position::find($getPosition);
 
+            try {
+                if ($oldPosition == 'Human Resource Staff' && $newPosition->name != 'Human Resource Staff') {
+                    $user->revokePermissionTo('approve_allowed');
+                    $user->revokePermissionTo('view_request_preliminary');
+                    $user->revokePermissionTo('can_access_web');
+                    $user->revokePermissionTo('reject_presence');
+                }
+
+                if ($newPosition->name == 'Human Resource Staff' && $oldPosition != 'Human Resource Staff') {
+                    $user->givePermissionTo('can_access_web');
+                    $user->givePermissionTo('view_request_preliminary');
+                    $user->givePermissionTo('approve_allowed');
+                    $user->givePermissionTo('reject_presence');
+                }
+            } catch (\Throwable $th) {
+                return redirect()->back()->with(['error' => 'Failed to update employee because permission not updated']);
+            }
+            
             if ($image = $request->file('avatar')) {
                 $destinationPath = 'storage/';
                 $profileImage = date('Ymdhis') . rand() . $image->getClientOriginalName();
@@ -176,15 +198,16 @@ class EmployeeController extends Controller
                 'last_name' => $input['last_name'],
                 'id_number' => $input['id_number'],
                 'avatar' => $input['avatar'],
+                'division_id' => $input['division'],
                 'position_id' => $input['position'],
                 'gender' => $input['gender'],
                 'address' => $input['address'],
                 'birth_date' => $birthDate
             ]);
-            $user = $employee->user;
             $user->update([
                 'name' => $input['first_name'] . ' ' . $input['last_name']
             ]);
+
 
             $employee_name = $user->name;
 

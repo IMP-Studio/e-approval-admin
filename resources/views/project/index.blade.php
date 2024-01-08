@@ -175,7 +175,7 @@
                         <div class="col-span-12">
                             <label for="modal-form-2" class="form-label">Nama Project</label>
                             <input id="modal-form-2" name="name" type="text" class="form-control capitalize"
-                                placeholder="nama divisi" autocomplete="off">
+                                placeholder="nama project" autocomplete="off">
                         </div>
                         <div class="col-span-12 sm:col-span-6">
                             <label for="modal-form-2" class="form-label">Start Date</label>

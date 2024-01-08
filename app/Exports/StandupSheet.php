@@ -17,22 +17,28 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
 {
     private $iteration = 0;
     protected $month;
-    protected $standups;
+    protected $year;
+    protected $employeeStandups;
+    protected $employeesWithoutStandups;
+    protected $title;
 
-    public function __construct($month, $standups)
+    public function __construct($title, $year, $month, $employeeStandups, $employeesWithoutStandups)
     {
         $this->month = $month;
-        $this->standups = $standups->sortBy('presence.date');
+        $this->year = $year;
+        $this->employeeStandups = $employeeStandups->sortBy('presence.date');
+        $this->employeesWithoutStandups = $employeesWithoutStandups;
+        $this->title = $title;
     }
 
     public function collection()
     {
-        return $this->standups;
+         return $this->employeeStandups->concat($this->employeesWithoutStandups);
     }
 
     public function title(): string
     {
-        return date('F', mktime(0, 0, 0, $this->month, 1));
+        return $this->title;
     }
 
     public function startCell(): string
@@ -43,15 +49,11 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
     public function headings(): array
     {
         $monthName = date('F', mktime(0, 0, 0, $this->month, 1));
-        $earliestDate = Carbon::parse($this->standups->min('presence.date'))->format('d');
-        $latestDate = Carbon::parse($this->standups->max('presence.date'))->format('d');
-        
-        $dateRange = $earliestDate . ' ' . $monthName . ' - ' . $latestDate . ' ' .  $monthName;
-                
+        $title = $this->title;
 
         return [
             ["Data Standup $monthName"],
-            [$dateRange],
+            [$title],
             [
                 'No',
                 'Tanggal',
@@ -60,35 +62,56 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
                 'Divisi',
                 'L/P',
                 'Project Name',
-                'Dong',
+                'Done',
                 'Doing',
                 'Blocker',
             ]
         ];
     }
 
-    public function map($standup): array
+
+    public function map($data): array
     {
         $this->iteration++;
-
-        return [
-            $this->iteration,
-            $standup->presence->date,
-            $standup->user->name,
-            $standup->user->employee->position->name,
-            $standup->user->employee->division->name,
-            $standup->user->employee->gender == 'male' ? 'L' : 'P',
-            $standup->project->name,
-            $standup->done,
-            $standup->doing,
-            $standup->blocker,
-        ];
+    
+        if (is_array($data)) {
+            // employeesWithoutStandups data
+            return [
+                $this->iteration,
+                $data['date'],
+                $data['name'],
+                $data['position'],
+                $data['division'],
+                $data['gender'],
+                'No Standup',
+                'No Standup',
+                'No Standup',
+                'No Standup',
+            ];
+        } else {
+            //  employeeStandups data
+            return [
+                $this->iteration,
+                $data->presence->date,
+                $data->user->name,
+                $data->user->employee->position->name ?? 'Unknown',
+                $data->user->employee->division->name ?? 'Unknown',
+                $data->user->employee->gender == 'male' ? 'L' : 'P',
+                $data->project->name ?? 'Unknown',
+                $data->done ?? '-',
+                $data->doing ?? '-',
+                $data->blocker ?? '-',
+            ];
+        }
     }
+    
+
 
     public function columnWidths(): array
     {
         return [
             'B' => 5,
+            'C' => 18,
             'F' => 22,
             'G' => 8,
             'H' => 38,
@@ -128,12 +151,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
             } else {
                 // If not consecutive, check if there was a previous merge
                 if (isset($mergeStartRow) && isset($mergeEndRow) && $mergeEndRow > $mergeStartRow) {
-                    // Calculate the number of rows to merge
-                    $mergeRowCount = $mergeEndRow - $mergeStartRow + 1;
-
-                    // Set the row height based on the number of merged rows
-                    $sheet->getRowDimension($mergeStartRow)->setRowHeight($mergeRowCount * 35); // Adjust 20 as needed
-
+         
                     // Merge cells for the current date
                     $sheet->mergeCells("C{$mergeStartRow}:C{$mergeEndRow}");
                 }
@@ -148,12 +166,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
     
         // Merge cells for the last set of consecutive dates (if any)
         if (isset($mergeStartRow) && isset($mergeEndRow) && $mergeEndRow > $mergeStartRow) {
-             // Calculate the number of rows to merge
-            $mergeRowCount = $mergeEndRow - $mergeStartRow + 1;
-
-            // Set the row height based on the number of merged rows
-            $sheet->getRowDimension($mergeStartRow)->setRowHeight($mergeRowCount * 35); // Adjust 20 as needed
-
+      
             $sheet->mergeCells("C{$mergeStartRow}:C{$mergeEndRow}");
         }
 
@@ -255,31 +268,7 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
                 'startColor' => ['rgb' => 'C2D9FF'],
             ],
             'borders' => [
-                'outline' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'horizontal' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'vertical' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'right' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'left' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'top' => [
-                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
-                    'color' => ['rgb' => '000000'],
-                ],
-                'bottom' => [
+                'allBorders' => [
                     'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
                     'color' => ['rgb' => '000000'],
                 ],
@@ -300,15 +289,123 @@ class StandupSheet implements FromCollection, WithTitle, WithHeadings, WithMappi
                 'horizontal' => 'center',
                 'vertical' => 'center',
             ],
+            'borders' => [
+                'right' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
         ]);
+
+        $sheet->getStyle('D5:D'  . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('E5:E' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('F5:F' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+        
 
         $sheet->getStyle('G5:G' . $lastRow)->applyFromArray([
             'alignment' => [
                 'horizontal' => 'center',
                 'vertical' => 'center',
             ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
         ]);
 
+        $sheet->getStyle('H5:H' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('I5:I' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'left' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM,
+                    'color' => ['rgb' => '000000'],
+                ],
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('J5:J' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+
+        $sheet->getStyle('K5:K' . $lastRow)->applyFromArray([
+            'alignment' => [
+                'horizontal' => 'center',
+                'vertical' => 'center',
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000'],
+                ],
+            ],
+        ]);
+        
         $sheet->getColumnDimension('D')->setAutoSize(true);
 
         $sheet->getColumnDimension('E')->setAutoSize(true);

@@ -103,7 +103,7 @@
                             </div>
                             <div class="mt-3">
                                 <label for="crud-form-5" class="form-label">Divisi :</label>
-                                <select name="position" data-placeholder="Select your favorite actors" data-positionId="{{ $employee->position_id }}" class="tom-select w-full capitalize" id="inputDivisiEmploye">
+                                <select name="division" data-placeholder="Select your favorite actors" data-positionId="{{ $employee->position_id }}" class="tom-select w-full capitalize" id="inputDivisiEmploye">
                                     @foreach ($division as $item)
                                         <option value="{{ $item->id }}" {{ $employee->division_id == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
                                     @endforeach
