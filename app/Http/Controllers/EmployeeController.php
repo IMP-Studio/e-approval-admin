@@ -217,9 +217,18 @@ class EmployeeController extends Controller
         }
     }
 
-    public function destroy(string $id, Request $request)
+    /**
+     * Menghapus data secara soft delete
+     *
+     * @param int $id
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy($id, Request $request)
     {
         try {
+            DB::beginTransaction();
             $employee = Employee::findOrFail($id);
 
             $user = User::where('id', $employee->user_id)->first();
@@ -228,30 +237,97 @@ class EmployeeController extends Controller
             $employee_name = $user->name;
 
             if ($user && $inputName === $user->name) {
-                if ($employee->avatar) {
-                    $imagePath = public_path('storage/') . $employee->avatar;
-                    if (file_exists($imagePath)) {
-                        unlink($imagePath);
-                    }
-                }
-                $user->delete();
                 $employee->delete();
+                $user->delete();
+                DB::commit();
                 return redirect()->back()->with(['delete' => "$employee_name deleted successfully"]);
-            }else{
+            } else {
                 return redirect()->back()->with(['error' => 'Wrong username']);
             }
-
-
         } catch (\Throwable $th) {
+            DB::rollBack();
             return redirect()->back()->with(['error' => "Failed to delete employee"]);
         }
-
     }
+
+    /**
+     * Menampilkan data pegawail yang sudah dihapus
+     *
+     * @return \Illuminate\View\View
+     */
     public function trash()
     {
         $employee = Employee::withTrashed()->onlyTrashed()->get();
-        $user = User::withTrashed()->onlyTrashed()->get();
-        return view('employee.trash',compact('employee','user'));
+        return view('employee.trash',compact('employee'));
+    }
+
+    /**
+     * Mengembalikan data yang sudah di delete
+     *
+     * @param int $id
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restore($id, Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $employee = Employee::onlyTrashed()->where('id', $id)->first();
+
+            $inputName = $request->validNameEmployeeRes;
+            // @phpstan-ignore-next-line
+            if ($employee && $inputName === $employee->user->name) {
+                $employee->restore();
+                $employee->user()->restore();
+                DB::commit();
+                return redirect()->back()->with(['success' => "Restore successfully"]);
+            } else {
+                DB::rollBack();
+                return redirect()->back()->with(['error' => "Wrong Username"]);
+            }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect()->back()->with(['error' => "Restore failed"]);
+        }
+    }
+
+    /**
+     * Menghapus data secara permanen
+     *
+     * @param int $id
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroyPermanently($id, Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $employee = Employee::onlyTrashed()->where('id', $id)->first();
+            $user = User::withTrashed()->where('id', $employee->user_id)->first();
+
+            $inputName = $request->validNameEmployeeDel;
+            if ($user && $inputName === $user->name) {
+                $user->standups()->forceDelete();
+                $user->telework()->forceDelete();
+                $user->workTrip()->forceDelete();
+                $user->leave()->forceDelete();
+                $user->subtituteLeave()->forceDelete();
+                $user->presence()->forceDelete();
+                $user->otpVerification()->forceDelete();
+                $user->employee()->forceDelete();
+                $user->forceDelete();
+                DB::commit();
+                return redirect()->back()->with(['delete' => "$inputName deleted successfully"]);
+            } else {
+                DB::rollBack();
+                return redirect()->back()->with(['error' => "Wrong Username"]);
+            }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect()->back()->with(['error' => "Delete failed. An error occurred."]);
+        }
     }
 
     public function export_excel()

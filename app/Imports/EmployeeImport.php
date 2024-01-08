@@ -43,8 +43,11 @@ class EmployeeImport implements ToModel, WithStartRow
         $division->touch();
 
         $position = Position::updateOrCreate(
-            ['division_id' => $division->id],
-            ['name' => $row[8]]
+            [
+                'division_id' => $division->id,
+                'name' => $row[8]
+            ],
+
         );
         $position->touch();
 
