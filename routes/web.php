@@ -92,6 +92,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/template_excel', [EmployeeController::class,'downloadTemplate'])->name('employee.downloadTemplate');
         Route::post('/import_excel', [EmployeeController::class,'importExcel'])->name('employee.import');
         Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);
+        Route::put('/restore/{id}', [EmployeeController::class, 'restore'])->name('employee.restore');
+        Route::delete('/destory/permanently/{id}', [EmployeeController::class, 'destroyPermanently'])->name('employee.destroy.permanently');
     });
 
         Route::prefix('partner')->middleware('permission:view_partners')->group(function () {
