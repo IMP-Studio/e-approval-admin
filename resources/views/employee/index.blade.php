@@ -59,7 +59,7 @@
                             <th class="text-center whitespace-nowrap">Staff Id</th>
                             <th class="text-center whitespace-nowrap">Position</th>
                             <th class="text-center whitespace-nowrap">Gender</th>
-                            <th class="text-center whitespace-nowrap">Actions</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="result">
@@ -247,12 +247,12 @@
                         <input disabled id="Show-Posisi" type="text" class="form-control" value="">
                     </div>
                     <div class="col-span-12 sm:col-span-6">
-                        <label class="text-xs">Address :</label>
-                        <input disabled id="Show-Address" type="text" class="form-control" value="">
-                    </div>
-                    <div class="col-span-12 sm:col-span-6">
                         <label class="text-xs">Date of Birth :</label>
                         <input disabled id="Show-BirthDate" type="text" class="form-control" value="">
+                    </div>
+                    <div class="col-span-12">
+                        <label class="text-xs">Address :</label>
+                        <textarea disabled id="Show-Address" class="form-control"></textarea>
                     </div>
                 </div>
             </div>
@@ -290,8 +290,8 @@
 
 
             var imgSrc = showAvatar
-        ? '{{ asset('storage/') }}' + '/' + showAvatar
-        : (ShowGender == 'male'
+            ? '{{ asset('storage/') }}' + '/' + showAvatar
+            : (ShowGender == 'male'
             ? '{{ asset('images/default-boy.jpg') }}'
             : '{{ asset('images/default-women.jpg') }}');
 
@@ -304,7 +304,7 @@
 
             $("#Show-Divisi").attr('value', ShowDivisi);
             $("#Show-Posisi").attr('value', ShowPosisi);
-            $("#Show-Address").attr('value', ShowAddress);
+            $("#Show-Address").text(ShowAddress);
             $("#Show-BirthDate").attr('value', ShowBirthDate);
             $("#Show-Email").attr('value', ShowEmail);
         });

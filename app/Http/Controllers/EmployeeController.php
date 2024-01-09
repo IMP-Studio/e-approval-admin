@@ -63,7 +63,8 @@ class EmployeeController extends Controller
     {
         try {
             $input = $request->all();
-
+            $getPosition = $request->input('position');
+            $newPosition = Position::find($getPosition);
 
             if ($request->hasFile('avatar')) {
                 $image = $request->file('avatar');
@@ -82,6 +83,17 @@ class EmployeeController extends Controller
                 'email' => $request->email,
                 'password' => $request->password,
             ]);
+
+            try {
+                if ($newPosition->name == 'Human Resource Staff') {
+                    $user->givePermissionTo('can_access_web');
+                    $user->givePermissionTo('view_request_preliminary');
+                    $user->givePermissionTo('approve_allowed');
+                    $user->givePermissionTo('reject_presence');
+                }
+            } catch (\Throwable $th) {
+                return redirect()->back()->with(['error' => 'Failed to update employee because permission not updated']);
+            }
 
             $user->givePermissionTo('can_access_mobile');
 
