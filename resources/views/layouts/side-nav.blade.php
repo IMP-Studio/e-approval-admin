@@ -74,28 +74,28 @@
         @can('approve_preliminary')
         {{-- Approve head of tired --}}
         <li>
-            <a href="javascript:;" class="side-menu">
+            <a href="javascript:;" class="side-menu {{ Request::is('approveht*') ? 'side-menu--active' : '' }}">
                 <div class="side-menu__icon"> <i data-lucide="clipboard-check"></i> </div>
                 <div class="side-menu__title">
                     Approve HT
                     <div class="side-menu__sub-icon">  <i data-lucide="chevron-down"></i>  </div>
                 </div>
             </a>
-            <ul class="">
+            <ul class="{{ Request::is('approveht*') ? 'side-menu__sub-open' : '' }}">
                 <li>
-                    <a href="{{ route('approveht.worktripHt') }}" class="side-menu">
+                    <a href="{{ route('approveht.worktripHt') }}" class="side-menu {{ Request::is('approveht/worktripht*') ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="building"></i> </div>
                         <div class="side-menu__title"> Work Trip </div>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('approveht.teleworkHt') }}" class="side-menu">
+                    <a href="{{ route('approveht.teleworkHt') }}" class="side-menu {{ Request::is('approveht/teleworkht*') ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="monitor"></i> </div>
                         <div class="side-menu__title"> Telework  </div>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('approveht.leaveHt') }}" class="side-menu">
+                    <a href="{{ route('approveht.leaveHt') }}" class="side-menu {{ Request::is('approveht/leaveht*') ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="power-off"></i> </div>
                         <div class="side-menu__title"> Leave </div>
                     </a>
@@ -107,28 +107,28 @@
         @can('approve_allowed')
          {{-- Approve human Resource --}}
          <li>
-            <a href="javascript:;" class="side-menu">
+            <a href="javascript:;" class="side-menu {{ Request::is('approvehr*') ? 'side-menu--active' : '' }}">
                 <div class="side-menu__icon"> <i data-lucide="clipboard-check"></i> </div>
                 <div class="side-menu__title">
                     Approve HR
                     <div class="side-menu__sub-icon"> <i data-lucide="chevron-down"></i> </div>
                 </div>
             </a>
-            <ul class="">
+            <ul class="{{ Request::is('approvehr*') ? 'side-menu__sub-open' : '' }}">
                 <li>
-                    <a href="{{ route('approvehr.worktripHr') }}" class="side-menu">
+                    <a href="{{ route('approvehr.worktripHr') }}" class="side-menu {{ Request::is('approvehr/worktriphr*') ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="building"></i> </div>
                         <div class="side-menu__title"> Work Trip </div>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('approvehr.teleworkHr') }}" class="side-menu">
+                    <a href="{{ route('approvehr.teleworkHr') }}" class="side-menu {{ Request::is('approvehr/teleworkhr*') ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="monitor"></i> </div>
                         <div class="side-menu__title"> Telework  </div>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('approvehr.leaveHr') }}" class="side-menu">
+                    <a href="{{ route('approvehr.leaveHr') }}" class="side-menu {{ Request::is('approvehr/leavehr*') ? 'side-menu--active' : '' }}">
                         <div class="side-menu__icon"> <i data-lucide="power-off"></i> </div>
                         <div class="side-menu__title"> Leave </div>
                     </a>

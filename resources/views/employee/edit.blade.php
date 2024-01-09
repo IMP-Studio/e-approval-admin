@@ -45,15 +45,19 @@
                 <div class="grid grid-cols-12 gap-6">
                         <div class="col-span-12 xl:col-span-6">
                             <div>
-                                <label for="crud-form-1" class="form-label">Firstname</label>
+                                <label for="crud-form-1" class="form-label">Firstname :</label>
                                 <input value="{{ $employee->first_name }}" name="first_name" id="crud-form-1" type="text" class="form-control w-full" placeholder="Firstname">
                             </div>
                             <div class="mt-3">
-                                <label for="crud-form-2" class="form-label">Lastname</label>
+                                <label for="crud-form-2" class="form-label">Lastname :</label>
                                 <input value="{{ $employee->last_name }}" name="last_name" id="crud-form-2" type="text" class="form-control w-full" placeholder="Lastname">
                             </div>
                             <div class="mt-3">
-                                <label for="crud-form-3" class="form-label">Staff Id</label>
+                                <label for="crud-form-3" class="form-label">Email :</label>
+                                <input value="{{ $employee->user->email }}" name="email" id="crud-form-3" type="email" class="form-control" placeholder="email">
+                            </div>
+                            <div class="mt-3">
+                                <label for="crud-form-3" class="form-label">Staff id :</label>
                                 <input value="{{ $employee->id_number }}" name="id_number" id="crud-form-3" type="number" class="form-control" placeholder="Staff Id">
                             </div>
                             <div class="mt-3">
@@ -118,6 +122,7 @@
                                 </select>
                             </div>
                             <div class="mt-3">
+                                <label for="crud-form-5" class="form-label">Date of birth :</label>
                                 <div class="relative w-56">
                                     <div class="absolute rounded-l w-10 h-full flex items-center justify-center bg-slate-100 border text-slate-500 dark:bg-darkmode-700 dark:border-darkmode-800 dark:text-slate-400">
                                         <i data-lucide="calendar" class="w-4 h-4"></i>
