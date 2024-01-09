@@ -73,10 +73,12 @@ class EmployeeImport implements ToModel, WithStartRow
             ]
         );
         if ($row[9] === 'Head Of Tribe') {
+            $user->givePermissionTo('can_access_web');
             $user->givePermissionTo('approve_preliminary');
             $user->givePermissionTo('view_request_pending');
             $user->givePermissionTo('reject_presence');
         } else if ($row[9] === 'Human Resource') {
+            $user->givePermissionTo('can_access_web');
             $user->givePermissionTo('approve_allowed');
             $user->givePermissionTo('view_request_preliminary');
             $user->givePermissionTo('reject_presence');

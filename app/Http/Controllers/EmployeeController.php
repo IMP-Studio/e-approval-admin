@@ -217,7 +217,8 @@ class EmployeeController extends Controller
                 'birth_date' => $birthDate
             ]);
             $user->update([
-                'name' => $input['first_name'] . ' ' . $input['last_name']
+                'name' => $input['first_name'] . ' ' . $input['last_name'],
+                'email' => $input['email']
             ]);
 
 
@@ -349,7 +350,7 @@ class EmployeeController extends Controller
 
     public function downloadTemplate()
     {
-        $file_path = public_path("import/Template-Employee.xlsx");
+        $file_path = public_path("import/Template-Data-Employee.xlsx");
 
         if (file_exists($file_path)) {
             return response()->download($file_path);
