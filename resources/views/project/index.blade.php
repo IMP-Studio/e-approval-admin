@@ -47,14 +47,14 @@
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Partner Name</th>
                             <th class="text-center whitespace-nowrap">Status</th>
-                            <th class="text-center whitespace-nowrap">Actions</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableProject">
@@ -75,7 +75,6 @@
                                     @elseif($item->end_date < now())
                                         Inactive
                                     @endif
-
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
@@ -139,16 +138,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($project->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $project->links('pagination.custom', [
-                            'paginator' => $project,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -239,23 +228,20 @@
                         <input disabled id="show-enddate" type="text" class="form-control" value="">
                     </div>
 
-                        <div class="">
-                            <label class="form-label">Contributors :</label>
-                            <div class="pr-1">
-                                <div class="box px-5 pt-5 pb-5" style="background-color: rgba(27, 37, 59, 0.5);">
-                                    <div class="overflow-x-auto scrollbar-hidden">
-                                        <div class="flex flex-wrap" id="contributorsContainer">
+                    <div class="">
+                        <label class="form-label">Contributors :</label>
+                        <div class="pr-1">
+                            <div class="box px-5 pt-5 pb-5" style="background-color: rgba(27, 37, 59, 0.5);">
+                                <div class="overflow-x-auto scrollbar-hidden">
+                                    <div class="flex flex-wrap" id="contributorsContainer">
 
 
 
-                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-
-
+                    </div>
                 </div>
             </div>
         </div>
@@ -388,62 +374,59 @@
         </div>
     </div>
 
-    <script type="text/javascript">
-        // search
-        jQuery(document).ready(function($) {
-            $('#searchProject').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('project') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('#tableProject').html(data);
-                    }
-                });
-            });
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var dataTable = new DataTable('#myTable', {
+            buttons: ['showSelected'],
+            dom: 'rtip',
+            select: true,
+            pageLength: 5,
+            border: false,
         });
 
-        // edit-modal
-        $(document).on("click", ".edit-modal-project-search", function() {
-            var EditProjectid = $(this).attr('data-projectid');
-            var editProjectName = $(this).attr('data-projectName');
-            var editEnddateYMD = $(this).attr('data-endDate');
-            var editStartdateYMD = $(this).attr('data-startDate');
-            var editPartnerSelectid = $(this).attr('data-projectpartnerId');
-            var editPartnerSelectName = $(this).attr('data-partnerName');
+        $('#searchProject').on('keyup', function() {
+            dataTable.search($(this).val()).draw();
+        });
+    });      
+
+    // edit-modal
+    $(document).on("click", ".edit-modal-project-search", function() {
+        var EditProjectid = $(this).attr('data-projectid');
+        var editProjectName = $(this).attr('data-projectName');
+        var editEnddateYMD = $(this).attr('data-endDate');
+        var editStartdateYMD = $(this).attr('data-startDate');
+        var editPartnerSelectid = $(this).attr('data-projectpartnerId');
+        var editPartnerSelectName = $(this).attr('data-partnerName');
 
 
-            var formAction;
-            formAction = '{{ route('project.update', ':id') }}'.replace(':id', EditProjectid);
-
-
-
-            $("#edit-project-modal").attr('action', formAction); // bug!! di tampilan di haruskan menggunakan ini
-            $("#end-date-modal").val(editEnddateYMD); // bug!! di tampilan di haruskan menggunakan ini
-            $("#end-date-modal").attr('value', editEnddateYMD);
-            $("#start-date-modal").val(editStartdateYMD); // bug!! di tampilan di haruskan menggunakan ini
-            $("#start-date-modal").attr('value', editStartdateYMD);
-            $("#name-project-modal").attr('value', editProjectName);
-
-
-            // Cari option dengan value yang sesuai dan tandai sebagai yang dipilih
-            $("#project-partner-select option").each(function() {
-                if ($(this).val() == editPartnerSelectid) {
-                    $(this).attr("selected", true);
-                } else {
-                    $(this).removeAttr("selected");
-                }
-            });
+        var formAction;
+        formAction = '{{ route('project.update', ':id') }}'.replace(':id', EditProjectid);
 
 
 
-        })
+        $("#edit-project-modal").attr('action', formAction); // bug!! di tampilan di haruskan menggunakan ini
+        $("#end-date-modal").val(editEnddateYMD); // bug!! di tampilan di haruskan menggunakan ini
+        $("#end-date-modal").attr('value', editEnddateYMD);
+        $("#start-date-modal").val(editStartdateYMD); // bug!! di tampilan di haruskan menggunakan ini
+        $("#start-date-modal").attr('value', editStartdateYMD);
+        $("#name-project-modal").attr('value', editProjectName);
 
-         // detail
-         var contributorsData = @json($contributors);
+
+        // Cari option dengan value yang sesuai dan tandai sebagai yang dipilih
+        $("#project-partner-select option").each(function() {
+            if ($(this).val() == editPartnerSelectid) {
+                $(this).attr("selected", true);
+            } else {
+                $(this).removeAttr("selected");
+            }
+        });
+
+
+
+    })
+
+    // detail
+    var contributorsData = @json($contributors);
 
     $(document).on("click", ".detail-project-modal-search", function () {
         var projectnameD = $(this).attr('data-projectnameD');
@@ -466,7 +449,7 @@
         if (contributor.avatar) {
             var contributorHtml = '<a href="" class="mb-2 mr-4 cursor-pointer">' +
                 '<div class="w-10 h-10 flex-none image-fit rounded-full mx-auto mb-2">' +
-                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="http://127.0.0.1:8000/storage/' + contributor.avatar + '">' +
+                '<img alt="Midone - HTML Admin Template" class="rounded-full" src="{{ asset('storage/') }}' +'/'+ contributor.avatar + '">' +
                 '<div class="w-3 h-3 bg-success absolute right-0 bottom-0 rounded-full border-2 border-white dark:border-darkmode-600"></div>' +
                 '</div>' +
                 '<div class="text-xs text-slate-500 truncate text-center">' + contributor.name + '</div>' +
@@ -504,5 +487,5 @@
         $("#show-enddate").attr('value', enddateD);
     });
 
-    </script>
+</script>
 @endsection
