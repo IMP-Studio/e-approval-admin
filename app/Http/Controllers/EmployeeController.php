@@ -32,20 +32,8 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = $request->input('query');
-
-        if ($request->ajax()) {
-            $employee = Employee::all();
-
-            $output = '';
-            $iteration = 0;
-
-
-        }else {
-            $employee = Employee::all();
-            return view('employee.index',compact('employee'));
-        }
-
+        $employee = Employee::orderBy('user_id', 'desc')->get();
+        return view('employee.index',compact('employee'));
 
     }
 
