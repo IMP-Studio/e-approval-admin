@@ -83,11 +83,10 @@
                                 @foreach($employees as $employee)
                                     <div class="employee-box box px-5 py-3 mb-3 flex bg-slate-100 items-center zoom-in employee-item" data-employee-id="{{ $employee->id }}" data-employee-permissions="{{ json_encode($employee->permissions) }}">
                                         <div class="w-10 h-10 flex-none image-fit rounded-full overflow-hidden">
-                                            @if($employee->employee->gender == 'male')
-                                                <img class="tooltip rounded-full" src="{{ asset('images/default-boy.jpg') }}">
-                                            @elseif($employee->employee->gender == 'female')
-                                                <img class="tooltip rounded-full" src="{{ asset('images/default-women.jpg') }}">
-                                            @endif
+                                            @php
+                                                $avatarPath = $employee->employee->avatar ? asset('storage/' . $employee->employee->avatar) : ($employee->employee->gender == 'male' ? asset('images/default-boy.jpg') : asset('images/default-women.jpg'));
+                                            @endphp
+                                            <img class="tooltip rounded-full" src="{{ $avatarPath }}">
                                         </div>
                                         <div class="ml-4 mr-auto overflow-hidden">
                                             <div class="font-medium truncate employee-text">{{ $employee->employee->first_name }} {{ $employee->employee->last_name }}</div>
@@ -183,9 +182,9 @@ jQuery(document).ready(function($) {
                 var isPermission43Checked = permissions.includes('43');
 
                 // Update the selected role based on the checkbox state
-                if (isPermission38Checked && isPermission42Checked) {
+                if (isPermission39Checked && isPermission43Checked) {
                     selectedRole = 'hr'; // Human Resource
-                } else if (isPermission39Checked && isPermission43Checked) {
+                } else if (isPermission38Checked && isPermission42Checked) {
                     selectedRole = 'ht'; // Head of Tribe
                 } else if (!isPermission38Checked || !isPermission39Checked || !isPermission42Checked || !isPermission43Checked) {
                     selectedRole = 'ordinary'; // Ordinary Employee
@@ -233,8 +232,8 @@ jQuery(document).ready(function($) {
                     var isHR = selectedRole === 'hr';
                     var isHT = selectedRole === 'ht';
 
-                    if ((isHR && (permissionId === 39 || permissionId === 43)) ||
-                        (isHT && (permissionId === 38 || permissionId === 42))) {
+                    if ((isHR && (permissionId === 38 || permissionId === 42)) ||
+                        (isHT && (permissionId === 39 || permissionId === 43))) {
                         $(this).prop('disabled', true);
                     } else {
                         $(this).prop('disabled', false);
@@ -284,36 +283,6 @@ jQuery(document).ready(function($) {
         var selectedRole = $('#role-select').val();
         console.log('Selected Role:', selectedRole);
 
-        // Uncheck all checkboxes and enable them
-        $('.permission-checkbox').prop('checked', false).prop('disabled', false);
-
-        // Check if the user has specific permission checkboxes checked
-        var hasPermission38 = employeePermissions.some(permission => permission.id === 38);
-        var hasPermission39 = employeePermissions.some(permission => permission.id === 39);
-        var hasPermission42 = employeePermissions.some(permission => permission.id === 42);
-        var hasPermission43 = employeePermissions.some(permission => permission.id === 43);
-        var hasPermission41 = employeePermissions.some(permission => permission.id === 41);
-
-        if (hasPermission38 && hasPermission42) {
-            // User has permissions 38 and 42, set the selected role to "Human Resource"
-            $('#role-select').val("hr");
-            // Disable checkboxes 39 and 43
-            $('[id^="checkbox-39"], [id^="checkbox-43"]').prop('disabled', true);
-        } else if (hasPermission39 && hasPermission43) {
-            // User has permissions 39 and 43, set the selected role to "Head of Tribe"
-            $('#role-select').val("ht");
-            // Disable checkboxes 38 and 42
-            $('[id^="checkbox-38"], [id^="checkbox-42"]').prop('disabled', true);
-        } else if (hasPermission41 && !hasPermission38 && !hasPermission39 && !hasPermission42 && !hasPermission43) {
-            // User has permission 41 and no 38, 39, 42, or 43, set the selected role to "Ordinary Employee"
-            $('#role-select').val("ordinary");
-        } else {
-            // User doesn't fall into any specific category
-            // Clear the selected role
-            $('#role-select').val("");
-        }
-
-        
         $('#permission-employee-container').data('employee-name', employeeName);
         $('#permission-employee-container').data('employee-id', userId); // Update the data-employee-id
         getUserPermissions(userId, employeePermissions, selectedRole);
@@ -338,8 +307,8 @@ jQuery(document).ready(function($) {
                 var isHR = selectedRole === 'hr';
                 var isHT = selectedRole === 'ht';
 
-                if ((isHR && (permissionId === 39 || permissionId === 43)) ||
-                    (isHT && (permissionId === 38 || permissionId === 42))) {
+                if ((isHR && (permissionId === 38 || permissionId === 42)) ||
+                    (isHT && (permissionId === 39 || permissionId === 43))) {
                     $(this).prop('disabled', true);
                 } else {
                     $(this).prop('disabled', false);
@@ -369,8 +338,8 @@ jQuery(document).ready(function($) {
 
                 // Define a mapping of roles to permission IDs
                 var roleToPermissions = {
-                    hr: [1, 2, 7, 8, 13, 14, 19, 20, 21, 22, 27, 28, 33, 34, 35, 38, 42], // Map HR role to permission IDs
-                    ht: [1, 2, 7, 8, 13, 14, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 39, 43], // Map HT role to permission IDs
+                    hr: [1, 2, 7, 8, 13, 14, 19, 20, 21, 22, 27, 28, 33, 34, 35, 39, 40, 43], // Map HR role to permission IDs
+                    ht: [1, 2, 7, 8, 13, 14, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 38, 40, 42], // Map HT role to permission IDs
                     ordinary: [41]  // Map Ordinary Employee role to permission IDs
                 };
 
@@ -392,8 +361,8 @@ jQuery(document).ready(function($) {
                     $(this).prop('checked', shouldCheck);
 
                     // Disable checkboxes based on permission IDs and roles
-                    if ((selectedRole === 'hr' && (permissionId === 39 || permissionId === 43)) ||
-                        (selectedRole === 'ht' && (permissionId === 38 || permissionId === 42))) {
+                    if ((selectedRole === 'hr' && (permissionId === 38 || permissionId === 42)) ||
+                        (selectedRole === 'ht' && (permissionId === 39 || permissionId === 43))) {
                         $(this).prop('disabled', true);
                     } else {
                         $(this).prop('disabled', false);
@@ -427,9 +396,9 @@ jQuery(document).ready(function($) {
                 var isPermission43Checked = permissions.includes('43');
 
                 // Update the selected role based on the checkbox state
-                if (isPermission38Checked && isPermission42Checked) {
+                if (isPermission39Checked && isPermission43Checked) {
                     selectedRole = 'hr'; // Human Resource
-                } else if (isPermission39Checked && isPermission43Checked) {
+                } else if (isPermission38Checked && isPermission42Checked) {
                     selectedRole = 'ht'; // Head of Tribe
                 } else if (!isPermission38Checked || !isPermission39Checked || !isPermission42Checked || !isPermission43Checked) {
                     selectedRole = 'ordinary'; // Ordinary Employee
@@ -446,8 +415,8 @@ jQuery(document).ready(function($) {
                     var isHT = selectedRole === 'ht';
 
                     // Disable checkboxes based on permission IDs and roles
-                    if ((isHR && (permissionId === 39 || permissionId === 43)) ||
-                        (isHT && (permissionId === 38 || permissionId === 42))) {
+                    if ((isHR && (permissionId === 38 || permissionId === 42)) ||
+                        (isHT && (permissionId === 39 || permissionId === 43))) {
                         $(this).prop('disabled', true);
                     } else {
                         $(this).prop('disabled', false);

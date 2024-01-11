@@ -448,9 +448,9 @@ class EmployeeSheet implements FromArray, WithHeadings, WithStyles, WithCustomSt
     {
         $permissions = $employee->user->permissions->pluck('id')->toArray();
 
-        if (in_array(38, $permissions) && in_array(42, $permissions)) {
+        if (in_array(39, $permissions) && in_array(43, $permissions)) {
             return 'Human Resource';
-        } elseif (in_array(39, $permissions) && in_array(43, $permissions)) {
+        } elseif (in_array(38, $permissions) && in_array(42, $permissions)) {
             return 'Head Of Tribe';
         } else {
             return 'Ordinary Employee';
