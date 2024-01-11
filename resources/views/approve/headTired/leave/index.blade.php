@@ -15,7 +15,7 @@
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
@@ -87,16 +87,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($leavekData->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $leavekData->links('pagination.custom', [
-                            'paginator' => $leavekData,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -249,23 +239,6 @@
     {{-- detail modal attendance search leave end --}}
 
     <script type="text/javascript">
-        // search
-        jQuery(document).ready(function($) {
-            $('#searchLeaveHt').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('approveht.leaveHt') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
-            });
-        });
-
         $(document).on("click", ".approve_leave_Ht", function() {
             var ApproveWkModalid = $(this).attr('data-leaveHtid');
             var ApproveWkModalMessage = $(this).attr('data-messageLeaveHt');
@@ -359,6 +332,21 @@
             $("#messageLeave-rejectHt").attr('value', rejectWkModalMessage);
 
 
+        });
+
+         // data table
+         jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchLeaveHt').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
+            });
         });
     </script>
 @endsection

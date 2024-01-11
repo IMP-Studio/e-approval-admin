@@ -9,13 +9,13 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWorktripht">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWorktripHt">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
@@ -76,16 +76,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($workTripData->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $workTripData->links('pagination.custom', [
-                            'paginator' => $workTripData,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -205,23 +195,6 @@
     {{-- detail modal attendance search work_trip end--}}
 
 <script type="text/javascript">
-         // search
-         jQuery(document).ready(function($) {
-            $('#searchWorktripht').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('approveht.worktripHt') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
-            });
-        });
-
         // detail work trip modal
         $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
             var ShowGender = $(this).attr('data-gender');
@@ -300,5 +273,20 @@
 
 
     });
+
+     // data table
+     jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchWorktripHt').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
+            });
+        });
 </script>
 @endsection
