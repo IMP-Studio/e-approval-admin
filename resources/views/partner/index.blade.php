@@ -23,7 +23,7 @@
                         <ul class="dropdown-content">
                             @can('export_partners')
                                 <li>
-                                    <a href="" class="dropdown-item"> <i data-lucide="file-text"
+                                    <a href="{{ route('partner.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
                                             class="w-4 h-4 mr-2"></i> Export to Excel </a>
                                 </li>
                             @endcan
@@ -48,13 +48,13 @@
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Total Project</th>
-                            <th class="text-center whitespace-nowrap">Actions</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tablePartner">
@@ -95,7 +95,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($partner->count() > 0)
+                {{-- @if ($partner->count() > 0)
                     <div class="flex justify-center items-center">
                         {{ $partner->links('pagination.custom', [
                             'paginator' => $partner,
@@ -104,7 +104,7 @@
                             'slider_text' => 'Showing items from {start} to {end} out of {total}',
                         ]) }}
                     </div>
-                @endif
+                @endif --}}
             </div>
         </div>
     </div>
@@ -270,21 +270,21 @@
 
     <script type="text/javascript">
         // search
-        jQuery(document).ready(function($) {
-            $('#searchPartner').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('partner') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('#tablePartner').html(data);
-                    }
-                });
-            });
-        });
+        // jQuery(document).ready(function($) {
+        //     $('#searchPartner').on('keyup', function() {
+        //         var query = $(this).val();
+        //         $.ajax({
+        //             type: 'GET',
+        //             url: '{{ route('partner') }}',
+        //             data: {
+        //                 query: query
+        //             },
+        //             success: function(data) {
+        //                 $('#tablePartner').html(data);
+        //             }
+        //         });
+        //     });
+        // });
 
         // detail
         $(document).on("click", ".detail-partner-modal-search", function() {
@@ -352,6 +352,21 @@
             $("#textconfirmationpartner").text('Please type the username "' + DeletePartnerName +
                 '" of the data to confrim.');
             $("#actionconfirmationpartner").attr('action', formAction);
+        });
+
+         // data table
+         jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchPartner').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
+            });
         });
     </script>
 @endsection
