@@ -83,7 +83,10 @@ class PresenceController extends Controller
                     return $item;
             });
             
-            $presenceData = $tele_wfo_wk->concat($leaveData);
+            $mergeData = $tele_wfo_wk->concat($leaveData);
+
+            $presenceData = $mergeData->sortByDesc('id')->values();
+            
 
             return response()->json($presenceData);
         }else {
@@ -120,8 +123,10 @@ class PresenceController extends Controller
             });
             
             $mergeData = $tele_wfo_wk->concat($leaveData);
+
+            $sortedMergeData = $mergeData->sortByDesc('id');
     
-            $presenceData = $mergeData;
+            $presenceData = $sortedMergeData;
         }
 
         return view('attendance', compact('presenceData', 'today'));

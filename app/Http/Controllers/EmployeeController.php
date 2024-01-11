@@ -32,20 +32,8 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = $request->input('query');
-
-        if ($request->ajax()) {
-            $employee = Employee::all();
-
-            $output = '';
-            $iteration = 0;
-
-
-        }else {
-            $employee = Employee::all();
-            return view('employee.index',compact('employee'));
-        }
-
+        $employee = Employee::orderBy('user_id', 'desc')->get();
+        return view('employee.index',compact('employee'));
 
     }
 
@@ -63,7 +51,8 @@ class EmployeeController extends Controller
     {
         try {
             $input = $request->all();
-
+            $getPosition = $request->input('position');
+            $newPosition = Position::find($getPosition);
 
             if ($request->hasFile('avatar')) {
                 $image = $request->file('avatar');
@@ -82,6 +71,17 @@ class EmployeeController extends Controller
                 'email' => $request->email,
                 'password' => $request->password,
             ]);
+
+            try {
+                if ($newPosition->name == 'Human Resource Staff') {
+                    $user->givePermissionTo('can_access_web');
+                    $user->givePermissionTo('view_request_preliminary');
+                    $user->givePermissionTo('approve_allowed');
+                    $user->givePermissionTo('reject_presence');
+                }
+            } catch (\Throwable $th) {
+                return redirect()->back()->with(['error' => 'Failed to update employee because permission not updated']);
+            }
 
             $user->givePermissionTo('can_access_mobile');
 
@@ -205,7 +205,8 @@ class EmployeeController extends Controller
                 'birth_date' => $birthDate
             ]);
             $user->update([
-                'name' => $input['first_name'] . ' ' . $input['last_name']
+                'name' => $input['first_name'] . ' ' . $input['last_name'],
+                'email' => $input['email']
             ]);
 
 
@@ -337,7 +338,7 @@ class EmployeeController extends Controller
 
     public function downloadTemplate()
     {
-        $file_path = public_path("import/Template-Employee.xlsx");
+        $file_path = public_path("import/Template-Data-Employee.xlsx");
 
         if (file_exists($file_path)) {
             return response()->download($file_path);

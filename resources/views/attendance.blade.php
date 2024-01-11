@@ -124,13 +124,30 @@
                                     data-startDate="{{ $item->start_date }}"
                                     data-endDate="{{ $item->end_date }}"
                                     data-enrtyDate="{{ $item->entry_date }}"
+                                    data-file="{{ $item->worktrip->file }}"
                                     href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-worktrip">
                                         <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                     </a>
                                 @elseif ($item->category == 'leave')
-                                    <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" data-avatar="{{ $item->user->employee->avatar }}" data-gender="{{ $item->user->employee->gender }}" data-firstname="{{ $item->user->employee->first_name }}" data-LastName="{{ $item->user->employee->last_name }}" data-stafId="{{ $item->user->employee->id_number }}" data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}" data-Position="{{ $item->user->employee->position->name }}" data-startDate="{{ $item->start_date }}" data-endDate="{{ $item->end_date }}" data-entryDate="{{ $item->entry_date }}" data-typeLeave="{{ $item->leavedetail->typeOfLeave->leave_name }}" data-typeDesc="{{ $item->leavedetail->description_leave }}" data-submisDate="{{ $item->submission_date }}" data-totalDays="{{ $item->total_leave_days }}" href="javascript:;" data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
-                                        <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
-                                    </a>
+                                <a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave"
+                                    data-file="{{ $item->file }}"
+                                    data-avatar="{{ $item->user->employee->avatar }}"
+                                    data-gender="{{ $item->user->employee->gender }}"
+                                    data-firstname="{{ $item->user->employee->first_name }}"
+                                    data-LastName="{{ $item->user->employee->last_name }}"
+                                    data-stafId="{{ $item->user->employee->id_number }}"
+                                    data-Category="{{ $item->category === 'work_trip' ? 'Work Trip' : $item->category }}"
+                                    data-Position="{{ $item->user->employee->position->name }}"
+                                    data-startDate="{{ $item->start_date }}"
+                                    data-endDate="{{ $item->end_date }}"
+                                    data-entryDate="{{ $item->entry_date }}"
+                                    data-typeLeave="{{ $item->leavedetail->typeOfLeave->leave_name }}"
+                                    data-typeDesc="{{ $item->leavedetail->description_leave }}"
+                                    data-submisDate="{{ $item->submission_date }}"
+                                    data-totalDays="{{ $item->total_leave_days }}" href="javascript:;"
+                                    data-tw-toggle="modal" data-tw-target="#show-modal-search-leave">
+                                    <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
+                                </a>
                                 @endif
                 
                             </div>
@@ -350,6 +367,10 @@
                     <input disabled id="Show-LastName-work" type="text" class="form-control" value="">
                 </div>
                 <div class="col-span-12 sm:col-span-6">
+                    <label class="text-xs">Gender :</label>
+                    <input disabled id="Show-gender-work" type="text" class="form-control" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-6">
                     <label class="text-xs">Staff Id :</label>
                     <input disabled id="Show-StafId-work" type="text" class="form-control" value="">
                 </div>
@@ -360,6 +381,25 @@
                 <div class="col-span-12 sm:col-span-6">
                     <label class="text-xs">Category :</label>
                     <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
+                </div>
+                <div class="col-span-12 sm:col-span-12" id="detail-file">
+                    <div class="flex items-center p-5 form-control">
+                        <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
+                        <div class="ml-4">
+                            <p id="filename" class="font-medium"></p> 
+                            <div id="file-size" class="text-slate-500 text-xs mt-0.5"></div>
+                        </div>
+                        <div class="dropdown ml-auto">
+                            <a class="dropdown-toggle w-5 h-5 block" href="javascript:;" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal" class="w-5 h-5 text-slate-500"></i> </a>
+                            <div class="dropdown-menu w-40">
+                                <ul class="dropdown-content">
+                                    <li>
+                                        <a id="put-href-file" href="" class="dropdown-item "> <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -429,6 +469,25 @@
                     <label class="text-xs">Type Description :</label>
                     <textarea disabled id="Show-TypeDesc-leave" type="text" class="form-control" ></textarea>
                 </div>
+                <div class="col-span-12 sm:col-span-12" id="detail-file-leave">
+                    <div class="flex items-center p-5 form-control">
+                        <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
+                        <div class="ml-4">
+                            <p id="filename-leave" class="font-medium"></p> 
+                            <div id="file-size-leave" class="text-slate-500 text-xs mt-0.5"></div>
+                        </div>
+                        <div class="dropdown ml-auto">
+                            <a class="dropdown-toggle w-5 h-5 block" href="javascript:;" aria-expanded="false" data-tw-toggle="dropdown"> <i data-lucide="more-horizontal" class="w-5 h-5 text-slate-500"></i> </a>
+                            <div class="dropdown-menu w-40">
+                                <ul class="dropdown-content">
+                                    <li>
+                                        <a id="put-href-file-leave" href="" class="dropdown-item "> <i data-lucide="download" class="w-4 h-4 mr-2"></i> Download </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>  
             </div>
         </div>
     </div>
@@ -501,7 +560,7 @@
                         if (item.category === 'WFO') {
                             htmlContent +=
                                 '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-wfo" ' +
-                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                (item.user.employee.avatar ? 'data-avatar="' + item.user.employee.avatar + '"' : '') +
                                 'data-gender="' + item.user.employee.gender + '" ' +
                                 'data-firstname="' + item.user.employee.first_name +
                                 '" ' +
@@ -520,7 +579,7 @@
                         } else if (item.category === 'telework') {
                             htmlContent +=
                                 '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-telework" ' +
-                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                (item.user.employee.avatar ? 'data-avatar="' + item.user.employee.avatar + '"' : '') +
                                 'data-gender="' + item.user.employee.gender + '" ' +
                                 'data-firstname="' + item.user.employee.first_name +
                                 '" ' +
@@ -543,8 +602,9 @@
                         } else if (item.category === 'work_trip') {
                             htmlContent +=
                                 '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-worktrip" ' +
-                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                (item.user.employee.avatar ? 'data-avatar="' + item.user.employee.avatar + '"' : '') +
                                 'data-gender="' + item.user.employee.gender + '" ' +
+                                (item.worktrip.file ? 'data-file="' + item.worktrip.file + '"' : '') +
                                 'data-firstname="' + item.user.employee.first_name +
                                 '" ' +
                                 'data-LastName="' + item.user.employee.last_name +
@@ -563,8 +623,9 @@
                         } else if (item.category === 'leave') {
                             htmlContent +=
                                 '<a class="flex items-center text-warning delete-button mr-3 show-attendance-modal-search-leave" ' +
-                                'data-avatar="' + item.user.employee.avatar + '" ' +
+                                (item.user.employee.avatar ? 'data-avatar="' + item.user.employee.avatar + '"' : '') +
                                 'data-gender="' + item.user.employee.gender + '" ' +
+                                (item.file ? 'data-file="' + item.file + '"' : 'data-file ') +
                                 'data-firstname="' + item.user.employee.first_name +
                                 '" ' +
                                 'data-LastName="' + item.user.employee.last_name +
@@ -700,8 +761,8 @@
         $("#Show-TempoEntry-tele").attr('value',ShowTempoEntry);
     });
 
-       // work trip modal
-       $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
+    // work trip modal
+    $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
         var ShowGender = $(this).attr('data-gender');
         var showAvatar = $(this).attr('data-avatar');
         var ShowFirstname = $(this).attr('data-firstname');
@@ -710,8 +771,31 @@
         var ShowPosisi = $(this).attr('data-Position');
         var ShowCategory = $(this).attr('data-Category');
 
+        var fileUrl = $(this).attr('data-file');
+        var deleteUrl = fileUrl.split('/').pop();
 
-        console.log(ShowFirstname);
+        var regex = /^\d+/;
+        var fileName = deleteUrl.replace(regex, '');
+        
+        if (fileUrl) {
+            var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
+            
+            $("#put-href-file").attr('href', fileInput);
+            $("#filename").text(fileName);
+
+            jQuery(document).ready(function($) {
+                $.ajax({
+                    type: "HEAD",
+                    url: fileInput,
+                    success: function (message, text, jqXhr) {
+                        var fileSize = jqXhr.getResponseHeader('Content-Length');
+                        var fileSizeKB = (fileSize / 1024).toFixed(2) + ' KB';
+                        $("#file-size").text(fileSizeKB);
+                    },
+                });
+            })
+        }
+
         var imgSrc;
         if(showAvatar){
             imgSrc = '{{ asset('storage/') }}/' + showAvatar;
@@ -725,16 +809,14 @@
         $("#show-modal-image-work").attr('src', imgSrc);
         $("#Show-firstname-work").attr('value', ShowFirstname);
         $("#Show-LastName-work").attr('value', ShowLastName);
+        $("#Show-gender-work").attr('value', ShowGender);
         $("#Show-StafId-work").attr('value', ShowStafId);
         $("#Show-Posisi-work").attr('value', ShowPosisi);
         $("#Show-Category-work").attr('value', ShowCategory);
-        $("#Show-StartDate-work").attr('value', ShowStartDate);
-        $("#Show-EndDate-work").attr('value', ShowEndDate);
-        $("#Show-EntryDate-work").attr('value', ShowEntryDate);
     });
 
-      // leave modal
-      $(document).on("click", ".show-attendance-modal-search-leave", function () {
+    // leave modal
+    $(document).on("click", ".show-attendance-modal-search-leave", function () {
         var ShowGender = $(this).attr('data-gender');
         var showAvatar = $(this).attr('data-avatar');
         var ShowFirstname = $(this).attr('data-firstname');
@@ -750,8 +832,34 @@
         var ShowSubmisDate = $(this).attr('data-submisDate');
         var ShowTotalDays = $(this).attr('data-totalDays');
 
+        var fileUrl = $(this).attr('data-file');
+        var deleteUrl = fileUrl.split('/').pop();
 
-        console.log(ShowFirstname);
+        var regex = /^\d+/;
+        var fileName = deleteUrl.replace(regex, '');
+        
+        if (fileUrl) {
+            $("#detail-file-leave").show();
+            var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
+            
+            $("#put-href-file-leave").attr('href', fileInput);
+            $("#filename-leave").text(fileName);
+
+            jQuery(document).ready(function($) {
+                $.ajax({
+                    type: "HEAD",
+                    url: fileInput,
+                    success: function (message, text, jqXhr) {
+                        var fileSize = jqXhr.getResponseHeader('Content-Length');
+                        var fileSizeKB = (fileSize / 1024).toFixed(2) + ' KB';
+                        $("#file-size-leave").text(fileSizeKB);
+                    },
+                });
+            })
+        }else{
+            $("#detail-file-leave").hide();
+        }
+
         var imgSrc;
         if(showAvatar){
             imgSrc = '{{ asset('storage/') }}/' + showAvatar;
