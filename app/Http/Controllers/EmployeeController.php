@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\DivisionExport;
 use App\Exports\EmployeeExport;
+use App\Exports\EmployeeNotRecapExport;
 use App\Http\Requests\profileRequest;
 use App\Models\Position;
 use App\Models\User;
@@ -333,7 +334,12 @@ class EmployeeController extends Controller
 
     public function export_excel()
     {
-        return Excel::download(new EmployeeExport, 'Data-Employee.xlsx');
+        return Excel::download(new EmployeeExport, 'Rekap-Pegawai.xlsx');
+    }
+
+    public function export_excel_notrecap()
+    {
+        return Excel::download(new EmployeeNotRecapExport, 'Data-Pegawai.xlsx');
     }
 
     public function downloadTemplate()
