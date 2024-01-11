@@ -127,13 +127,6 @@ class DivisionSheet implements FromCollection, WithTitle, WithHeadings, WithMapp
 
     public function map($row): array
     {
-        // if (!empty($row['division'])) {
-        //     $row['division'] = [
-        //         'value' => $row['division'],
-        //         'alignment' => ['textRotation' => 90],
-        //     ];
-        // }
-        // $row[5] = ($row[5] == 'male') ? 'L' : 'P';
         return $row;
     }
 
@@ -371,23 +364,6 @@ class DivisionSheet implements FromCollection, WithTitle, WithHeadings, WithMapp
         for ($i = 5; $i <= $lastRow; $i++) {
             $sheet->getStyle('B' . $i . ':' . $lastColumn . $i)->getFont()->setBold(false);
         }
-
-//       // Apply custom styling for division name cells
-// foreach ($sheet->getRowIterator() as $row) {
-//     $divisionNameCell = 'C' . $row->getRowIndex();
-//     $divisionName = $sheet->getCell($divisionNameCell)->getValue();
-
-//     if ($divisionName !== null && $divisionNameCell !== 'C4') { // Skip styles for headers and empty division name cells
-//         // Merge cells and center the text
-//         $sheet->mergeCells("C{$row->getRowIndex()}:C{$lastColumn}");
-//         $sheet->getStyle($divisionNameCell)->getAlignment()->setHorizontal('center');
-//         $sheet->getStyle($divisionNameCell)->getAlignment()->setVertical('center');
-//         $sheet->getStyle("C{$row->getRowIndex()}:C{$lastColumn}")->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setRGB('c2d9ff');
-
-//         // Break out of the loop after the first division name to avoid unnecessary iterations
-//         break;
-//     }
-// }
 
         $footerRow = $lastRow + 1;
 
