@@ -18,19 +18,22 @@ use App\Models\TypeOfLeave;
 use App\Models\StatusCommit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Mail\RequestLeaveEmail;
 use App\Models\OtpVerification;
+use App\Mail\RequestPresenceEmail;
 use Illuminate\Support\Facades\DB;
+use App\Mail\ResultSubmissionEmail;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Support\Facades\Validator;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 
 
 class ApiController extends Controller
@@ -1334,9 +1337,40 @@ class ApiController extends Controller
                 $error = $responseN->json();
             }
 
+           if($presence->category == 'telework' || $presence->category == 'work_trip'){
 
-            DB::commit();
+                $requiredPermissions = [
+                    'approve_preliminary', 
+                    'view_request_pending', 
+                ];
+                
+                $approvers = User::with(['employee', 'permissions'])
+                ->whereHas('employee', function ($query) use ($user) {
+                    $query->where('division_id', $user->employee->division_id);
+                })
+                ->where(function ($query) use ($requiredPermissions) {
+                    foreach ($requiredPermissions as $permission) {
+                        $query->orWhereHas('permissions', function ($query) use ($permission) {
+                            $query->where('name', $permission);
+                        });
+                    }
+                })
+                ->get();
+            
+                foreach ($approvers as $approver) {
+                    switch ($presence->category) {
+                        case 'work_trip':
+                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                            break;
+                        case 'telework':
+                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                            break;
+                    }
+                }
+           }
 
+            DB::commit();  
+    
             return response()->json([
                 'message' => 'Success',
                 'data' => $presence,
@@ -1344,12 +1378,12 @@ class ApiController extends Controller
                 'notification_id' => $notificationId ?? null,
                 'notif' => $responseData ?? null,
             ], 200);
-
+    
         } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error($e);
+            DB::rollBack();  
+            \Log::error($e); 
             return response()->json(['message' => 'Failed: ' . $e->getMessage()], 500);
-
+            
         }
     }
 
@@ -1441,12 +1475,6 @@ class ApiController extends Controller
 
             return response()->json(['message' => 'Presence updated successfully', 'data' => $presence]);
         }
-
-
-
-
-
-
 
     //FUNCTION DESTROY PRESENCE //BISA
     public function destroyPresence(Request $request, $id) {
@@ -1626,7 +1654,28 @@ class ApiController extends Controller
         $statusCommit = StatusCommit::with('statusable')->findOrFail($id);
         $statusable = $statusCommit->statusable;
 
+        $user = User::with(['employee'])->where('id', $statusable->user_id)->first();
+        
+        $workTrip = WorkTrip::with('presence', 'statusCommit')
+        ->whereHas('statusCommit', function ($query) use ($statusable) {
+            $query->where('statusable_type', 'App\Models\WorkTrip')
+                ->where('statusable_id', $statusable->id);
+        })
+        ->first();
 
+        $telework = Telework::with('presence', 'statusCommit')
+        ->whereHas('statusCommit', function ($query) use ($statusable) {
+            $query->where('statusable_type', 'App\Models\Telework')
+                ->where('statusable_id', $statusable->id);
+        })
+        ->first();
+
+        $leave = Leave::with('presence', 'statusCommit')
+        ->whereHas('statusCommit', function ($query) use ($statusable) {
+            $query->where('statusable_type', 'App\Models\Leave')
+                ->where('statusable_id', $statusable->id);
+        })
+        ->first();
 
         if ($statusable->presence) {
             $statusable->update($request->only(['status', 'description', 'approver_id','entry_time']));
@@ -1654,18 +1703,15 @@ class ApiController extends Controller
                 $currentDate = Carbon::today();
 
                 if ($startDate->isToday()) {
-                    // If leave starts today, update today's presence
                     $statusable->presence->update([
                         'entry_time' => '08:30:00',
                         'exit_time' => '17:30:00',
                         'category' => 'leave'
                     ]);
                 } else if ($startDate->greaterThan($currentDate)) {
-                    // If leave starts in future, delete today's presence (if exists)
                     $statusable->presence->delete();
                 }
-
-                // Create or update presence records for the entire leave duration
+        
                 $currentDate = clone $startDate;
                 while ($currentDate->lte($endDate)) {
                     Presence::updateOrCreate([
@@ -1679,13 +1725,11 @@ class ApiController extends Controller
                     $currentDate->addDay();
                 }
             } elseif ($statusable->presence->category == 'telework' && $request->input('status') === 'allowed') {
-                $submissionDate = Carbon::parse($statusable->presence->date);
+                $submissionDate = Carbon::parse($statusable->presence->date); 
                 $attendanceToday = Presence::where('user_id', $statusable->user_id)
                                         ->whereDate('date', $submissionDate->toDateString())
                                         ->first();
-
-                // dd($attendanceToday);
-
+            
                 if($attendanceToday) {
                     $attendanceToday->update([
                         'entry_time' => '08:30:00',
@@ -1695,6 +1739,75 @@ class ApiController extends Controller
                 }
             }
 
+            if($statusable->presence->category == 'work_trip'){
+                $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+
+                if($request->input('status') === 'preliminary'){
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                    ->get();
+                    foreach ($approvers as $approver) {
+                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                    }
+                }elseif($request->input('status') === 'allowed'){
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+                }
+            }elseif($statusable->presence->category == 'telework'){
+                $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+
+                if($request->input('status') === 'preliminary'){
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                    ->get();
+                    foreach ($approvers as $approver) {
+                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                    }
+                }elseif($request->input('status') === 'allowed'){
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+                }
+                
+            }elseif($statusable->presence->category == 'leave' ){
+                $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+
+                if($request->input('status') === 'preliminary'){
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                    ->get();
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));                         
+                    }
+                }elseif($request->input('status') === 'allowed'){
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user,null, null, $leave));                          
+                }
+            }
+            
         }
         return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh(), 'absensi' => $statusable->fresh(), 'presence' => $attendanceToday ? $attendanceToday->fresh() : null], 200);
     }
@@ -1776,8 +1889,6 @@ class ApiController extends Controller
         }
     }
 
-
-
     public function getProject(Request $request){
 
         if ($request->has('id')) {
@@ -1788,7 +1899,6 @@ class ApiController extends Controller
         }
 
         $projects = $query->orderBy('updated_at', 'desc')->get();
-
 
         $project = $projects
         ->map(function ($project) {
@@ -1804,8 +1914,6 @@ class ApiController extends Controller
             }else{
                 $status = 'Aktif';
             }
-
-
 
             return [
                 'id' => $project->id,
@@ -1861,7 +1969,6 @@ class ApiController extends Controller
         return response()->json(['message' => 'Success', 'data' => $standup]);
     }
 
-
     //FUNCTION UPDATE STAND UP //BISAA
 
     public function updateStandUp(Request $request, $id) {
@@ -1906,7 +2013,6 @@ class ApiController extends Controller
             });
         }
 
-
         $leave = $leaveQuery->get()->map(function ($leave) {
             $nama_lengkap = ($leave->user && $leave->user->employee)
                            ? $leave->user->employee->first_name .' '. $leave->user->employee->last_name
@@ -1946,7 +2052,6 @@ class ApiController extends Controller
                 'updated_at' => $leave->updated_at,
             ];
         });
-
 
         if ($leave->isEmpty()) {
             return response()->json(['message' => 'Data leave kosong']);
@@ -2024,7 +2129,6 @@ class ApiController extends Controller
                 ->where('leave_detail.type_of_leave_id', $jenisleave);
         }
 
-
         $leaves = $leaveQuery->get();
 
         $leaveCounts = [
@@ -2036,7 +2140,6 @@ class ApiController extends Controller
         foreach ($leaves as $leave) {
             $type = $leave->leavedetail->typeofleave->leave_name;
             $days = $leave->total_leave_days;
-
 
             $mostRecentStatus = $leave->statusCommit->sortByDesc('created_at')->first();
             if (!$mostRecentStatus || $mostRecentStatus->status !== 'allowed') {
@@ -2110,7 +2213,6 @@ class ApiController extends Controller
                     'updated_at' => $leavedesc->updated_at,
                 ];
             });
-
 
             if ($leavedesc->isEmpty()) {
                 return response()->json(['message' => 'Data leave description kosong']);
@@ -2190,7 +2292,7 @@ class ApiController extends Controller
             // Mengambil API key dan app ID OneSignal
             $onesignalApiKey = 'MGEwNDI0NmMtOWIyMC00YzU5LWI3NDYtNzUxMjFjYjdmZGJj';
             $appId = 'd0249df4-3456-48a0-a492-9c5a7f6a875e';
-
+    
             // Menyiapkan data notifikasi
             $notificationData = [
                 'app_id' => $appId,
@@ -2202,15 +2304,15 @@ class ApiController extends Controller
                     'name' => $userName,
                     'divisi_id' => $userDivision,
                 ],
-                'vibrate' => [500, 250, 500],
+                'vibrate' => [500, 250, 500], 
             ];
-
+    
             // Mengirim notifikasi ke OneSignal
             $responseN = Http::withHeaders([
                 'Authorization' => 'Basic ' . $onesignalApiKey,
                 'Content-Type' => 'application/json',
             ])->post('https://onesignal.com/api/v1/notifications', $notificationData);
-
+    
             if ($responseN->successful()) {
                 $notificationId = $responseN->json()['id'];
                 $responseData = $responseN->json();
@@ -2218,22 +2320,44 @@ class ApiController extends Controller
                 $error = $responseN->json();
             }
 
+            $requiredPermissions = [
+                'approve_preliminary', 
+                'view_request_pending', 
+            ];
+            
+            $approvers = User::with(['employee', 'permissions'])
+            ->whereHas('employee', function ($query) use ($user) {
+                $query->where('division_id', $user->employee->division_id);
+            })
+            ->where(function ($query) use ($requiredPermissions) {
+                foreach ($requiredPermissions as $permission) {
+                    $query->orWhereHas('permissions', function ($query) use ($permission) {
+                        $query->where('name', $permission);
+                    });
+                }
+            })
+            ->get();
+        
+            foreach ($approvers as $approver) {
+                \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
+            }
+    
             DB::commit();
-
+    
             return response()->json([
                 'message' => 'Success',
                 'data' => $leave,
                 'notification_id' => $notificationId ?? null,
                 'notif' => $responseData ?? null,
             ]);
-
+    
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error($e);
             return response()->json(['message' => 'Failed to create leave: ' . $e->getMessage()], 500);
         }
     }
-
+    
 
     public function updateLeave(Request $request, $id) {
 
@@ -2316,7 +2440,6 @@ class ApiController extends Controller
     //---- PROFILE FUNCTION ----\\
 
     public function getProfile(Request $request){
-
             $employee = Employee::with('user','division','position')->where('user_id', $request->user_id)->orderBy('updated_at', 'desc')->get()
             ->map(function ($employee) {
                 $nama_lengkap = $employee->first_name .' '. $employee->last_name;
@@ -2454,8 +2577,6 @@ class ApiController extends Controller
         }
     }
 
-
-
     public function logout(Request $request) {
         $user = Auth::user();
         $inputpassword = $request->input('validpassword');
@@ -2473,6 +2594,5 @@ class ApiController extends Controller
             return response()->json(['message' => 'Token autentikasi tidak ditemukan'], 400);
         }
     }
-
 
 }
