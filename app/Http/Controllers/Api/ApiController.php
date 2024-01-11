@@ -2447,6 +2447,8 @@ class ApiController extends Controller
                 return [
                     'id' => $employee->id,
                     'user_id' => $employee->user_id,
+                    'first_name' => $employee->first_name,
+                    'last_name' => $employee->last_name,
                     'nama_lengkap'=> $nama_lengkap,
                     'divisi' => $employee->division->name,
                     'division_id' => $employee->division_id,
