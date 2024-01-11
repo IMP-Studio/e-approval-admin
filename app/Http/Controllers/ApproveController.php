@@ -792,69 +792,114 @@ class ApproveController extends Controller
 
     // approve Hr
     public function approveWkHumanRes(Request $request, $id)
-{
-    $loggedInUser = auth()->user();
-    $statusCommit = StatusCommit::find($id);
+    {
+        try {
+            $loggedInUser = auth()->user();
+            $statusCommit = StatusCommit::find($id);
 
-    if (!$statusCommit) {
-        return back()->with('error', 'StatusCommit not found.');
-    }
+            if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
+            }
 
-    // Ubah nilai status menjadi "preliminary"
-    $statusCommit->update([
-        'approver_id' => $loggedInUser->id,
-        'status' => 'allowed',
-        'description' => $request->description,
-    ]);
-
-    $message = $request->message;
-
-    $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
-    $statusable = $statusCommit2->statusable;
-
-    if ($statusable->presence) {
-        if ($statusable->presence->category == 'work_trip' && $statusCommit2->status === 'allowed') {
-            $submissionDate = Carbon::parse($statusable->presence->date);
-
-            $presenceForCurrentDate = Presence::firstOrNew([
-                'user_id' => $statusable->user_id,
-                'date' => $submissionDate->toDateString()
+            // Ubah nilai status menjadi "preliminary"
+            $statusCommit->update([
+                'approver_id' => $loggedInUser->id,
+                'status' => 'allowed',
+                'description' => $request->description,
             ]);
 
-            $presenceForCurrentDate->entry_time = '08:30:00';
-            $presenceForCurrentDate->exit_time = '17:30:00';
-            $presenceForCurrentDate->category = 'work_trip';
-            $presenceForCurrentDate->save();
+            $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
+            $statusable = $statusCommit2->statusable;
 
-            $statusable->presence_id = $presenceForCurrentDate->id;
-            $statusable->save();
+            if ($statusable->presence) {
+                if ($statusable->presence->category == 'work_trip' && $statusCommit2->status === 'allowed') {
+                    $submissionDate = Carbon::parse($statusable->presence->date);
+
+                    $presenceForCurrentDate = Presence::firstOrNew([
+                        'user_id' => $statusable->user_id,
+                        'date' => $submissionDate->toDateString()
+                    ]);
+
+                    $presenceForCurrentDate->entry_time = '08:30:00';
+                    $presenceForCurrentDate->exit_time = '17:30:00';
+                    $presenceForCurrentDate->category = 'work_trip';
+                    $presenceForCurrentDate->save();
+
+                    $statusable->presence_id = $presenceForCurrentDate->id;
+                    $statusable->save();
+                }
+            }
+
+            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+
+            $workTrip = WorkTrip::with('presence', 'statusCommit')
+                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                    $query->where('statusable_type', 'App\Models\WorkTrip')
+                        ->where('statusable_id', $statusCommit->statusable_id);
+                })
+                ->first();
+
+            $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+
+            $message = $request->message;
+            
+            // Kirim mail ke user
+            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+
+            return redirect()->route('approvehr.worktripHr')->with(['success' => "$message approved successfully"]);
+        } catch (\Exception $e) {
+            \Log::error('An error occurred: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
+        
+            return back()->with('error', 'An error occurred while processing the request.');
         }
+        
     }
-
-    return redirect()->route('approvehr.worktripHr')->with(['success' => "$message approved successfully"]);
-}
 
 
     // Reject Hr
     public function rejectWkHumanRes(Request $request, $id)
     {
-        $loggedInUser = auth()->user();
-        $statusCommit = StatusCommit::find($id);
+        try {
+            $loggedInUser = auth()->user();
+            $statusCommit = StatusCommit::find($id);
 
-        if (!$statusCommit) {
-            return back()->with('error', 'StatusCommit not found.');
+            if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
+            }
+
+            // Ubah nilai status menjadi "preliminary"
+            $statusCommit->update([
+                'approver_id' => $loggedInUser->id,
+                'status' => 'rejected',
+                'description' => $request->description,
+            ]);
+
+            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+
+            $workTrip = WorkTrip::with('presence', 'statusCommit')
+                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                    $query->where('statusable_type', 'App\Models\WorkTrip')
+                        ->where('statusable_id', $statusCommit->statusable_id);
+                })
+                ->first();
+
+            $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+
+            $message = $request->message;
+            
+            // Kirim mail ke user
+            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+
+            return redirect()->route('approvehr.worktripHr')->with(['success' => "$message rejected successfully"]);
+        } catch (\Exception $e) {
+            \Log::error('An error occurred: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
+        
+            return back()->with('error', 'An error occurred while processing the request.');
         }
-
-        // Ubah nilai status menjadi "preliminary"
-        $statusCommit->update([
-            'approver_id' => $loggedInUser->id,
-            'status' => 'rejected',
-            'description' => $request->description,
-        ]);
-
-        $message = $request->message;
-
-        return redirect()->route('approvehr.worktripHr')->with(['success' => "$message rejected successfully"]);
     }
     // end worktrip human resource
 
@@ -889,49 +934,95 @@ class ApproveController extends Controller
 
     public function approveTeleHumanRes(Request $request, $id)
     {
-        $loggedInUser = auth()->user();
-        $statusCommit = StatusCommit::with('statusable')->find($id);
+        try {
+            $loggedInUser = auth()->user();
+            $statusCommit = StatusCommit::with('statusable')->find($id);
+    
+            if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
+            }
+    
+            // Ubah nilai status menjadi "preliminary"
+            $statusCommit->update([
+                'approver_id' => $loggedInUser->id,
+                'status' => 'allowed',
+                'description' => $request->description,
+            ]);
+            
+            $statusCommit->statusable->presence->update([
+                'entry_time' => '08:30'
+            ]);
+    
+            $message = $request->message;
 
-        if (!$statusCommit) {
-            return back()->with('error', 'StatusCommit not found.');
-        }
+            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
 
-        // Ubah nilai status menjadi "preliminary"
-        $statusCommit->update([
-            'approver_id' => $loggedInUser->id,
-            'status' => 'allowed',
-            'description' => $request->description,
-        ]);
+            $telework = Telework::with('presence', 'statusCommit')
+                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                    $query->where('statusable_type', 'App\Models\Telework')
+                        ->where('statusable_id', $statusCommit->statusable_id);
+                })
+                ->first();
+
+            $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+
+            // Kirim mail ke user
+            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+
+    
+            return redirect()->route('approvehr.teleworkHr')->with(['success' => "$message approved successfully"]);
+        } catch (\Exception $e) {
+            \Log::error('An error occurred: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
         
-        $statusCommit->statusable->presence->update([
-            'entry_time' => '08:30'
-        ]);
-
-        $message = $request->message;
-
-        return redirect()->route('approvehr.teleworkHr')->with(['success' => "$message approved successfully"]);
+            return back()->with('error', 'An error occurred while processing the request.');
+        }
+       
     }
 
 
     public function rejectTeleHumanRes(Request $request, $id)
     {
-        $loggedInUser = auth()->user();
-        $statusCommit = StatusCommit::find($id);
+        try {
+            $loggedInUser = auth()->user();
+            $statusCommit = StatusCommit::find($id);
 
-        if (!$statusCommit) {
-            return back()->with('error', 'StatusCommit not found.');
+            if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
+            }
+
+            // Ubah nilai status menjadi "preliminary"
+            $statusCommit->update([
+                'approver_id' => $loggedInUser->id,
+                'status' => 'rejected',
+                'description' => $request->description,
+            ]);
+
+            $message = $request->message;
+
+            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+
+            $telework = Telework::with('presence', 'statusCommit')
+                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                    $query->where('statusable_type', 'App\Models\Telework')
+                        ->where('statusable_id', $statusCommit->statusable_id);
+                })
+                ->first();
+
+            $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+
+            // Kirim mail ke user
+            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+
+            return redirect()->route('approvehr.teleworkHr')->with(['success' => "$message rejected successfully"]);
+        } catch (\Exception $e) {
+            \Log::error('An error occurred: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
+        
+            return back()->with('error', 'An error occurred while processing the request.');
         }
-
-        // Ubah nilai status menjadi "preliminary"
-        $statusCommit->update([
-            'approver_id' => $loggedInUser->id,
-            'status' => 'rejected',
-            'description' => $request->description,
-        ]);
-
-        $message = $request->message;
-
-        return redirect()->route('approvehr.teleworkHr')->with(['success' => "$message rejected successfully"]);
     }
 
 
@@ -962,78 +1053,125 @@ class ApproveController extends Controller
 
     public function approveLeaveHumanRes(Request $request, $id)
     {
-        $loggedInUser = auth()->user();
-        $statusCommit = StatusCommit::find($id);
+        try {
+            $loggedInUser = auth()->user();
+            $statusCommit = StatusCommit::find($id);
 
-        if (!$statusCommit) {
-            return back()->with('error', 'StatusCommit not found.');
-        }
-
-        // Ubah nilai status menjadi "preliminary"
-        $statusCommit->update([
-            'approver_id' => $loggedInUser->id,
-            'status' => 'allowed',
-            'description' => $request->description,
-        ]);
-
-        $message = $request->message;
-
-        $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
-        $statusable = $statusCommit2->statusable;
-
-        if ($statusable->presence->category == 'leave' && $statusCommit2->status === 'allowed') {
-            $startDate = Carbon::parse($statusable->start_date);
-            $endDate = Carbon::parse($statusable->end_date);
-            $currentDate = Carbon::today();
-    
-            if ($startDate->isToday()) {
-                // If leave starts today, update today's presence
-                $statusable->presence->update([
-                    'entry_time' => '08:30:00',
-                    'exit_time' => '17:30:00',
-                    'category' => 'leave'
-                ]);
-            } else if ($startDate->greaterThan($currentDate)) {
-                // If leave starts in future, delete today's presence (if exists)
-                $statusable->presence->delete();
+            if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
             }
-    
-            // Create or update presence records for the entire leave duration
-            $currentDate = clone $startDate;
-            while ($currentDate->lte($endDate)) {
-                Presence::updateOrCreate([
-                    'user_id' => $statusable->user_id,
-                    'date' => $currentDate->toDateString(),
-                    'category' => 'leave'
-                ], [
-                    'entry_time' => '08:30:00',
-                    'exit_time' => '17:30:00'
-                ]);
-                $currentDate->addDay();
-            }
-        }
-        return redirect()->route('approvehr.leaveHr')->with(['success' => "$message approved successfully"]);
 
+            // Ubah nilai status menjadi "preliminary"
+            $statusCommit->update([
+                'approver_id' => $loggedInUser->id,
+                'status' => 'allowed',
+                'description' => $request->description,
+            ]);
+
+            $message = $request->message;
+
+            $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
+            $statusable = $statusCommit2->statusable;
+
+            if ($statusable->presence->category == 'leave' && $statusCommit2->status === 'allowed') {
+                $startDate = Carbon::parse($statusable->start_date);
+                $endDate = Carbon::parse($statusable->end_date);
+                $currentDate = Carbon::today();
+        
+                if ($startDate->isToday()) {
+                    // If leave starts today, update today's presence
+                    $statusable->presence->update([
+                        'entry_time' => '08:30:00',
+                        'exit_time' => '17:30:00',
+                        'category' => 'leave'
+                    ]);
+                } else if ($startDate->greaterThan($currentDate)) {
+                    // If leave starts in future, delete today's presence (if exists)
+                    $statusable->presence->delete();
+                }
+        
+                // Create or update presence records for the entire leave duration
+                $currentDate = clone $startDate;
+                while ($currentDate->lte($endDate)) {
+                    Presence::updateOrCreate([
+                        'user_id' => $statusable->user_id,
+                        'date' => $currentDate->toDateString(),
+                        'category' => 'leave'
+                    ], [
+                        'entry_time' => '08:30:00',
+                        'exit_time' => '17:30:00'
+                    ]);
+                    $currentDate->addDay();
+                }
+            }
+
+            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+
+            $leave = Leave::with('presence', 'statusCommit')
+                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                    $query->where('statusable_type', 'App\Models\Leave')
+                        ->where('statusable_id', $statusCommit->statusable_id);
+                })
+                ->first();
+
+            $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+
+            $message = $request->message;
+
+            // Kirim mail ke user
+            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, null, $leave));
+            
+            return redirect()->route('approvehr.leaveHr')->with(['success' => "$message approved successfully"]);
+        } catch (\Exception $e) {
+            \Log::error('An error occurred: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
+        
+            return back()->with('error', 'An error occurred while processing the request.');
+        }
     }
 
     public function rejectLeaveHumanRes(Request $request, $id)
     {
-        $loggedInUser = auth()->user();
-        $statusCommit = StatusCommit::find($id);
+        try {
+            $loggedInUser = auth()->user();
+            $statusCommit = StatusCommit::find($id);
+    
+            if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
+            }
+    
+            // Ubah nilai status menjadi "preliminary"
+            $statusCommit->update([
+                'approver_id' => $loggedInUser->id,
+                'status' => 'rejected',
+                'description' => $request->description,
+            ]);
+    
+            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
 
-        if (!$statusCommit) {
-            return back()->with('error', 'StatusCommit not found.');
+            $leave = Leave::with('presence', 'statusCommit')
+                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                    $query->where('statusable_type', 'App\Models\Leave')
+                        ->where('statusable_id', $statusCommit->statusable_id);
+                })
+                ->first();
+
+            $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+
+            $message = $request->message;
+
+            // Kirim mail ke user
+            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, null, $leave));
+
+            return redirect()->route('approvehr.leaveHr')->with(['success' => "$message rejected successfully"]);
+            
+        } catch (\Exception $e) {
+            \Log::error('An error occurred: ' . $e->getMessage());
+            \Log::error('File: ' . $e->getFile());
+            \Log::error('Line: ' . $e->getLine());
+        
+            return back()->with('error', 'An error occurred while processing the request.');
         }
-
-        // Ubah nilai status menjadi "preliminary"
-        $statusCommit->update([
-            'approver_id' => $loggedInUser->id,
-            'status' => 'rejected',
-            'description' => $request->description,
-        ]);
-
-        $message = $request->message;
-
-        return redirect()->route('approvehr.leaveHr')->with(['success' => "$message rejected successfully"]);
     }
 }
