@@ -90,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/destroy/{id}', [EmployeeController::class,'destroy'])->name('employee.destroy');
         Route::get('/trash', [EmployeeController::class,'trash'])->name('employee.trash');
         Route::get('/export_excel', [EmployeeController::class,'export_excel'])->name('employee.excel');
+        Route::get('/export_excel_notrecap', [EmployeeController::class,'export_excel_notrecap'])->name('employee.excelnotrecap');
+        Route::get('/export_pdf', [EmployeeController::class,'export_pdf'])->name('employee.pdf');
         Route::get('/template_excel', [EmployeeController::class,'downloadTemplate'])->name('employee.downloadTemplate');
         Route::post('/import_excel', [EmployeeController::class,'importExcel'])->name('employee.import');
         Route::get('/get-positions/{id}', [EmployeeController::class, 'getPositions']);
@@ -103,9 +105,10 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/update/{id}', [PartnerController::class,'update'])->name('partner.update');
             Route::delete('/destroy/{id}', [PartnerController::class,'destroy'])->name('partner.destroy');
             Route::get('/detail/{id}', [PartnerController::class,'detailpartner'])->name('partner.detail');
+            Route::get('/export_excel', [PartnerController::class, 'export_excel'])->name('partner.excel');
             Route::get('/template_excel', [PartnerController::class,'downloadTemplate'])->name('partner.downloadTemplate');
             Route::post('/import_excel', [PartnerController::class,'importExcel'])->name('partner.import');
-        });
+        }); 
 
         Route::prefix('permission')->group(function () {
             Route::get('/', [PermissionController::class, 'index'])->name('permission');
