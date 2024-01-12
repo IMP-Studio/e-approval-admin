@@ -6,6 +6,7 @@ use App\Imports\PartnerImport;
 use App\Models\Partner;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use App\Exports\PartnerExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PartnerController extends Controller
@@ -20,63 +21,13 @@ class PartnerController extends Controller
 
     public function index(Request $request)
     {
-        $partner = Partner::paginate(5);
-
+        $partner = Partner::all();
+    
         foreach ($partner as $item) {
             $project = Project::where('partner_id', $item->id)->count();
             $item->jumlah_project = $project;
         }
-
-        if ($request->ajax()) {
-            $query = $request->input('query');
-            $partner = Partner::where('name', 'LIKE', '%' . $query . '%')->paginate(5);
-
-            foreach ($partner as $item) {
-                $project = Project::where('partner_id', $item->id)->count();
-                $item->jumlah_project = $project;
-            }
-
-            $output = '';
-            $iteration = 0;
-
-            foreach ($partner as $item) {
-                $iteration++;
-                $output .= '
-                <tr class="intro-x h-16">
-                    <td class="w-4 text-center">
-                        '. $iteration .'
-                    </td>
-                    <td class="w-50 text-center capitalize">
-                        '. $item->name .'                </td>
-                    <td class="w-50 text-center capitalize">
-                        '. $item->jumlah_project .'                </td>
-                    <td class="table-report__action w-56">
-                        <div class="flex justify-center items-center">';
-                            if (auth()->user()->can('edit_partners')) {
-                            $output .=
-                                '<a class="flex items-center text-success mr-3 edit-modal-partner-search-class" data-partnerName="'.$item->name.'" data-descId="'.$item->description.'" data-partnerId="'.$item->id.'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#modal-edit-partner">'.
-                                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Edit '.
-                                '</a>';
-                            }
-
-                            $output .=
-                            '<a  class="mr-3 flex items-center text-warning detail-partner-modal-search" data-partnerId="'. $item->id .'" data-partnerName="'. $item->name .'"  data-partnerDesc="'. $item->description .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#detail-partner-modal">'.
-                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="eye" data-lucide="eye" class="lucide lucide-eye w-4 h-4 mr-1"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> Detail '.
-                            '</a>';
-
-                            if (auth()->user()->can('delete_partners')) {
-                            $output .=
-                            '<a class="flex items-center text-danger deletepartnermodal" data-partnerid="'. $item->id .'" data-partnername="'. $item->name .'" href="javascript:;" data-tw-toggle="modal" data-tw-target="#delete-partner-modal-search">'.
-                                '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" icon-name="check-square" data-lucide="check-square" class="lucide lucide-check-square w-4 h-4 mr-1"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path></svg> Delete '.
-                            '</a>';
-                            }
-                        $output .= '</div>';
-                    '</td>'.
-                '</tr>';
-            }
-            return response($output);
-        }
-
+    
         return view('partner.index', compact('partner'));
     }
 
@@ -142,6 +93,11 @@ class PartnerController extends Controller
         }
     }
 
+    public function export_excel()
+    {
+        return Excel::download(new PartnerExport, 'Data-Partner.xlsx');
+    }
+
     /**
      * @return mixed
      */
@@ -182,5 +138,5 @@ class PartnerController extends Controller
         } catch (\Throwable $th) {
             return redirect('/partner')->with('error', 'Make sure there is no duplicate data');
         }
-    }
+}
 }

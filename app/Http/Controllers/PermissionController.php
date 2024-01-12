@@ -39,11 +39,11 @@ class PermissionController extends Controller
     })->count();
 
     $hrCount = User::whereHas('permissions', function ($query) {
-        $query->whereIn('id', [38, 42]);
+        $query->whereIn('id', [39, 43]);
     })->count();
 
     $htCount = User::whereHas('permissions', function ($query) {
-        $query->whereIn('id', [39, 43]);
+        $query->whereIn('id', [38, 42]);
     })->count();
 
     $ordinaryEmployeeCount = User::whereHas('roles', function ($query) {

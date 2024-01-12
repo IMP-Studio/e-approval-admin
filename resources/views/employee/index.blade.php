@@ -18,11 +18,15 @@
                         <span class="w-5 h-5 flex items-center justify-center"> <i class="w-4 h-4" data-lucide="plus"></i>
                         </span>
                     </button>
-                    <div class="dropdown-menu w-40">
+                    <div class="dropdown-menu w-60">
                         <ul class="dropdown-content">
                             @can('export_employees')
                                 <li>
                                     <a href="{{ route('employee.excel') }}" class="dropdown-item"> <i data-lucide="file-text"
+                                            class="w-4 h-4 mr-2"></i> Export to Excel (Recap)</a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('employee.excelnotrecap') }}" class="dropdown-item"> <i data-lucide="file-text"
                                             class="w-4 h-4 mr-2"></i> Export to Excel </a>
                                 </li>
                             @endcan

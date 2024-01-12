@@ -15,7 +15,7 @@
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="tableWorktrip" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
@@ -23,6 +23,7 @@
                             <th class="text-center whitespace-nowrap">Divisi</th>
                             <th class="text-center whitespace-nowrap">Jensi Kehadiran</th>
                             <th class="text-center whitespace-nowrap">Status</th>
+                            <th class="text-center whitespace-nowrap">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tablePartner">
@@ -78,16 +79,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($teleworkData->count() > 0)
-                <div class="flex justify-center items-center">
-                    {{ $teleworkData->links('pagination.custom', [
-                        'paginator' => $teleworkData,
-                        'prev_text' => 'Previous',
-                        'next_text' => 'Next',
-                        'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                    ]) }}
-                </div>
-            @endif
             </div>
         </div>
     </div>
@@ -208,23 +199,6 @@
     {{-- detail modal attendance search TeleWork end--}}
 
 <script type="text/javascript">
-    // search
-    jQuery(document).ready(function($) {
-        $('#searchTeleworkHt').on('keyup', function() {
-            var query = $(this).val();
-            $.ajax({
-                type: 'GET',
-                url: '{{ route('approveht.teleworkHt') }}',
-                data: {
-                    query: query
-                },
-                success: function(data) {
-                    $('tbody').html(data);
-                }
-            });
-        });
-    });
-
     $(document).on("click", ".approve_tele_Ht", function() {
         var ApproveTeleModalid = $(this).attr('data-teleHtid');
         var ApproveTeleModalMessage = $(this).attr('data-messageTele');
@@ -296,5 +270,20 @@
 
 
     });
+
+      // data table
+         jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#tableWorktrip', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchTeleworkHt').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
+            });
+        });
 </script>
 @endsection
