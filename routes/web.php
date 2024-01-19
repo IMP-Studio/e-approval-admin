@@ -146,6 +146,7 @@ Route::middleware(['auth'])->group(function () {
         // ------------------------------------------------------- Human Resource --------------------------------------------------------------- \\
         Route::get('/worktriphr', [ApproveController::class,'workTripHumanRes'])->name('approvehr.worktripHr');
         Route::post('/worktriphr/approveWorktripHr/{id}', [ApproveController::class,'approveWkHumanRes'])->name('approvehr.approvedWorkTripHr');
+        Route::post('/worktriphr/approveMultipleWorktripHr', [ApproveController::class,'approveWkHumanRes'])->name('approvehrMultiple.approvedWorkTripHr');
         Route::put('/worktriphr/rejectWorkTripHr/{id}', [ApproveController::class,'rejectWkHumanRes'])->name('approvehr.rejectWorokTripHr');
 
         Route::get('/teleworkhr', [ApproveController::class,'teleworkHumanRes'])->name('approvehr.teleworkHr');

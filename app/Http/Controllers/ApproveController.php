@@ -532,60 +532,121 @@ class ApproveController extends Controller
 
 
     // approve Hr
-    public function approveWkHumanRes(Request $request, $id)
+    public function approveWkHumanRes(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $all_ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
-
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'allowed',
-                'description' => $request->description,
-            ]);
-
-            $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
-            $statusable = $statusCommit2->statusable;
-
-            if ($statusable->presence) {
-                if ($statusable->presence->category == 'work_trip' && $statusCommit2->status === 'allowed') {
-                    $submissionDate = Carbon::parse($statusable->presence->date);
-
-                    $presenceForCurrentDate = Presence::firstOrNew([
-                        'user_id' => $statusable->user_id,
-                        'date' => $submissionDate->toDateString()
+            if ($all_ids) {
+                foreach ($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
+        
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+        
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'allowed',
+                        'description' => $request->description,
                     ]);
-
-                    $presenceForCurrentDate->entry_time = '08:30:00';
-                    $presenceForCurrentDate->exit_time = '17:30:00';
-                    $presenceForCurrentDate->category = 'work_trip';
-                    $presenceForCurrentDate->save();
-
-                    $statusable->presence_id = $presenceForCurrentDate->id;
-                    $statusable->save();
+        
+                    $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
+                    $statusable = $statusCommit2->statusable;
+        
+                    if ($statusable->presence) {
+                        if ($statusable->presence->category == 'work_trip' && $statusCommit2->status === 'allowed') {
+                            $submissionDate = Carbon::parse($statusable->presence->date);
+        
+                            $presenceForCurrentDate = Presence::firstOrNew([
+                                'user_id' => $statusable->user_id,
+                                'date' => $submissionDate->toDateString()
+                            ]);
+        
+                            $presenceForCurrentDate->entry_time = '08:30:00';
+                            $presenceForCurrentDate->exit_time = '17:30:00';
+                            $presenceForCurrentDate->category = 'work_trip';
+                            $presenceForCurrentDate->save();
+        
+                            $statusable->presence_id = $presenceForCurrentDate->id;
+                            $statusable->save();
+                        }
+                    }
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+        
+                    $workTrip = WorkTrip::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\WorkTrip')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+        
+                    $message = $request->message;
+                    
+                    // Kirim mail ke user
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
                 }
+            }elseif($id !== null) {
+                # singel data
+
+                $statusCommit = StatusCommit::find($id);
+    
+                if (!$statusCommit) {
+                    return back()->with('error', 'StatusCommit not found.');
+                }
+    
+                // Ubah nilai status menjadi "preliminary"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'allowed',
+                    'description' => $request->description,
+                ]);
+    
+                $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
+                $statusable = $statusCommit2->statusable;
+    
+                if ($statusable->presence) {
+                    if ($statusable->presence->category == 'work_trip' && $statusCommit2->status === 'allowed') {
+                        $submissionDate = Carbon::parse($statusable->presence->date);
+    
+                        $presenceForCurrentDate = Presence::firstOrNew([
+                            'user_id' => $statusable->user_id,
+                            'date' => $submissionDate->toDateString()
+                        ]);
+    
+                        $presenceForCurrentDate->entry_time = '08:30:00';
+                        $presenceForCurrentDate->exit_time = '17:30:00';
+                        $presenceForCurrentDate->category = 'work_trip';
+                        $presenceForCurrentDate->save();
+    
+                        $statusable->presence_id = $presenceForCurrentDate->id;
+                        $statusable->save();
+                    }
+                }
+    
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+    
+                $workTrip = WorkTrip::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\WorkTrip')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+    
+                $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+    
+                $message = $request->message;
+                
+                // Kirim mail ke user
+                \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+            }else {
+                return back()->with('error', 'Invalid request.');
             }
-
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
-
-            $workTrip = WorkTrip::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\WorkTrip')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
-
-            $message = $request->message;
-            
-            // Kirim mail ke user
-            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
 
             return redirect()->route('approvehr.worktripHr')->with(['success' => "$message approved successfully"]);
         } catch (\Exception $e) {
