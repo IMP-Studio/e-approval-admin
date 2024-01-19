@@ -9,6 +9,9 @@
                 <div class="text-center">
                     <a href="javascript:;" id="approveSelectBtn" class="btn btn-success mr-2">Approve select</a>
                 </div>
+                <div class="text-center">
+                    <a href="javascript:;" id="rejectSelectBtn"  data-tw-toggle="modal" data-tw-target="#reject-select-confirmation-modal" class="btn btn-danger mr-2">Reject select</a>
+                </div>
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
@@ -144,12 +147,37 @@
     {{-- modal approve end --}}
 
     {{-- modal rejected --}}
-    <div id="reject-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="reject-wk-dataHres" method="POST" action="">
-                    @csrf
-                    @method('put')
+        <div id="reject-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form id="reject-wk-dataHres" method="POST" action="">
+                        @csrf
+                        @method('put')
+                        <div class="modal-body p-0">
+                            <div class="p-5 text-center">
+                                <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                                <div class="text-3xl mt-5">Are you sure?</div>
+                                <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                                    Please provide your reasons for rejecting this attendance.
+                                </div>
+                                <input name="description" id="crud-form-2" type="text" class="form-control w-full"
+                                    placeholder="description" required>
+                                <input hidden name="message" type="text" id="messageWk-rejectHres">
+                            </div>
+                            <div class="px-5 pb-8 text-center">
+                                <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                                <button type="submit" class="btn btn-danger w-24">reject</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- reject multiple select --}}
+        <div id="reject-select-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
                     <div class="modal-body p-0">
                         <div class="p-5 text-center">
                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
@@ -157,20 +185,19 @@
                             <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
                                 Please provide your reasons for rejecting this attendance.
                             </div>
-                            <input name="description" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="description" id="rejectDesc" type="text" class="form-control w-full"
                                 placeholder="description" required>
                             <input hidden name="message" type="text" id="messageWk-rejectHres">
                         </div>
                         <div class="px-5 pb-8 text-center">
                             <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                            <button type="submit" class="btn btn-danger w-24">reject</button>
+                            <button type="submit" id="submitRejectSelected" class="btn btn-danger w-24">reject</button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
-
+    {{-- modal rejected end --}}
 
      {{-- detail modal attendance search work_trip --}}
      <div id="show-modal-approve-worktrip" class="modal" tabindex="-1" aria-hidden="true">
@@ -292,7 +319,60 @@
             });
         })
         // end approve multiple select
-       
+        // reject multiple select
+        jQuery(document).ready(function ($) {
+            $("#rejectSelectBtn").click(function () {
+                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                    $('#rejectSelectBtn').removeAttr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').removeAttr('data-tw-target', '#reject-select-confirmation-modal');
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    $('#rejectSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').attr('data-tw-target', '#reject-select-confirmation-modal');
+                }
+            });
+        });
+
+
+        jQuery(document).ready(function($) {
+            $("#submitRejectSelected").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = [];
+
+                $('input:checkbox[name=ids]:checked').each(function(){
+                    all_ids.push($(this).val());
+                });
+              
+                desc = $('input:text[id=rejectDesc]').val();
+
+                try {
+                    $.ajax({
+                        url: "{{ route('approvehrMultiple.rejectWorokTripHr') }}",
+                        type:"PUT",
+                        async: true,
+                        data:{
+                            ids:all_ids,
+                            description:desc,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        complete: function () {
+                            location.reload();
+                            console.log('Ajax request complete');
+                        }
+                    });
+                    location.reload();
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            });
+        })
+        // end reject multiple select
         // checkbox select end
 
         // format date

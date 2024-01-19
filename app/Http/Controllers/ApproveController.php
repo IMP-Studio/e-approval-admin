@@ -661,38 +661,77 @@ class ApproveController extends Controller
 
 
     // Reject Hr
-    public function rejectWkHumanRes(Request $request, $id)
+    public function rejectWkHumanRes(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $all_ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
+            if ($all_ids) {
+                foreach ($all_ids as $id) {
+                    # multiple data
+                    $statusCommit = StatusCommit::find($id);
+        
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+        
+                    $workTrip = WorkTrip::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\WorkTrip')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+        
+                    $message = $request->message;
+                    
+                    // Kirim mail ke user
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+                }
+            }elseif ($id !== null) {
+                # single data
+                $statusCommit = StatusCommit::find($id);
+    
+                if (!$statusCommit) {
+                    return back()->with('error', 'StatusCommit not found.');
+                }
+
+                // Ubah nilai status menjadi "preliminary"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'rejected',
+                    'description' => $request->description,
+                ]);
+    
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+    
+                $workTrip = WorkTrip::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\WorkTrip')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+    
+                $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+    
+                $message = $request->message;
+                
+                // Kirim mail ke user
+                \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+            }else {
+                return back()->with('error', 'Invalid request.');
             }
-
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'rejected',
-                'description' => $request->description,
-            ]);
-
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
-
-            $workTrip = WorkTrip::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\WorkTrip')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
-
-            $message = $request->message;
-            
-            // Kirim mail ke user
-            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
 
             return redirect()->route('approvehr.worktripHr')->with(['success' => "$message rejected successfully"]);
         } catch (\Exception $e) {
