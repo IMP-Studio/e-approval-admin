@@ -9,21 +9,22 @@
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWorktriphr">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWr">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th class="text-center whitespace-nowrap">Date</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Position</th>
                             <th class="text-center whitespace-nowrap">Jensi Kehadiran</th>
                             <th class="text-center whitespace-nowrap">Status</th>
-                            <th class="text-center whitespace-nowrap">Action</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tablePartner">
@@ -31,6 +32,9 @@
                             <tr class="intro-x h-16">
                                 <td class="w-4 text-center">
                                     {{ $loop->iteration }}.
+                                </td>
+                                <td class="w-50 text-center capitalize dateWt">
+                                    {{ $item->date }}
                                 </td>
                                 <td class="w-50 text-center capitalize">
                                     {{ $item->user->name }}
@@ -57,6 +61,7 @@
                                             data-firstname="{{ $item->user->employee->first_name }}"
                                             data-LastName="{{ $item->user->employee->last_name }}"
                                             data-stafId="{{ $item->user->employee->id_number }}"
+                                            data-date="{{ $item->date }}"
                                             data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
                                             data-Position="{{ $item->user->employee->position->name }}"
                                             data-file="{{ $item->worktrip->file }}"
@@ -76,16 +81,6 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($workTripData->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $workTripData->links('pagination.custom', [
-                            'paginator' => $workTripData,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
@@ -181,7 +176,11 @@
                         <label class="text-xs">Category :</label>
                         <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
                     </div>
-                    <div class="col-span-12 sm:col-span-6" id="detail-file">
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Date :</label>
+                        <input disabled id="Show-date" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-12" id="detail-file">
                         <div class="flex items-center p-5 form-control">
                             <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
                             <div class="ml-4">
@@ -207,20 +206,28 @@
     {{-- detail modal attendance search work_trip end--}}
 
     <script type="text/javascript">
-        // search
+        // format date
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateCells = document.querySelectorAll('.dateWt');
+            dateCells.forEach(function (cell) {
+                var originalDate = cell.textContent.trim();
+                var formattedDate = new Date(originalDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                cell.textContent = formattedDate;
+            });
+        });
+
+        // datatables
         jQuery(document).ready(function($) {
-            $('#searchWorktriphr').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('approvehr.worktripHr') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchWr').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
             });
         });
         
@@ -233,6 +240,7 @@
             var ShowStafId = $(this).attr('data-stafId');
             var ShowPosisi = $(this).attr('data-Position');
             var ShowCategory = $(this).attr('data-Category');
+            var ShowDate = $(this).attr('data-date');
 
             var fileUrl = $(this).attr('data-file');
             var fileName = fileUrl.split('/').pop();
@@ -257,8 +265,9 @@
             }
 
 
+            var dateObj = new Date(ShowDate);
+            var formattedDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
-            console.log(ShowFirstname);
             var imgSrc;
             if(showAvatar){
                 imgSrc = '{{ asset('storage/') }}/' + showAvatar;
@@ -274,7 +283,8 @@
             $("#Show-LastName-work").attr('value', ShowLastName);
             $("#Show-StafId-work").attr('value', ShowStafId);
             $("#Show-Posisi-work").attr('value', ShowPosisi);
-            $("#Show-Category-work").attr('value', ShowCategory);x  
+            $("#Show-Category-work").attr('value', ShowCategory);
+            $("#Show-date").attr('value', formattedDate);
         });
 
         $(document).on("click", ".approve_wk_Ht", function() {
