@@ -70,7 +70,7 @@
                                             data-typeDesc="{{ $item->leave->leavedetail->typeofleave->leave_name }}"
                                             data-submisDate="{{ $item->leave->submission_date }}"
                                             data-file="{{ $item->leave->file }}" 
-                                            data-totalDays="{{ $item->leave->leavedetail->days }}" href="javascript:;"
+                                            data-totalDays="{{ $item->leave->total_leave_days }}" href="javascript:;"
                                             data-tw-toggle="modal" data-tw-target="#show-modal-leaveht">
                                             <i data-lucide="eye" class="w-4 h-4 mr-1"></i> Detail
                                         </a>
@@ -301,7 +301,10 @@
 
             
             var fileUrl = $(this).attr('data-file');
-            var fileName = fileUrl.split('/').pop();
+            var deleteUrl = fileUrl.split('/').pop();
+
+            var regex = /^\d+/;
+            var fileName = deleteUrl.replace(regex, '');
            
             if (fileUrl && fileUrl.trim() !== '') {
                 $('#detaildiv-file').removeAttr('hidden');
