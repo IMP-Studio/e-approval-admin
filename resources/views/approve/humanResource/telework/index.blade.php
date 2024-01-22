@@ -16,21 +16,26 @@
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report mt-2">
                     <thead>
                         <tr>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th class="text-center whitespace-nowrap">Date</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Position</th>
                             <th class="text-center whitespace-nowrap">Jensi Kehadiran</th>
                             <th class="text-center whitespace-nowrap">Status</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="tablePartner">
+                    <tbody>
                         @foreach ($teleworkData as $item)
                         <tr class="intro-x h-16">
                             <td class="w-4 text-center">
                                 {{ $loop->iteration }}.
+                            </td>
+                            <td class="w-50 text-center capitalize dateTele">
+                                {{ $item->date }}
                             </td>
                             <td class="w-50 text-center capitalize">
                                 {{ $item->user->name }}
@@ -79,16 +84,6 @@
                     @endforeach
                     </tbody>
                 </table>
-                @if ($teleworkData->count() > 0)
-                <div class="flex justify-center items-center">
-                    {{ $teleworkData->links('pagination.custom', [
-                        'paginator' => $teleworkData,
-                        'prev_text' => 'Previous',
-                        'next_text' => 'Next',
-                        'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                    ]) }}
-                </div>
-            @endif
             </div>
         </div>
     </div>
@@ -211,23 +206,32 @@
     {{-- detail modal attendance search TeleWork end--}}
 
     <script type="text/javascript">
+        // format date
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateCells = document.querySelectorAll('.dateTele');
+            dateCells.forEach(function (cell) {
+                var originalDate = cell.textContent.trim();
+                var formattedDate = new Date(originalDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                cell.textContent = formattedDate;
+            });
+        });
+        
         // search
         jQuery(document).ready(function($) {
-            $('#searchTeleworkhr').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('approvehr.teleworkHr') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
-                });
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+            });
+
+            $('#searchWr').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
             });
         });
 
+        // approve
         $(document).on("click", ".approve_tele_Hr", function() {
             var ApproveTeleModalid = $(this).attr('data-teleHrid');
             var ApproveTeleModalMessage = $(this).attr('data-messageTeleHr');
@@ -256,9 +260,9 @@
             var ShowDivisi = $(this).attr('data-divisi');
             var ShowDate = $(this).attr('data-date');
 
+            var dateObj = new Date(ShowDate);
+            var formattedDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
-
-            console.log(ShowFirstname);
             var imgSrc;
             if(showAvatar){
                 imgSrc = '{{ asset('storage/') }}/' + showAvatar;   
@@ -284,7 +288,7 @@
             $("#Show-Category-tele").attr('value', ShowCategory);
             $("#Show-Telecat-tele").attr('value',ShowTeleCat);
             $("#Show-TempoEntry-tele").attr('value',ShowTempoEntry);
-            $("#Show-Date").attr('value',ShowDate);
+            $("#Show-Date").attr('value',formattedDate);
         });
 
         $(document).on("click", ".reject_tele_Hr", function() {

@@ -6,31 +6,47 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+                <div class="text-center">
+                    <a href="javascript:;" id="approveSelectBtn" class="btn btn-success mr-2">Approve select</a>
+                </div>
+                <div class="text-center">
+                    <a href="javascript:;" id="rejectSelectBtn"  data-tw-toggle="modal" data-tw-target="#reject-select-confirmation-modal" class="btn btn-danger mr-2">Reject select</a>
+                </div>
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWorktriphr">
+                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchWr">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="table" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report mt-2">
                     <thead>
                         <tr>
+                            <th class="text-center whitespace-nowrap">
+                                <input type="checkbox" class="form-check-input" id="select_all_ids">
+                            </th>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
+                            <th class="text-center whitespace-nowrap">Date</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Position</th>
                             <th class="text-center whitespace-nowrap">Jensi Kehadiran</th>
                             <th class="text-center whitespace-nowrap">Status</th>
-                            <th class="text-center whitespace-nowrap">Action</th>
+                            <th class="text-center whitespace-nowrap" data-orderable="false">Action</th>
                         </tr>
                     </thead>
                     <tbody id="tablePartner">
                         @foreach ($workTripData as $item)
-                            <tr class="intro-x h-16">
+                            <tr class="intro-x h-16" id="worktrip_id{{ $item->worktrip->statusCommit->first()->id }}">
+                                <td class="w-9 text-center">
+                                    <input type="checkbox" name="ids" class="form-check-input checkbox_ids" id="" value="{{ $item->worktrip->statusCommit->first()->id }}">
+                                </td>
                                 <td class="w-4 text-center">
                                     {{ $loop->iteration }}.
+                                </td>
+                                <td class="w-50 text-center capitalize dateWt">
+                                    {{ $item->date }}
                                 </td>
                                 <td class="w-50 text-center capitalize">
                                     {{ $item->user->name }}
@@ -57,6 +73,7 @@
                                             data-firstname="{{ $item->user->employee->first_name }}"
                                             data-LastName="{{ $item->user->employee->last_name }}"
                                             data-stafId="{{ $item->user->employee->id_number }}"
+                                            data-date="{{ $item->date }}"
                                             data-Category="{{ ($item->category === 'work_trip' ? 'Work Trip' : $item->category) }}"
                                             data-Position="{{ $item->user->employee->position->name }}"
                                             data-file="{{ $item->worktrip->file }}"
@@ -76,35 +93,22 @@
                         @endforeach
                     </tbody>
                 </table>
-                @if ($workTripData->count() > 0)
-                    <div class="flex justify-center items-center">
-                        {{ $workTripData->links('pagination.custom', [
-                            'paginator' => $workTripData,
-                            'prev_text' => 'Previous',
-                            'next_text' => 'Next',
-                            'slider_text' => 'Showing items from {start} to {end} out of {total}',
-                        ]) }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
 
     {{-- modal approve --}}
-    <div id="modal-apprv-wt-search" class="modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="approve-wk-dataHr" method="POST" action="">
-                    @csrf
-                    @method('post')
+        <div id="modal-apprv-wt-search" class="modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
                     <div class="modal-body p-0">
                         <div class="p-5 text-center">
                             <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
                             <div class="text-3xl mt-5">Are you sure?</div>
                             <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
-                                Are you sure you want to approve this absence request?
+                                Please provide your reasons for acceptance this attendance.
                             </div>
-                            <input name="description" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="description" type="text" class="form-control w-full"
                             placeholder="description" required>
                             <input hidden name="message" type="text" id="messageWk-approveHr">
                         </div>
@@ -113,40 +117,87 @@
                             <button type="submit" class="btn btn-success w-24">Approve</button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
-    {{-- moda approve end --}}
+
+        {{-- approve multiple select --}}
+        <div id="modal-apprv-wt-select" class="modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body p-0">
+                        <div class="p-5 text-center">
+                            <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
+                            <div class="text-3xl mt-5">Are you sure?</div>
+                            <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                                Please provide your reasons for acceptance this attendance.
+                            </div>
+                            <input name="description" id="aprrovedesc" type="text" class="form-control w-full"
+                            placeholder="description" required>
+                            <input hidden name="message" type="text" id="messageWk-approveHr">
+                        </div>
+                        <div class="px-5 pb-8 text-center">
+                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                            <button type="submit" id="submitApproveSelected" class="btn btn-success w-24">Approve</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{-- modal approve end --}}
 
     {{-- modal rejected --}}
-    <div id="reject-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="reject-wk-dataHres" method="POST" action="">
-                    @csrf
-                    @method('put')
+        <div id="reject-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form id="reject-wk-dataHres" method="POST" action="">
+                        @csrf
+                        @method('put')
+                        <div class="modal-body p-0">
+                            <div class="p-5 text-center">
+                                <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                                <div class="text-3xl mt-5">Are you sure?</div>
+                                <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                                    Please provide your reasons for rejecting this attendance.
+                                </div>
+                                <input name="description" id="crud-form-2" type="text" class="form-control w-full"
+                                    placeholder="description" required>
+                                <input hidden name="message" type="text" id="messageWk-rejectHres">
+                            </div>
+                            <div class="px-5 pb-8 text-center">
+                                <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                                <button type="submit" class="btn btn-danger w-24">reject</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- reject multiple select --}}
+        <div id="reject-select-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
                     <div class="modal-body p-0">
                         <div class="p-5 text-center">
                             <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
                             <div class="text-3xl mt-5">Are you sure?</div>
                             <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
-                                Are you sure you want to reject this absence request?
+                                Please provide your reasons for rejecting this attendance.
                             </div>
-                            <input name="description" id="crud-form-2" type="text" class="form-control w-full"
+                            <input name="description" id="rejectDesc" type="text" class="form-control w-full"
                                 placeholder="description" required>
                             <input hidden name="message" type="text" id="messageWk-rejectHres">
                         </div>
                         <div class="px-5 pb-8 text-center">
                             <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                            <button type="submit" class="btn btn-danger w-24">reject</button>
+                            <button type="submit" id="submitRejectSelected" class="btn btn-danger w-24">reject</button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
-    {{-- moda rejected end --}}
+    {{-- modal rejected end --}}
 
      {{-- detail modal attendance search work_trip --}}
      <div id="show-modal-approve-worktrip" class="modal" tabindex="-1" aria-hidden="true">
@@ -181,7 +232,11 @@
                         <label class="text-xs">Category :</label>
                         <input disabled id="Show-Category-work" type="text" class="form-control capitalize" value="">
                     </div>
-                    <div class="col-span-12 sm:col-span-6" id="detail-file">
+                    <div class="col-span-12 sm:col-span-6">
+                        <label class="text-xs">Date :</label>
+                        <input disabled id="Show-date" type="text" class="form-control capitalize" value="">
+                    </div>
+                    <div class="col-span-12 sm:col-span-12" id="detail-file">
                         <div class="flex items-center p-5 form-control">
                             <div class="file"> <div class="w-6 file__icon file__icon--directory"></div></div>
                             <div class="ml-4">
@@ -207,20 +262,145 @@
     {{-- detail modal attendance search work_trip end--}}
 
     <script type="text/javascript">
-        // search
+        // checkbox select
         jQuery(document).ready(function($) {
-            $('#searchWorktriphr').on('keyup', function() {
-                var query = $(this).val();
-                $.ajax({
-                    type: 'GET',
-                    url: '{{ route('approvehr.worktripHr') }}',
-                    data: {
-                        query: query
-                    },
-                    success: function(data) {
-                        $('tbody').html(data);
-                    }
+            $("#select_all_ids").click(function(){
+                $('.checkbox_ids').attr('checked',$(this).prop('checked'));
+            });
+        })
+        
+        // approve multiple select
+        jQuery(document).ready(function ($) {
+            $("#approveSelectBtn").click(function () {
+                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                    $('#approveSelectBtn').removeAttr('data-tw-toggle', 'modal');
+                    $('#approveSelectBtn').removeAttr('data-tw-target', '#modal-apprv-wt-select');
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    $('#approveSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#approveSelectBtn').attr('data-tw-target', '#modal-apprv-wt-select');
+                }
+            });
+        });
+
+
+        jQuery(document).ready(function($) {
+            $("#submitApproveSelected").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = [];
+
+                $('input:checkbox[name=ids]:checked').each(function(){
+                    all_ids.push($(this).val());
                 });
+       
+                desc = $('input:text[id=aprrovedesc]').val();
+
+                try {
+                $.ajax({
+                    url: "{{ route('approvehrMultiple.approvedWorkTripHr') }}",
+                    type:"POST",
+                    async: true,
+                    data:{
+                        ids:all_ids,
+                        description:desc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                });
+                location.reload();
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            });
+        })
+        // end approve multiple select
+        // reject multiple select
+        jQuery(document).ready(function ($) {
+            $("#rejectSelectBtn").click(function () {
+                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                    $('#rejectSelectBtn').removeAttr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').removeAttr('data-tw-target', '#reject-select-confirmation-modal');
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    $('#rejectSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').attr('data-tw-target', '#reject-select-confirmation-modal');
+                }
+            });
+        });
+
+
+        jQuery(document).ready(function($) {
+            $("#submitRejectSelected").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = [];
+
+                $('input:checkbox[name=ids]:checked').each(function(){
+                    all_ids.push($(this).val());
+                });
+              
+                desc = $('input:text[id=rejectDesc]').val();
+
+                try {
+                    $.ajax({
+                        url: "{{ route('approvehrMultiple.rejectWorokTripHr') }}",
+                        type:"PUT",
+                        async: true,
+                        data:{
+                            ids:all_ids,
+                            description:desc,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        complete: function () {
+                            location.reload();
+                            console.log('Ajax request complete');
+                        }
+                    });
+                    location.reload();
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            });
+        })
+        // end reject multiple select
+        // checkbox select end
+
+        // format date
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateCells = document.querySelectorAll('.dateWt');
+            dateCells.forEach(function (cell) {
+                var originalDate = cell.textContent.trim();
+                var formattedDate = new Date(originalDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                cell.textContent = formattedDate;
+            });
+        });
+
+        // datatables
+        jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
+                buttons: ['showSelected'],
+                dom: 'rtip',
+                select: true, 
+                pageLength: 5,
+                border: false,
+                 columnDefs: [
+                    { orderable: false, targets: 0 }
+                ],
+                order: [[1, 'asc']]
+            });
+
+            $('#searchWr').on('keyup', function() {
+                dataTable.search($(this).val()).draw();
             });
         });
         
@@ -233,10 +413,14 @@
             var ShowStafId = $(this).attr('data-stafId');
             var ShowPosisi = $(this).attr('data-Position');
             var ShowCategory = $(this).attr('data-Category');
+            var ShowDate = $(this).attr('data-date');
 
             var fileUrl = $(this).attr('data-file');
-            var fileName = fileUrl.split('/').pop();
+            var deleteUrl = fileUrl.split('/').pop();
            
+            var regex = /^\d+/;
+            var fileName = deleteUrl.replace(regex, '');
+            
             if (fileUrl) {
                 var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
                 
@@ -257,8 +441,9 @@
             }
 
 
+            var dateObj = new Date(ShowDate);
+            var formattedDate = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
-            console.log(ShowFirstname);
             var imgSrc;
             if(showAvatar){
                 imgSrc = '{{ asset('storage/') }}/' + showAvatar;
@@ -274,7 +459,8 @@
             $("#Show-LastName-work").attr('value', ShowLastName);
             $("#Show-StafId-work").attr('value', ShowStafId);
             $("#Show-Posisi-work").attr('value', ShowPosisi);
-            $("#Show-Category-work").attr('value', ShowCategory);x  
+            $("#Show-Category-work").attr('value', ShowCategory);
+            $("#Show-date").attr('value', formattedDate);
         });
 
         $(document).on("click", ".approve_wk_Ht", function() {
