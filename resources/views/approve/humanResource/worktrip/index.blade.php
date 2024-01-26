@@ -101,22 +101,26 @@
         <div id="modal-apprv-wt-search" class="modal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-body p-0">
-                        <div class="p-5 text-center">
-                            <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
-                            <div class="text-3xl mt-5">Are you sure?</div>
-                            <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
-                                Please provide your reasons for acceptance this attendance.
+                    <form id="approve-wk-dataHr" method="POST" action="">
+                    @csrf
+                    @method('post')
+                        <div class="modal-body p-0">
+                            <div class="p-5 text-center">
+                                <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
+                                <div class="text-3xl mt-5">Are you sure?</div>
+                                <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                                    Please provide your reasons for acceptance this attendance.
+                                </div>
+                                <input name="description" type="text" class="form-control w-full"
+                                placeholder="description" required>
+                                <input hidden name="message" type="text" id="messageWk-approveHr">
                             </div>
-                            <input name="description" type="text" class="form-control w-full"
-                            placeholder="description" required>
-                            <input hidden name="message" type="text" id="messageWk-approveHr">
+                            <div class="px-5 pb-8 text-center">
+                                <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                                <button type="submit" class="btn btn-success w-24">Approve</button>
+                            </div>
                         </div>
-                        <div class="px-5 pb-8 text-center">
-                            <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                            <button type="submit" class="btn btn-success w-24">Approve</button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -265,7 +269,7 @@
         // checkbox select
         jQuery(document).ready(function($) {
             $("#select_all_ids").click(function(){
-                $('.checkbox_ids').attr('checked',$(this).prop('checked'));
+                $('table#myTable').DataTable().$('.checkbox_ids').attr('checked',$(this).prop('checked'));
             });
         })
         
@@ -311,8 +315,14 @@
                         description:desc,
                         _token: '{{ csrf_token() }}'
                     },
+                    complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
                 });
-                location.reload();
                 } catch (error) {
                     console.error("Error:", error);
                 }
@@ -364,6 +374,9 @@
                         complete: function () {
                             location.reload();
                             console.log('Ajax request complete');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error:", error);
                         }
                     });
                     location.reload();
