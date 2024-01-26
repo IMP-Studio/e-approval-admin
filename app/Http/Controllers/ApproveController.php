@@ -860,38 +860,76 @@ class ApproveController extends Controller
     }
 
 
-    public function rejectTeleHumanRes(Request $request, $id)
+    public function rejectTeleHumanRes(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
+            if ($ids) {
+                # multiple data
+                foreach ($ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
+
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+
+                    $message = $request->message;
+
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+
+                    $telework = Telework::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Telework')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+
+                    $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+
+                    // Kirim mail ke user
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+                }
+            } elseif ($id !== null) {
+                $statusCommit = StatusCommit::find($id);
+    
+                if (!$statusCommit) {
+                    return back()->with('error', 'StatusCommit not found.');
+                }
+    
+                // Ubah nilai status menjadi "preliminary"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'rejected',
+                    'description' => $request->description,
+                ]);
+    
+                $message = $request->message;
+    
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+    
+                $telework = Telework::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\Telework')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+    
+                $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+    
+                // Kirim mail ke user
+                \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+            } else {
+                return back()->with('error', 'Invalid request.');
             }
-
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'rejected',
-                'description' => $request->description,
-            ]);
-
-            $message = $request->message;
-
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
-
-            $telework = Telework::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\Telework')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
-
-            // Kirim mail ke user
-            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
 
             return redirect()->route('approvehr.teleworkHr')->with(['success' => "$message rejected successfully"]);
         } catch (\Exception $e) {
