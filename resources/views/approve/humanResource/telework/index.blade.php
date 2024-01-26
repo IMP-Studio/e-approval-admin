@@ -6,6 +6,12 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+                <div class="text-center">
+                    <a href="javascript:;" id="approveSelectBtn" class="btn btn-success mr-2">Approve select</a>
+                </div>
+                <div class="text-center">
+                    <a href="javascript:;" id="rejectSelectBtn"  data-tw-toggle="modal" data-tw-target="#reject-select-confirmation-modal" class="btn btn-danger mr-2">Reject select</a>
+                </div>
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
@@ -19,6 +25,9 @@
                 <table id="myTable" class="table table-report mt-2">
                     <thead>
                         <tr>
+                            <th class="text-center whitespace-nowrap">
+                                <input type="checkbox" class="form-check-input" id="select_all_ids">
+                            </th>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th class="text-center whitespace-nowrap">Date</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
@@ -31,6 +40,9 @@
                     <tbody>
                         @foreach ($teleworkData as $item)
                         <tr class="intro-x h-16">
+                            <td class="w-9 text-center">
+                                <input type="checkbox" name="ids" class="form-check-input checkbox_ids" id="" value="{{ $item->telework->statusCommit->first()->id }}" data-id="{{ $item->telework->statusCommit->first()->id }}">
+                            </td>
                             <td class="w-4 text-center">
                                 {{ $loop->iteration }}.
                             </td>
@@ -115,6 +127,29 @@
             </div>
         </div>
     </div>
+    {{-- approve multiple select --}}
+    <div id="modal-apprv-tele-select" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            Please provide your reasons for acceptance this attendance.
+                        </div>
+                        <input name="description" id="aprrovedesc" type="text" class="form-control w-full"
+                        placeholder="description" required>
+                        <input hidden name="message" type="text" id="messageWk-approveHr">
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" id="submitApproveSelected" class="btn btn-success w-24">Approve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {{-- moda approve end --}}
 
     {{-- modal rejected --}}
@@ -141,6 +176,29 @@
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    {{-- reject multiple select --}}
+    <div id="reject-select-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            Please provide your reasons for rejecting this attendance.
+                        </div>
+                        <input name="description" id="rejectDesc" type="text" class="form-control w-full"
+                            placeholder="description" required>
+                        <input hidden name="message" type="text" id="messageWk-rejectHres">
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" id="submitRejectSelected" class="btn btn-danger w-24">reject</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -206,6 +264,135 @@
     {{-- detail modal attendance search TeleWork end--}}
 
     <script type="text/javascript">
+        // checkbox select
+        jQuery(document).ready(function($) {
+            $("#select_all_ids").click(function(){
+                $('table#myTable').DataTable().$('.checkbox_ids').attr ('checked',$(this).prop('checked'))
+            });
+        })
+
+        // approve multiple select
+        jQuery(document).ready(function ($) {
+            $("#approveSelectBtn").click(function () {
+                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                    $('#approveSelectBtn').removeAttr('data-tw-toggle', 'modal');
+                    $('#approveSelectBtn').removeAttr('data-tw-target', '#modal-apprv-tele-select');
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    $('#approveSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#approveSelectBtn').attr('data-tw-target', '#modal-apprv-tele-select');
+                }
+            });
+        });
+
+        jQuery(document).ready(function($) {
+            $("#submitApproveSelected").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = $('input:text[id=aprrovedesc]').val();
+
+                if (!desc.trim()) {
+                    toastr.info('Please provide a description.');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                    return;
+                }
+
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    all_ids.push($(this).val());
+                });
+         
+
+                $.ajax({
+                    url: "{{ route('approvehrMultiple.approvedTeleHr') }}",
+                    type:"PUT",
+                    async: true,
+                    data:{
+                        ids:all_ids,
+                        description:desc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
+                });
+            });
+        })
+        // end approve multiple select
+        // reject multiple select
+        jQuery(document).ready(function ($) {
+            $("#rejectSelectBtn").click(function () {
+                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                    $('#rejectSelectBtn').removeAttr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').removeAttr('data-tw-target', '#reject-select-confirmation-modal');
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    $('#rejectSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').attr('data-tw-target', '#reject-select-confirmation-modal');
+                }
+            });
+        });
+
+
+        jQuery(document).ready(function($) {
+            $("#submitRejectSelected").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = $('input:text[id=rejectDesc]').val();
+
+                if (!desc.trim()) {
+                    toastr.info('Please provide a description.');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                    return;
+                }
+
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    all_ids.push($(this).val());
+                });
+                
+                $.ajax({
+                    url: "{{ route('rejecthrMultiple.rejectTeleHr') }}",
+                    type:"PUT",
+                    async: true,
+                    data:{
+                        ids:all_ids,
+                        description:desc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
+                });
+            });
+        })
+        // end reject multiple select
+        // checkbox select end
+
         // format date
         document.addEventListener('DOMContentLoaded', function () {
             var dateCells = document.querySelectorAll('.dateTele');
@@ -224,6 +411,10 @@
                 select: true, 
                 pageLength: 5,
                 border: false,
+                columnDefs: [
+                    { orderable: false, targets: 0 }
+                ],
+                order: [[1, 'asc']]
             });
 
             $('#searchWr').on('keyup', function() {
