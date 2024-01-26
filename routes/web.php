@@ -152,6 +152,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/teleworkhr', [ApproveController::class,'teleworkHumanRes'])->name('approvehr.teleworkHr');
         Route::put('/teleworkhr/approve/TeleWorkHr/{id}', [ApproveController::class,'approveTeleHumanRes'])->name('approvehr.approvedTeleHr');
+        Route::put('/teleworkhr/approveMultiple/TeleWorkHr', [ApproveController::class,'approveTeleHumanRes'])->name('approvehrMultiple.approvedTeleHr');
         Route::put('/teleworkhr/reject/TeleWorkHr/{id}', [ApproveController::class,'rejectTeleHumanRes'])->name('approvehr.rejectTeleHr');
 
         Route::get('/leavehr', [ApproveController::class,'leaveHumanRes'])->name('approvehr.leaveHr');
