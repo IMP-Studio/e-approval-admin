@@ -1696,32 +1696,68 @@ class ApiController extends Controller
                 $statusable->presence_id = $presenceForSubmissionDate->id;
                 $statusable->save();
 
+            }elseif ($statusable->presence->category == 'leave' && $request->input('status') === 'allowed') {
+                $startDate = Carbon::parse($statusable->start_date);
+                $endDate = Carbon::parse($statusable->end_date);
+                $currentDate = clone $startDate;
+                $nationalHolidays = $this->getHoliday($currentDate->year, $endDate->year);
+            
+                while ($currentDate->lte($endDate)) {
+                    if ($currentDate->isWeekend()) {
+                        $currentDate->addDay();
+                        continue;
+                    }
+            
+                    if ($this->isNationalHoliday($currentDate, $nationalHolidays)) {
+                        $currentDate->addDay();
+                        continue;
+                    }
+            
+                    Presence::updateOrCreate(
+                        [
+                            'user_id' => $statusable->user_id,
+                            'date' => $currentDate->toDateString(),
+                            'category' => 'leave'
+                        ],
+                        [
+                            'entry_time' => '08:30:00',
+                            'exit_time' => '17:30:00'
+                        ]
+                    );
+            
+                    $currentDate->addDay();
+                }
             }
             elseif ($statusable->presence->category == 'leave' && $request->input('status') === 'allowed') {
                 $startDate = Carbon::parse($statusable->start_date);
                 $endDate = Carbon::parse($statusable->end_date);
-                $currentDate = Carbon::today();
-
-                if ($startDate->isToday()) {
-                    $statusable->presence->update([
-                        'entry_time' => '08:30:00',
-                        'exit_time' => '17:30:00',
-                        'category' => 'leave'
-                    ]);
-                } else if ($startDate->greaterThan($currentDate)) {
-                    $statusable->presence->delete();
-                }
-        
                 $currentDate = clone $startDate;
+            
                 while ($currentDate->lte($endDate)) {
-                    Presence::updateOrCreate([
-                        'user_id' => $statusable->user_id,
-                        'date' => $currentDate->toDateString(),
-                        'category' => 'leave'
-                    ], [
-                        'entry_time' => '08:30:00',
-                        'exit_time' => '17:30:00'
-                    ]);
+                    if ($currentDate->isWeekend()) {
+                        $currentDate->addDay();
+                        continue;
+                    }
+            
+                    $nationalHolidays = $this->getHoliday($currentDate->year, $endDate->year);
+                    $formattedCurrentDate = $currentDate->toDateString();
+                    $isNationalHoliday = in_array($formattedCurrentDate, array_column($nationalHolidays, 'holiday_date'));
+                    dd($nationalHolidays);
+            
+                    if (!$isNationalHoliday) {
+                        Presence::updateOrCreate(
+                            [
+                                'user_id' => $statusable->user_id,
+                                'date' => $formattedCurrentDate,
+                                'category' => 'leave'
+                            ],
+                            [
+                                'entry_time' => '08:30:00',
+                                'exit_time' => '17:30:00'
+                            ]
+                        );
+                    }
+            
                     $currentDate->addDay();
                 }
             } elseif ($statusable->presence->category == 'telework' && $request->input('status') === 'allowed') {
@@ -2223,36 +2259,99 @@ class ApiController extends Controller
     
     // FUNCTION STORE LEAVE //BISA
 
+    private function getHoliday($startYear, $endYear) {
+        $holidays = [];
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $apiUrl = "https://api-harilibur.vercel.app/api?year={$year}";
+            $response = file_get_contents($apiUrl);
+            if ($response) {
+                $holidayData = json_decode($response, true);
+                if ($holidayData) {
+                    $holidays = array_merge(
+                        $holidays,
+                        array_filter($holidayData, function ($holiday) {
+                            return isset($holiday['is_national_holiday']) ? $holiday['is_national_holiday'] === true : true;
+                        })
+                    );
+                } else {
+                    throw new \Exception('Failed to parse JSON response for national holidays.');
+                }
+            } else {
+                throw new \Exception('Failed to fetch data from the API for national holidays.');
+            }
+        }
+
+        return $holidays;
+    }
+
+    private function calculateEndDate($startDate, $totalLeaveDays, $nationalHolidays) {
+        $endDate = Carbon::parse($startDate);
+        if ($totalLeaveDays > 1) {
+            $holidaysCount = 0;
+            while ($holidaysCount < $totalLeaveDays - 1) {
+                while ($endDate->isWeekend() || $this->isNationalHoliday($endDate, $nationalHolidays)) {
+                    $endDate->addDay();
+                }
+                $endDate->addDay();
+                $holidaysCount++;
+            }
+        }
+        while ($endDate->isWeekend() || $this->isNationalHoliday($endDate, $nationalHolidays)) {
+            $endDate->addDay();
+        }
+        return $endDate->toDateString();
+    }
+    
+    private function calculateEntryDate($endDate, $nationalHolidays) {
+        $entryDate = Carbon::parse($endDate)->addDay();
+    
+        while ($entryDate->isWeekend() || $this->isNationalHoliday($entryDate, $nationalHolidays)) {
+            $entryDate->addDay();
+        }
+        return $entryDate->toDateString();
+    }
+        
+    
+    private function isNationalHoliday($date, $nationalHolidays) {
+        $formattedDate = $date->toDateString();
+        $nationalHolidayDates = array_map(function ($holiday) {
+            return Carbon::parse($holiday['holiday_date'])->toDateString();
+        }, $nationalHolidays);
+    
+        return in_array($formattedDate, $nationalHolidayDates);
+    }
+    
     public function storeLeave(Request $request) {
-        $currentDate = Carbon::now();
         $submissionDate = Carbon::parse($request->input('submission_date'));
         $startDate = Carbon::parse($request->input('start_date'));
         $endDate = Carbon::parse($request->input('end_date'));
-        $totalDays = $startDate->diffInDays($endDate) + 1;
+        $entryDate = Carbon::parse($request->input('entry_date'));
+        $totalDays = $request->input('total_leave_days');
         $userId = $request->input('user_id');
         $user = User::with('employee', 'standups')->where('id', $userId)->first();
+        
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
+    
         if ($request->has('file')) {
             $file = $request->file('file');
-
+    
             $originalFilename = date('Ymdhis') . $file->getClientOriginalName();
             $nama_lengkap = $user->employee ? $user->employee->first_name . '' . $user->employee->last_name : '';
-
+    
             $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
             $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
-
+    
             if (!$storedFilePath) {
                 throw new \Exception("Error storing the file.");
             }
         }
-
+    
         DB::beginTransaction();
-
+    
         try {
-
+    
             $presence = Presence::create([
                 'user_id' => $request->input('user_id'),
                 'category' => 'leave',
@@ -2260,7 +2359,7 @@ class ApiController extends Controller
                 'exit_time' => '00:00:00',
                 'date' => $startDate->toDateString(),
             ]);
-
+    
             $leave = Leave::create([
                 'user_id' => $request->input('user_id'),
                 'leave_detail_id' => $request->input('leave_detail_id'),
@@ -2273,7 +2372,7 @@ class ApiController extends Controller
                 'presence_id' => $presence->id,
                 'entry_date' => $request->input('entry_date'),
             ]);
-
+    
             if (!$leave->statusCommit()->exists()) {
                 $leave->statusCommit()->create([
                     'approver_id' => null,
@@ -2378,33 +2477,38 @@ class ApiController extends Controller
 
         $dataToUpdate = $request->only($updatableFields);
 
-        if(isset($dataToUpdate['start_date']) && isset($dataToUpdate['end_date'])) {
+        if(isset($dataToUpdate['start_date']) && isset($dataToUpdate['end_date']) && isset($dataToUpdate['entry_date'])) {
             $startDate = Carbon::parse($dataToUpdate['start_date']);
             $endDate = Carbon::parse($dataToUpdate['end_date']);
-            $dataToUpdate['total_leave_days'] = $startDate->diffInDays($endDate) + 1;
+            $entryDate = Carbon::parse($dataToUpdate['entry_date']);
         }
 
-        if($request->has('file')) {
-            $file = $request->file('file');
-
-            if($leave->file && Storage::disk('public')->exists($leave->file)) {
-                Storage::disk('public')->delete($leave->file);
+        if ($request->input('leave_detail_id') == 1) {
+            $dataToUpdate['file'] = null;
+        } else {
+            if ($request->has('file')) {
+                $file = $request->file('file');
+        
+                if ($leave->file && Storage::disk('public')->exists($leave->file)) {
+                    Storage::disk('public')->delete($leave->file);
+                }
+        
+                $originalFilename = date('Ymdhis') . $file->getClientOriginalName();
+                $nama_lengkap = $leave->user->employee
+                    ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name
+                    : '';
+        
+                $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
+                $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
+        
+                if (!$storedFilePath) {
+                    throw new \Exception("Error storing the file.");
+                }
+        
+                $dataToUpdate['file'] = $storedFilePath;
             }
-
-            $originalFilename = date('Ymdhis') . $file->getClientOriginalName();
-            $nama_lengkap = $leave->user->employee
-                            ? $leave->user->employee->first_name . ' ' . $leave->user->employee->last_name
-                            : '';
-
-            $directoryPath = 'files/presence/cuti/' . $nama_lengkap;
-            $storedFilePath = $file->storeAs($directoryPath, $originalFilename, 'public');
-
-            if (!$storedFilePath) {
-                throw new \Exception("Error storing the file.");
-            }
-
-            $dataToUpdate['file'] = $storedFilePath;
         }
+        
 
         DB::beginTransaction();
 
