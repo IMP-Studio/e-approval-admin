@@ -184,7 +184,7 @@ class ApiController extends Controller
             ]);
             $otpVerification->save();
 
-            Mail::to($request->email)->send(new OTPEmail($otp));
+            Mail::to($request->email)->send(new OTPEmail($user, $otp));
 
             $response = [
                 'status' => 200,
