@@ -49,12 +49,14 @@ Route::delete('/standup/delete/{id}',[ApiController::class, 'destroyStandUp']);
 
 Route::get('/leave', [ApiController::class, 'getLeave']);
 Route::get('/leave/option', [ApiController::class, 'getLeaveDetailOption']);
+Route::post('/leave/calculate', [ApiController::class, 'calculateLeave']);
 Route::post('/leave/store', [ApiController::class, 'storeLeave']);
 Route::put('/leave/update/{id}', [ApiController::class, 'updateLeave']);
 Route::delete('/leave/delete/{id}', [ApiController::class, 'destroyLeave']);
 Route::get('/leave/get/{id}', [ApiController::class, 'getLeaveById']);
 Route::get('/leave/days', [ApiController::class, 'getLeaveCount']);
 Route::get('/leave/yearly/days', [ApiController::class, 'yearlyLeave']);
+Route::get('/leave/holidays', [ApiController::class, 'getNationalHolidays']);
 
 
 Route::get('/profile', [ApiController::class, 'getProfile']);

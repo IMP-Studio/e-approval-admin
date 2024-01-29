@@ -12,7 +12,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Carbon\Carbon;
 
-class RequestLeaveEmail extends Mailable
+class RequestLeaveEmail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
