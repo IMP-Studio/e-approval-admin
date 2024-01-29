@@ -2144,6 +2144,68 @@ class ApiController extends Controller
         return response()->json(['message' => 'Success', 'data' => $data]);
     }
 
+    public function getNationalHolidays(Request $request) {
+        $request->validate([
+            'start_year' => 'required|numeric',
+            'end_year' => 'required|numeric|gte:start_year',
+        ]);
+    
+        $startYear = $request->input('start_year');
+        $endYear = $request->input('end_year');
+    
+        $holidaysWithWeekends = [];
+    
+        for ($year = $startYear; $year <= $endYear; $year++) {
+            $apiUrl = "https://api-harilibur.vercel.app/api?year={$year}";
+            $response = file_get_contents($apiUrl);
+    
+            if ($response) {
+                $holidayData = json_decode($response, true);
+    
+                if ($holidayData) {
+                    $holidays = $holidayData;
+    
+                    foreach ($holidays as &$holiday) {
+                        if (isset($holiday['holiday_date'])) {
+                            $dateParts = explode('-', $holiday['holiday_date']);
+                            $holiday['holiday_date'] = $dateParts[0] . '-' . str_pad($dateParts[1], 2, '0', STR_PAD_LEFT) . '-' . str_pad($dateParts[2], 2, '0', STR_PAD_LEFT);
+                        }
+                    }
+    
+                    $startDate = Carbon::createFromDate($year, 1, 1);
+                    $endDate = Carbon::createFromDate($year, 12, 31);
+    
+                    while ($startDate->lte($endDate)) {
+
+                        if($request->input('weekend') == 'yes'){
+                            if ($startDate->isWeekend()) {
+                                $weekendDate = $startDate->format('Y-m-d');
+                                $holidays[] = [
+                                    'holiday_name' => 'Weekend',
+                                    'holiday_date' => $weekendDate,
+                                    'is_national_holiday' => true,
+                                ];
+                            }
+                        }
+                        
+                        $startDate->addDay();
+                    }
+    
+                    $nationalHolidays = array_filter($holidays, function ($holiday) {
+                        return isset($holiday['is_national_holiday']) ? $holiday['is_national_holiday'] === true : true;
+                    });
+    
+                    $holidaysWithWeekends = array_merge($holidaysWithWeekends, $nationalHolidays);
+                } else {
+                    echo 'Failed to parse JSON response for year ' . $year . '.';
+                }
+            } else {
+                echo 'Failed to fetch data from the API for year ' . $year . '.';
+            }
+        }
+    
+        return $holidaysWithWeekends;
+    }
 
     public function getLeaveCount(Request $request) {
         $userId = $request->query('id');
@@ -2319,6 +2381,47 @@ class ApiController extends Controller
         }, $nationalHolidays);
     
         return in_array($formattedDate, $nationalHolidayDates);
+    }
+
+    //UNTUK KALKULASI END DATE DAN ENTRY DATE PADA FLUTTER
+
+    public function calculateLeave(Request $request) {
+        $startDate = Carbon::parse($request->input('start_date'));
+        $totalDays = $request->input('total_leave_days');
+        $leaveDetailId = $request->input('leave_detail_id');
+        $endDate = Carbon::parse($request->input('end_date'));
+
+        $maxDaysLeave = LeaveDetail::where('id', $leaveDetailId)->pluck('days')->first();
+
+        if($totalDays <= $maxDaysLeave ){
+            $nationalHolidays = $this->getHoliday(
+                Carbon::parse($startDate)->year,
+                Carbon::parse($endDate)->year, 
+            );
+    
+            $endDate = $this->calculateEndDate($startDate, $totalDays, $nationalHolidays);
+            $entryDate = $this->calculateEntryDate($endDate, $nationalHolidays);
+        
+            return response()->json([
+                'message' => 'Success',
+                'data' => [
+                    'endDate' => $endDate,
+                    'entryDate' => $entryDate,
+                ],
+            ]);
+        }else if($totalDays > $maxDaysLeave){
+            return response()->json([
+                'errorMessage' => 'Error',
+                'subMessage' => 'Total cuti melebihi ketentuan maksimal cuti'
+            ]);
+        }else if (!is_numeric($totalDays)) {
+            return response()->json([
+                'errorMessage' => 'Error',
+                'subMessage' => 'Isi dengan angka, tidak dibolehkan symbol lain'
+            ]);
+        }
+        
+        
     }
     
     public function storeLeave(Request $request) {
