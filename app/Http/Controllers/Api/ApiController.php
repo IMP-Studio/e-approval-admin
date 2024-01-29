@@ -30,10 +30,13 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use App\Jobs\SendRequestLeaveEmailJob;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
 use Spatie\Permission\Models\Permission;
+use App\Jobs\SendRequestPresenceEmailJob;
 use Illuminate\Support\Facades\Validator;
+use App\Jobs\SendResultSubmissionEmailJob;
 
 
 class ApiController extends Controller
@@ -1360,10 +1363,10 @@ class ApiController extends Controller
                 foreach ($approvers as $approver) {
                     switch ($presence->category) {
                         case 'work_trip':
-                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                            dispatch(new SendRequestPresenceEmailJob($presence, $user, $approver, $workTrip, null));
                             break;
                         case 'telework':
-                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                            dispatch(new SendRequestPresenceEmailJob($presence, $user, $approver, null, $telework));
                             break;
                     }
                 }
@@ -1792,10 +1795,10 @@ class ApiController extends Controller
                     })
                     ->get();
                     foreach ($approvers as $approver) {
-                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
-                    }
+                        dispatch(new SendRequestPresenceEmailJob($presence, $user, $approver, $workTrip, null));
+                    }   
                 }elseif($request->input('status') === 'allowed'){
-                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
+                    dispatch(new SendResultSubmissionEmailJob($presence, $user, $workTrip, null, null));
                 }
             }elseif($statusable->presence->category == 'telework'){
                 $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
@@ -1814,10 +1817,10 @@ class ApiController extends Controller
                     })
                     ->get();
                     foreach ($approvers as $approver) {
-                            \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                        dispatch(new SendRequestPresenceEmailJob($presence, $user, $approver, null, $telework));
                     }
                 }elseif($request->input('status') === 'allowed'){
-                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+                    dispatch(new SendResultSubmissionEmailJob($presence, $user,null, $telework, null));
                 }
                 
             }elseif($statusable->presence->category == 'leave' ){
@@ -1837,12 +1840,13 @@ class ApiController extends Controller
                     })
                     ->get();
                     foreach ($approvers as $approver) {
-                        \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));                         
+                        dispatch(new SendRequestLeaveEmailJob($presence, $user, $approver, $leave));
                     }
                 }elseif($request->input('status') === 'allowed'){
-                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user,null, null, $leave));                          
+                    dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));
                 }
             }
+            
             
         }
         return response()->json(['message' => 'Approval status saved successfully.', 'data' => $statusCommit->fresh(), 'absensi' => $statusable->fresh(), 'presence' => $attendanceToday ? $attendanceToday->fresh() : null], 200);
@@ -2541,7 +2545,7 @@ class ApiController extends Controller
             ->get();
         
             foreach ($approvers as $approver) {
-                \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
+                dispatch(new SendRequestLeaveEmailJob($presence, $user, $approver, $leave));
             }
     
             DB::commit();
