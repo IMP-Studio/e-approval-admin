@@ -6,6 +6,8 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+                    <button class="btn btn-primary w-28 mb-2" id="approveSelectBtn">Approve Selected</button>
+                    <button class="btn btn-danger w-28 ml-2 mb-2" id="rejectSelectBtn">Rejected Selected</button>
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
@@ -18,6 +20,9 @@
                 <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
+                            <th class="text-center whitespace-nowrap">
+                                <input type="checkbox" class="form-check-input" id="select_all_ids">
+                            </th>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Position</th>
@@ -29,6 +34,9 @@
                     <tbody>
                         @foreach ($workTripData as $item)
                             <tr class="intro-x h-16">
+                                <td class="w-4 text-center">
+                                    <input type="checkbox" class="form-check-input checkbox_ids" name="ids" value="{{ $item->worktrip->statusCommit->first()->id }}" data-id="{{ $item->id }}">
+                                </td>
                                 <td class="w-4 text-center">
                                     {{ $loop->iteration }}.
                                 </td>
@@ -107,6 +115,29 @@
     </div>
     {{-- moda approve end --}}
 
+    {{-- modal multiple approve --}}
+    <div id="modal-apprv-wt-search-multiple" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                    <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            Are you sure you want to approve this absence request?
+                        </div>
+                        <input hidden name="message" type="text" id="messageWk-approveHt">
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-success w-24" id="approveSelectedAll">Approve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- moda multiple approve end --}}
+
     {{-- modal rejected --}}
     <div id="reject-confirmation-modal" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -127,7 +158,7 @@
                         </div>
                         <div class="px-5 pb-8 text-center">
                             <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
-                            <button type="submit" class="btn btn-danger w-24">reject</button>
+                            <button type="submit" class="btn btn-danger w-24">Reject</button>
                         </div>
                     </div>
                 </form>
@@ -135,6 +166,31 @@
         </div>
     </div>
     {{-- moda rejected end --}}
+
+    {{-- modal multiple rejected --}}
+    <div id="reject-confirmation-modal-multiple" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            Are you sure you want to reject this absence request?
+                        </div>
+                        <input name="description" id="rejectDesc" type="text" class="form-control w-full"
+                            placeholder="description" required>
+                        <input hidden name="message" type="text" id="messageWk-rejectHt">
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-danger w-24" id="rejectSelectedAll">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- moda multiple rejected end --}}
 
    {{-- detail modal attendance search work_trip --}}
     <div id="show-modal-approve-worktrip" class="modal" tabindex="-1" aria-hidden="true">
@@ -194,99 +250,241 @@
     </div>
     {{-- detail modal attendance search work_trip end--}}
 
-<script type="text/javascript">
-        // detail work trip modal
-        $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
-            var ShowGender = $(this).attr('data-gender');
-            var showAvatar = $(this).attr('data-avatar');
-            var ShowFirstname = $(this).attr('data-firstname');
-            var ShowLastName = $(this).attr('data-LastName');
-            var ShowStafId = $(this).attr('data-stafId');
-            var ShowPosisi = $(this).attr('data-Position');
-            var ShowCategory = $(this).attr('data-Category');
+    <script type="text/javascript">
+            // detail work trip modal
+            $(document).on("click", ".show-attendance-modal-search-worktrip", function () {
+                var ShowGender = $(this).attr('data-gender');
+                var showAvatar = $(this).attr('data-avatar');
+                var ShowFirstname = $(this).attr('data-firstname');
+                var ShowLastName = $(this).attr('data-LastName');
+                var ShowStafId = $(this).attr('data-stafId');
+                var ShowPosisi = $(this).attr('data-Position');
+                var ShowCategory = $(this).attr('data-Category');
 
-            var fileUrl = $(this).attr('data-file');
-            var fileName = fileUrl.split('/').pop();
-           
-            if (fileUrl) {
-                var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
-                console.log(fileInput);
+                var fileUrl = $(this).attr('data-file');
+                var fileName = fileUrl.split('/').pop();
+            
+                if (fileUrl) {
+                    var fileInput = '{{ asset('storage/') }}/' + fileUrl + ''
+                    console.log(fileInput);
 
-                $("#put-href-file").attr('href', fileInput);
-                $("#filename").text(fileName);
+                    $("#put-href-file").attr('href', fileInput);
+                    $("#filename").text(fileName);
 
-                jQuery(document).ready(function($) {
-                $.ajax({
-                    type: "HEAD",
-                    url: fileInput,
-                    success: function (message, text, jqXhr) {
-                        var fileSize = jqXhr.getResponseHeader('Content-Length');
-                        var fileSizeKB = (fileSize / 1024).toFixed(2) + ' KB';
-                        $("#file-size").text(fileSizeKB);
-                    },
-                });
-            })
-            }
+                    jQuery(document).ready(function($) {
+                    $.ajax({
+                        type: "HEAD",
+                        url: fileInput,
+                        success: function (message, text, jqXhr) {
+                            var fileSize = jqXhr.getResponseHeader('Content-Length');
+                            var fileSizeKB = (fileSize / 1024).toFixed(2) + ' KB';
+                            $("#file-size").text(fileSizeKB);
+                        },
+                    });
+                })
+                }
 
-            var imgSrc;
-            if(showAvatar){
-                imgSrc = '{{ asset('storage/') }}/' + showAvatar;
-            }else if(ShowGender == 'male'){
-                imgSrc = '{{ asset('images/default-boy.jpg') }}';
-            }else if(ShowGender == 'female'){
-                imgSrc = '{{ asset('images/default-women.jpg') }}';
-            };
+                var imgSrc;
+                if(showAvatar){
+                    imgSrc = '{{ asset('storage/') }}/' + showAvatar;
+                }else if(ShowGender == 'male'){
+                    imgSrc = '{{ asset('images/default-boy.jpg') }}';
+                }else if(ShowGender == 'female'){
+                    imgSrc = '{{ asset('images/default-women.jpg') }}';
+                };
 
 
-            $("#show-modal-image-work").attr('src', imgSrc);
-            $("#Show-firstname-work").attr('value', ShowFirstname);
-            $("#Show-LastName-work").attr('value', ShowLastName);
-            $("#Show-StafId-work").attr('value', ShowStafId);
-            $("#Show-Posisi-work").attr('value', ShowPosisi);
-            $("#Show-Category-work").attr('value', ShowCategory);
-        });
+                $("#show-modal-image-work").attr('src', imgSrc);
+                $("#Show-firstname-work").attr('value', ShowFirstname);
+                $("#Show-LastName-work").attr('value', ShowLastName);
+                $("#Show-StafId-work").attr('value', ShowStafId);
+                $("#Show-Posisi-work").attr('value', ShowPosisi);
+                $("#Show-Category-work").attr('value', ShowCategory);
+            });
 
-        // approve
-        $(document).on("click", ".approve_wk_Ht", function() {
-            var ApproveWkModalid = $(this).attr('data-wkHtid');
-            var ApproveWkModalMessage = $(this).attr('data-messageWK');
+            // approve
+            $(document).on("click", ".approve_wk_Ht", function() {
+                var ApproveWkModalid = $(this).attr('data-wkHtid');
+                var ApproveWkModalMessage = $(this).attr('data-messageWK');
+
+                var formAction;
+                formAction = '{{ route('approveht.approvedWorkTripHt', ':id') }}'.replace(':id', ApproveWkModalid);
+
+                $("#approve-wk-dataHt").attr('action', formAction);
+                $("#messageWk-approveHt").attr('value', ApproveWkModalMessage);
+
+
+            });
+
+            // reject
+            $(document).on("click", ".reject_wk_Ht", function() {
+            var rejectWkModalid = $(this).attr('data-rejectwkHtid');
+            var rejectWkModalMessage = $(this).attr('data-rejectmessageWK');
 
             var formAction;
-            formAction = '{{ route('approveht.approvedWorkTripHt', ':id') }}'.replace(':id', ApproveWkModalid);
+            formAction = '{{ route('approveht.rejectWorokTripHt', ':id') }}'.replace(':id', rejectWkModalid);
 
-            $("#approve-wk-dataHt").attr('action', formAction);
-            $("#messageWk-approveHt").attr('value', ApproveWkModalMessage);
+            $("#reject-wk-dataHt").attr('action', formAction);
+            $("#messageWk-rejectHt").attr('value', rejectWkModalMessage);
 
 
         });
 
-        // reject
-        $(document).on("click", ".reject_wk_Ht", function() {
-        var rejectWkModalid = $(this).attr('data-rejectwkHtid');
-        var rejectWkModalMessage = $(this).attr('data-rejectmessageWK');
+        // checkbox select
+        jQuery(document).ready(function($) {
+            $("#select_all_ids").click(function(){
+                
+                // Iterate through all pages
+                $('table#myTable').DataTable(). $('.checkbox_ids').attr ('checked',$(this).prop('checked'))
+            });
+        })
 
-        var formAction;
-        formAction = '{{ route('approveht.rejectWorokTripHt', ':id') }}'.replace(':id', rejectWkModalid);
+        // check approve checkbox
+        jQuery(document).ready(function ($) {
+            $("#approveSelectBtn").click(function () {
+                var checkedIds = [];
 
-        $("#reject-wk-dataHt").attr('action', formAction);
-        $("#messageWk-rejectHt").attr('value', rejectWkModalMessage);
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    checkedIds.push($(this).data('id'));
+                });
+
+                if ($('table#myTable').dataTable().$('input:checkbox[name=ids]:checked').length === 0) {
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    console.log('Checked Checkbox for approve : ', checkedIds);
+
+                    $('#approveSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#approveSelectBtn').attr('data-tw-target', '#modal-apprv-wt-search-multiple');
+                }
+            });
+        });
+
+        // check reject checkbox
+        jQuery(document).ready(function ($) {
+            $("#rejectSelectBtn").click(function () {
+                var checkedIds = [];
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    checkedIds.push($(this).data('id'));
+                });
+
+                if ($('table#myTable').dataTable().$('input:checkbox[name=ids]:checked').length === 0) {
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    console.log('Checked Checkbox for reject : ', checkedIds);
 
 
-    });
+                    $('#rejectSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').attr('data-tw-target', '#reject-confirmation-modal-multiple');
+                }
+            });
+        });
 
-     // data table
-     jQuery(document).ready(function($) {
+        // apprpve multiple
+        jQuery(document).ready(function ($) {
+            $("#approveSelectedAll").click(function (e) {
+                e.preventDefault();
+                var all_ids = [];
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    all_ids.push($(this).val());
+                });
+
+                try {
+                    $.ajax({
+                        url: "{{ route('approvehtMultiple.approvedWorkTripHt') }}",
+                        type: "PUT",
+                        async: true,
+                        data: {
+                            ids: all_ids,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error", error);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            });
+        });
+
+        // reject multiple
+        jQuery(document).ready(function($) {
+            $("#rejectSelectedAll").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = $('input:text[id=rejectDesc]').val();
+
+                if (!desc.trim()) {
+                    toastr.info('Please provide a description.');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                    return;
+                }
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    all_ids.push($(this).val());
+                });
+
+                $.ajax({
+                    url: "{{ route('approvehtMultiple.rejectWorokTripHt') }}",
+                    type:"PUT",
+                    async: true,
+                    data:{
+                        ids:all_ids,
+                        description:desc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error", error);
+                    }
+                });
+            })
+         });
+
+        // data table
+        jQuery(document).ready(function($) {
             var dataTable = new DataTable('#myTable', {
                 buttons: ['showSelected'],
                 dom: 'rtip',
                 select: true, 
                 pageLength: 5,
                 border: false,
+                columnDefs: [
+                    { orderable: false, targets: 0 }
+                ],
+                order: [[1, 'asc']]
             });
 
             $('#searchWorktripHt').on('keyup', function() {
                 dataTable.search($(this).val()).draw();
             });
         });
-</script>
+    </script>
 @endsection
