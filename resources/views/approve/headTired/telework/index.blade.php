@@ -6,18 +6,23 @@
         </h2>
         <div class="grid grid-cols-12 gap-6 mt-5">
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-nowrap items-center mt-2">
+                    <button class="btn btn-primary w-28 mb-2" id="approveSelectBtn">Approve Selected</button>
+                    <button class="btn btn-danger w-28 ml-2 mb-2" id="rejectSelectBtn">Rejected Selected</button>
                 <div class="hidden md:block mx-auto text-slate-500"></div>
                 <div class="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-auto md:ml-0">
                     <div class="w-56 relative text-slate-500">
-                        <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchTeleworkHt">
+                            <input type="text" class="form-control w-56 box pr-10" placeholder="Search..." id="searchLeaveHt">
                         <i class="w-4 h-4 absolute my-auto inset-y-0 mr-3 right-0" data-lucide="search"></i>
                     </div>
                 </div>
             </div>
             <div class="intro-y col-span-12 overflow-auto lg:overflow-visible">
-                <table id="tableWorktrip" class="table table-report -mt-2">
+                <table id="myTable" class="table table-report -mt-2">
                     <thead>
                         <tr>
+                            <th class="text-center whitespace-nowrap">
+                                <input type="checkbox" class="form-check-input" id="select_all_ids">
+                            </th>
                             <th data-priority="1" class="whitespace-nowrap">No</th>
                             <th data-priority="2" class="text-center whitespace-nowrap">Name</th>
                             <th class="text-center whitespace-nowrap">Divisi</th>
@@ -29,6 +34,9 @@
                     <tbody id="tablePartner">
                          @foreach ($teleworkData as $item)
                             <tr class="intro-x h-16">
+                                <td class="w-4 text-center">
+                                    <input type="checkbox" class="form-check-input checkbox_ids" name="ids" value="{{ $item->telework->statusCommit->first()->id }}" data-id="{{ $item->id }}">
+                                </td>
                                 <td class="w-4 text-center">
                                     {{ $loop->iteration }}.
                                 </td>
@@ -110,6 +118,29 @@
     </div>
     {{-- moda approve end --}}
 
+    {{-- modal multiple approve --}}
+    <div id="modal-apprv-teleHt-search-multiple" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            Are you sure you want to approve this absence request?
+                        </div>
+                        <input hidden name="message" type="text" id="messageTele-approveHt">
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-success w-24" id="approveSelectedAll">Approve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- moda multiple approve end --}}
+
     {{-- modal rejected --}}
     <div id="reject-confirmation-teleHt-modal" class="modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -138,6 +169,31 @@
         </div>
     </div>
     {{-- moda rejected end --}}
+
+    {{-- modal multiple rejected --}}
+    <div id="reject-confirmation-teleHt-modal-multiple" class="modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body p-0">
+                    <div class="p-5 text-center">
+                        <i data-lucide="x-circle" class="w-16 h-16 text-danger mx-auto mt-3"></i>
+                        <div class="text-3xl mt-5">Are you sure?</div>
+                        <div class="text-slate-500 mt-2" id="subjuduldelete-confirmation">
+                            Are you sure you want to reject this absence request?
+                        </div>
+                        <input name="description" id="rejectDesc" type="text" class="form-control w-full"
+                            placeholder="description" required>
+                        <input hidden name="message" type="text" id="messageTele-rejectHt">
+                    </div>
+                    <div class="px-5 pb-8 text-center">
+                        <button type="button" data-tw-dismiss="modal" class="btn btn-outline-secondary w-24 mr-1">Cancel</button>
+                        <button type="submit" class="btn btn-danger w-24" id="rejectSelectedAll">Reject</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- moda multiple rejected end --}}
 
     {{-- detail modal attendance search TeleWork --}}
     <div id="show-modal-search-telework" class="modal" tabindex="-1" aria-hidden="true">
@@ -271,14 +327,155 @@
 
     });
 
-      // data table
-         jQuery(document).ready(function($) {
-            var dataTable = new DataTable('#tableWorktrip', {
+        // checkbox select
+        jQuery(document).ready(function($) {
+            $("#select_all_ids").click(function(){
+                
+                // Iterate through all pages
+                $('table#myTable').DataTable(). $('.checkbox_ids').attr ('checked',$(this).prop('checked'))
+            });
+        })
+
+        // check approve checkbox
+        jQuery(document).ready(function ($) {
+            $("#approveSelectBtn").click(function () {
+                var checkedIds = [];
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    checkedIds.push($(this).data('id'));
+                });
+
+                if ($('table#myTable').dataTable().$('input:checkbox[name=ids]:checked').length === 0) {
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    console.log('Checked Checkbox for approve : ', checkedIds);
+
+                    $('#approveSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#approveSelectBtn').attr('data-tw-target', '#modal-apprv-teleHt-search-multiple');
+                }
+            });
+        });
+
+        // check reject checkbox
+        jQuery(document).ready(function ($) {
+            $("#rejectSelectBtn").click(function () {
+                var checkedIds = [];
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    checkedIds.push($(this).data('id'));
+                });
+                if ($('table#myTable').dataTable().$('input:checkbox[name=ids]:checked').length === 0) {
+                    toastr.info('Please select at least one item by checking the checkbox');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                } else {
+                    console.log('Checked Checkbox for reject : ', checkedIds);
+
+
+                    $('#rejectSelectBtn').attr('data-tw-toggle', 'modal');
+                    $('#rejectSelectBtn').attr('data-tw-target', '#reject-confirmation-teleHt-modal-multiple');
+                }
+            });
+        });
+
+        // apprpve multiple
+        jQuery(document).ready(function ($) {
+            $("#approveSelectedAll").click(function (e) {
+                e.preventDefault();
+                var all_ids = [];
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    all_ids.push($(this).val());
+                });
+
+                try {
+                    $.ajax({
+                        url: "{{ route('approvehtMultiple.approvedTeleHt') }}",
+                        type: "PUT",
+                        async: true,
+                        data: {
+                            ids: all_ids,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error", error);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error:", error);
+                }
+            });
+        });
+
+        // reject multiple
+        jQuery(document).ready(function($) {
+            $("#rejectSelectedAll").click(function(e){
+                e.preventDefault();
+                var all_ids = [];
+                var desc = $('input:text[id=rejectDesc]').val();
+
+                if (!desc.trim()) {
+                    toastr.info('Please provide a description.');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                    return;
+                }
+
+                // Iterate through all pages
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
+                    all_ids.push($(this).val());
+                });
+
+                $.ajax({
+                    url: "{{ route('approvehtMultiple.rejectTeleHt') }}",
+                    type:"PUT",
+                    async: true,
+                    data:{
+                        ids:all_ids,
+                        description:desc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error", error);
+                    }
+                });
+            })
+         });
+
+        // data table
+        jQuery(document).ready(function($) {
+            var dataTable = new DataTable('#myTable', {
                 buttons: ['showSelected'],
                 dom: 'rtip',
                 select: true, 
                 pageLength: 5,
                 border: false,
+                columnDefs: [
+                    { orderable: false, targets: 0 }
+                ],
+                order: [[1, 'asc']]
             });
 
             $('#searchTeleworkHt').on('keyup', function() {
