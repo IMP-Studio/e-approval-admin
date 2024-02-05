@@ -49,63 +49,114 @@ class ApproveController extends Controller
                 $statusCommitQuery->where('status', 'pending');
             })
             ->whereDate('date', '<=', $today);
-        })
-            ->orderBy('entry_time', 'asc')
-            ->paginate()->all();
+        })  
+            ->get();
 
 
         return view('approve.headTired.worktrip.index', compact('workTripData'));
     }
 
     // approve Ht
-    public function approveWkHt(Request $request, $id)
+    public function approveWkHt(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $all_ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
-            
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'preliminary',
-            ]);
-            
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+            if($all_ids) {
+                foreach($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
 
-            $workTrip = WorkTrip::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\WorkTrip')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
-
-            $message = $request->message;
-
-            // KIRIM EMAIL KE HR
-
-            $requiredPermissions = [
-                'approve_allowed',
-                'view_request_preliminary',
-            ];
-            $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
-                foreach ($requiredPermissions as $permission) {
-                    $query->orWhereHas('permissions', function ($query) use ($permission) {
-                        $query->where('name', $permission);
-                    });
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+                    
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'preliminary',
+                    ]);
+                    
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+        
+                    $workTrip = WorkTrip::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\WorkTrip')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                    }
                 }
-            })
-                ->get();
-            
-            foreach ($approvers as $approver) {
-                \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
-            }
+            } elseif ($id !== null) {
+                $statusCommit = StatusCommit::find($id);
 
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+                    
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'preliminary',
+                    ]);
+                    
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+        
+                    $workTrip = WorkTrip::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\WorkTrip')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                    }      
+            } else {
+                // Handle other scenarios or provide a default response
+                return back()->with('error', 'Invalid Request.');
+            }
             return redirect()->route('approveht.worktripHt')->with(['success' => "$message approved successfully"]);
         } catch (\Exception $e) {
             \Log::error('An error occurred: ' . $e->getMessage());
@@ -117,60 +168,114 @@ class ApproveController extends Controller
     }
 
     // Reject Ht
-    public function rejectWkHt(Request $request, $id)
+    public function rejectWkHt(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $all_ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
+            if($all_ids) {
+                foreach($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
 
-            // Ubah nilai status menjadi "rejected"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'rejected',
-                'description' => $request->description,
-            ]);
-
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
-
-            $workTrip = WorkTrip::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\WorkTrip')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
-
-            $message = $request->message;
-
-            // KIRIM EMAIL KE HR
-
-            $requiredPermissions = [
-                'approve_allowed',
-                'view_request_preliminary',
-            ];
-            $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
-                foreach ($requiredPermissions as $permission) {
-                    $query->orWhereHas('permissions', function ($query) use ($permission) {
-                        $query->where('name', $permission);
-                    });
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+        
+                    // Ubah nilai status menjadi "rejected"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+        
+                    $workTrip = WorkTrip::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\WorkTrip')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                    }
+        
+                    // Kirim mail ke user
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
                 }
-            })
-                ->get();
-            
-            foreach ($approvers as $approver) {
-                \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
-            }
+            } elseif ($id !== null) {
+                $statusCommit = StatusCommit::find($id);
 
-            // Kirim mail ke user
-            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, $workTrip, null, null));
-
-            return redirect()->route('approveht.worktripHt')->with(['success' => "$message approved successfully"]);
-
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+        
+                    // Ubah nilai status menjadi "rejected"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+        
+                    $workTrip = WorkTrip::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\WorkTrip')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('worktrip')->where('id', $workTrip->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+        
+                    // Kirim mail ke user
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, $workTrip, null));
+                    }      
+            } else {
+                // Handle other scenarios or provide a default response
+                return back()->with('error', 'Invalid Request.');
+            } 
+            return redirect()->route('approveht.worktripHt')->with(['success' => "$message rejected successfully"]);
         } catch (\Exception $e) {
             \Log::error('An error occurred: ' . $e->getMessage());
             \Log::error('File: ' . $e->getFile());
@@ -178,7 +283,6 @@ class ApproveController extends Controller
         
             return back()->with('error', 'An error occurred while processing the request.');
         }
-        
     }
     // worktripHt end \\
 
@@ -209,63 +313,113 @@ class ApproveController extends Controller
                 $statusCommitQuery->where('status', 'pending');
             });
         })
-            ->orderBy('entry_time', 'asc')
-            ->paginate(5);
+            ->get();
 
         return view('approve.headTired.telework.index', compact('teleworkData'));
     }
 
     // approve Telework
-    public function approveTeleHt(Request $request, $id)
+    public function approveTeleHt(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $all_ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
-
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'preliminary',
-            ]);
-
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
-
-            $telework = Telework::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\Telework')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
-
-            $message = $request->message;
-
-            // KIRIM EMAIL KE HR
-
-            $requiredPermissions = [
-                'approve_allowed',
-                'view_request_preliminary',
-            ];
-            $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
-                foreach ($requiredPermissions as $permission) {
-                    $query->orWhereHas('permissions', function ($query) use ($permission) {
-                        $query->where('name', $permission);
-                    });
+            if($all_ids) {
+                foreach ($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
+                    
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+        
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'preliminary',
+                    ]);
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+        
+                    $telework = Telework::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Telework')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                    }
                 }
-            })
-                ->get();
-            
-            foreach ($approvers as $approver) {
-                \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+            } elseif ($id !== null) {
+                    $statusCommit = StatusCommit::find($id);
+                    
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+        
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'preliminary',
+                    ]);
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+        
+                    $telework = Telework::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Telework')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                    }
+            } else {
+                // Handle other scenarios or provide a default response
+                return back()->with('error', 'Invalid Request.');
             }
-
-            return redirect()->route('approveht.teleworkHt')->with(['success' => "$message rejected successfully"]);
-
+            return redirect()->route('approveht.teleworkHt')->with(['success' => "$message approved successfully"]);
         } catch (\Exception $e)  {
             \Log::error('An error occurred: ' . $e->getMessage());
             \Log::error('File: ' . $e->getFile());
@@ -276,60 +430,115 @@ class ApproveController extends Controller
     }
 
     // Reject Telework
-    public function rejectTeleHt(Request $request, $id)
+    public function rejectTeleHt(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
-    
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
-    
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'rejected',
-                'description' => $request->description,
-            ]);
-    
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+            $all_ids = $request->ids;
 
-            $telework = Telework::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\Telework')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
+            if ($all_ids) {
+                foreach($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
 
-            $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
-
-            $message = $request->message;
-
-            // KIRIM EMAIL KE HR
-
-            $requiredPermissions = [
-                'approve_allowed',
-                'view_request_preliminary',
-            ];
-            $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
-                foreach ($requiredPermissions as $permission) {
-                    $query->orWhereHas('permissions', function ($query) use ($permission) {
-                        $query->where('name', $permission);
-                    });
-                }
-            })
-                ->get();
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
             
-            foreach ($approvers as $approver) {
-                \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+            
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+        
+                    $telework = Telework::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Telework')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                    }
+        
+                    // Kirim mail ke user
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+                }
+            } elseif ($id !== null) {
+                    $statusCommit = StatusCommit::find($id);
+
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+            
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+        
+                    $telework = Telework::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Telework')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('telework')->where('id', $telework->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // KIRIM EMAIL KE HR
+        
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                        ->get();
+                    
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestPresenceEmail($presence, $user, $approver, null, $telework));
+                    }
+        
+                    // Kirim mail ke user
+                    \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
+            } else {
+                // Handle other scenarios or provide a default response
+                return back()->with('error', 'Invalid request.');
             }
-
-            // Kirim mail ke user
-            \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, $telework, null));
-
             return redirect()->route('approveht.teleworkHt')->with(['success' => "$message rejected successfully"]);
-
         } catch (\Exception $e) {
             \Log::error('An error occurred: ' . $e->getMessage());
             \Log::error('File: ' . $e->getFile());
@@ -367,77 +576,185 @@ class ApproveController extends Controller
                 $statusCommitQuery->where('status', 'pending');
             });
         })
-            ->orderBy('entry_time', 'asc')
-            ->paginate()->all();
+            ->get();
         
         return view('approve.headTired.leave.index', compact('leavekData'));
     }
 
     // Approve telework HT
-    public function approveLeaveHt(Request $request, $id)
+    public function approveLeaveHt(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $all_ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
+            if ($all_ids) {
+                foreach ($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
 
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'preliminary',
-            ]);
+                    $selectedCheckboxes[] = $id;
 
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first(); 
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
 
-            $leave = Leave::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\Leave')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'preliminary',
+                    ]);
 
-            $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
 
-            $message = $request->message;
+                    $leave = Leave::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Leave')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
 
-            // KIRIM EMAIL KE HR
+                    $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
 
-            $requiredPermissions = [
-                'approve_allowed',
-                'view_request_preliminary',
-            ];
-            $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
-                foreach ($requiredPermissions as $permission) {
-                    $query->orWhereHas('permissions', function ($query) use ($permission) {
-                        $query->where('name', $permission);
-                    });
+                    $message = $request->message;
+
+                    // KIRIM EMAIL KE HR
+
+                    $requiredPermissions = [
+                        'approve_allowed',
+                        'view_request_preliminary',
+                    ];
+                    $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                        foreach ($requiredPermissions as $permission) {
+                            $query->orWhereHas('permissions', function ($query) use ($permission) {
+                                $query->where('name', $permission);
+                            });
+                        }
+                    })
+                    ->get();
+
+                    foreach ($approvers as $approver) {
+                        \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
+                    }
                 }
-            })
-                ->get();
-            
-            foreach ($approvers as $approver) {
-                \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
+            } elseif ($id !== null) {
+                // Handle single data scenario
+                $statusCommit = StatusCommit::find($id);
+
+                if (!$statusCommit) {
+                    return back()->with('error', 'StatusCommit not found.');
+                }
+
+                // Ubah nilai status menjadi "preliminary"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'preliminary',
+                ]);
+
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+
+                $leave = Leave::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\Leave')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+
+                $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+
+                $message = $request->message;
+
+                // KIRIM EMAIL KE HR
+
+                $requiredPermissions = [
+                    'approve_allowed',
+                    'view_request_preliminary',
+                ];
+                $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                    foreach ($requiredPermissions as $permission) {
+                        $query->orWhereHas('permissions', function ($query) use ($permission) {
+                            $query->where('name', $permission);
+                        });
+                    }
+                })
+                    ->get();
+
+                foreach ($approvers as $approver) {
+                    \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
+                }
+            } else {
+                // Handle other scenarios or provide a default response
+                return back()->with('error', 'Invalid request.');
             }
-
             return redirect()->route('approveht.leaveHt')->with(['success' => "$message approved successfully"]);
-
         } catch (\Exception $e) {
             \Log::error('An error occurred: ' . $e->getMessage());
             \Log::error('File: ' . $e->getFile());
             \Log::error('Line: ' . $e->getLine());
-        
+
             return back()->with('error', 'An error occurred while processing the request.');
         }
     }
 
+
     // Reject telework HT
-    public function rejectLeaveHt(Request $request, $id)
+    public function rejectLeaveHt(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
+            $all_ids = $request->ids;
+
+            if($all_ids) {
+                foreach ($all_ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
+
+                    if (!$statusCommit) {
+                return back()->with('error', 'StatusCommit not found.');
+                }
+
+                // Ubah nilai status menjadi "rejected"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'rejected',
+                    'description' => $request->description,
+                ]);
+                
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+
+                $leave = Leave::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\Leave')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+
+                $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+
+                $message = $request->message;
+
+                // KIRIM EMAIL KE HR
+
+                $requiredPermissions = [
+                    'approve_allowed',
+                    'view_request_preliminary',
+                ];
+                $approvers = User::with(['employee', 'permissions'])->where(function ($query) use ($requiredPermissions) {
+                    foreach ($requiredPermissions as $permission) {
+                        $query->orWhereHas('permissions', function ($query) use ($permission) {
+                            $query->where('name', $permission);
+                        });
+                    }
+                })
+                    ->get();
+                
+                foreach ($approvers as $approver) {
+                    \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
+                }
+
+                // Kirim mail ke user
+                \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, null, $leave));
+
+            }
+        } else if ($id !== null) {
             $statusCommit = StatusCommit::find($id);
 
             if (!$statusCommit) {
@@ -477,7 +794,7 @@ class ApproveController extends Controller
                     });
                 }
             })
-                ->get();
+            ->get();
             
             foreach ($approvers as $approver) {
                 \Mail::to($approver->email)->send(new RequestLeaveEmail($presence, $user, $approver, $leave));
@@ -486,14 +803,17 @@ class ApproveController extends Controller
             // Kirim mail ke user
             \Mail::to($user->email)->send(new ResultSubmissionEmail($presence, $user, null, null, $leave));
 
-            return redirect()->route('approveht.leaveHt')->with(['success' => "$message approved successfully"]);
-
+        } else {
+            return back()->with('error', 'Invalid Request');
+        }
+        
+            return redirect()->route('approveht.leaveHt')->with(['success' => "$message rejected successfully"]);
         } catch (\Exception $e) {
             \Log::error('An error occurred: ' . $e->getMessage());
             \Log::error('File: ' . $e->getFile());
             \Log::error('Line: ' . $e->getLine());
         
-            return back()->with('error', 'An error occurred while processing the request.');
+            return back()->with('error', 'Anm error occurred while processing the request.');
         }
     }
     // Leave Reject Ht
