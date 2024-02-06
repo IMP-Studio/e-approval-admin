@@ -62,7 +62,7 @@
                                 </td>
                                 <td class="table-report__action w-56">
                                     <div class="flex justify-center items-center">
-                                        <a data-wkHrid="{{ $item->worktrip->statusCommit->first()->id }}" data-messageWK="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-success mr-3 approve_wk_Ht"
+                                        <a data-wkHrid="{{ $item->worktrip->statusCommit->first()->id }}" data-messageWK="{{ $item->user->name }} {{ $item->category }}" class="flex items-center text-success mr-3 approve_wk_Hr"
                                             href="javascript:;" data-tw-toggle="modal"
                                             data-tw-target="#modal-apprv-wt-search">
                                             <i data-lucide="check-square" class="w-4 h-4 mr-1"></i> Approve
@@ -103,7 +103,7 @@
                 <div class="modal-content">
                     <form id="approve-wk-dataHr" method="POST" action="">
                     @csrf
-                    @method('post')
+                    @method('put')
                         <div class="modal-body p-0">
                             <div class="p-5 text-center">
                                 <i data-lucide="x-circle" class="w-16 h-16 text-success mx-auto mt-3"></i>
@@ -297,18 +297,25 @@
             $("#submitApproveSelected").click(function(e){
                 e.preventDefault();
                 var all_ids = [];
-                var desc = [];
+                var desc = $('input:text[id=aprrovedesc]').val();
 
-                $('input:checkbox[name=ids]:checked').each(function(){
+                if (!desc.trim()) {
+                    toastr.info('Please provide a description.');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                    return;
+                }
+
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function () {
                     all_ids.push($(this).val());
                 });
        
-                desc = $('input:text[id=aprrovedesc]').val();
-
-                try {
                 $.ajax({
                     url: "{{ route('approvehrMultiple.approvedWorkTripHr') }}",
-                    type:"POST",
+                    type:"PUT",
                     async: true,
                     data:{
                         ids:all_ids,
@@ -323,9 +330,6 @@
                         console.error("Error:", error);
                     }
                 });
-                } catch (error) {
-                    console.error("Error:", error);
-                }
             });
         })
         // end approve multiple select
@@ -353,36 +357,40 @@
             $("#submitRejectSelected").click(function(e){
                 e.preventDefault();
                 var all_ids = [];
-                var desc = [];
+                var desc = $('input:text[id=rejectDesc]').val();
 
-                $('input:checkbox[name=ids]:checked').each(function(){
+                if (!desc.trim()) {
+                    toastr.info('Please provide a description.');
+                    toastr.options = {
+                        progressBar: true,
+                        positionClass: 'toast-top-right',
+                        timeOut: 3000
+                    };
+                    return;
+                }
+
+                $('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').each(function(){
                     all_ids.push($(this).val());
                 });
               
-                desc = $('input:text[id=rejectDesc]').val();
 
-                try {
-                    $.ajax({
-                        url: "{{ route('approvehrMultiple.rejectWorokTripHr') }}",
-                        type:"PUT",
-                        async: true,
-                        data:{
-                            ids:all_ids,
-                            description:desc,
-                            _token: '{{ csrf_token() }}'
-                        },
-                        complete: function () {
-                            location.reload();
-                            console.log('Ajax request complete');
-                        },
-                        error: function(xhr, status, error) {
-                            console.error("Error:", error);
-                        }
-                    });
-                    location.reload();
-                } catch (error) {
-                    console.error("Error:", error);
-                }
+                $.ajax({
+                    url: "{{ route('approvehrMultiple.rejectWorokTripHr') }}",
+                    type:"PUT",
+                    async: true,
+                    data:{
+                        ids:all_ids,
+                        description:desc,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    complete: function () {
+                        location.reload();
+                        console.log('Ajax request complete');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error:", error);
+                    }
+                });
             });
         })
         // end reject multiple select
@@ -476,7 +484,7 @@
             $("#Show-date").attr('value', formattedDate);
         });
 
-        $(document).on("click", ".approve_wk_Ht", function() {
+        $(document).on("click", ".approve_wk_Hr", function() {
             var ApproveWkModalid = $(this).attr('data-wkHrid');
             var ApproveWkModalMessage = $(this).attr('data-messageWK');
 
