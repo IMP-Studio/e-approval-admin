@@ -274,7 +274,7 @@
         // approve multiple select
         jQuery(document).ready(function ($) {
             $("#approveSelectBtn").click(function () {
-                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                if ($('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').length === 0) {
                     $('#approveSelectBtn').removeAttr('data-tw-toggle', 'modal');
                     $('#approveSelectBtn').removeAttr('data-tw-target', '#modal-apprv-tele-select');
                     toastr.info('Please select at least one item by checking the checkbox');
@@ -334,7 +334,7 @@
         // reject multiple select
         jQuery(document).ready(function ($) {
             $("#rejectSelectBtn").click(function () {
-                if ($('input:checkbox[name=ids]:checked').length === 0) {
+                if ($('table#myTable').DataTable().$('input:checkbox[name=ids]:checked').length === 0) {
                     $('#rejectSelectBtn').removeAttr('data-tw-toggle', 'modal');
                     $('#rejectSelectBtn').removeAttr('data-tw-target', '#reject-select-confirmation-modal');
                     toastr.info('Please select at least one item by checking the checkbox');

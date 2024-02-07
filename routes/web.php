@@ -164,7 +164,11 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/leavehr', [ApproveController::class,'leaveHumanRes'])->name('approvehr.leaveHr');
         Route::put('/leavehr/approve/LeaveWorkHr/{id}', [ApproveController::class,'approveLeaveHumanRes'])->name('approvehr.approvedLeaveHr');
+        Route::put('/leavehr/approveMultiple/LeaveWorkHr', [ApproveController::class,'approveLeaveHumanRes'])->name('approvehrMultiple.approvedLeaveHr');
+
         Route::put('/leavehr/reject/LeaveWorkHr/{id}', [ApproveController::class,'rejectLeaveHumanRes'])->name('approvehr.rejectLeaveHr');
+        Route::put('/leavehr/rejectMultiple/LeaveWorkHr', [ApproveController::class,'rejectLeaveHumanRes'])->name('approvehrMultiple.rejectLeaveHr');
+
     });
 
     Route::prefix('notification')->group(function () {

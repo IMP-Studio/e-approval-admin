@@ -1322,76 +1322,152 @@ class ApproveController extends Controller
         return in_array($formattedDate, $nationalHolidayDates);
     }
 
-    public function approveLeaveHumanRes(Request $request, $id)
+    public function approveLeaveHumanRes(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $ids = $request->ids;
 
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
-            }
-
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'allowed',
-                'description' => $request->description,
-            ]);
-
-            $message = $request->message;
-
-            $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
-            $statusable = $statusCommit2->statusable;
-
-            if ($statusable->presence->category == 'leave' && $statusCommit2->status === 'allowed') {
-                $startDate = Carbon::parse($statusable->start_date);
-                $endDate = Carbon::parse($statusable->end_date);
-                $currentDate = clone $startDate;
-                $nationalHolidays = $this->getHoliday($currentDate->year, $endDate->year);
-            
-                while ($currentDate->lte($endDate)) {
-                    if ($currentDate->isWeekend()) {
-                        $currentDate->addDay();
-                        continue;
+            if ($ids) {
+                # multiple data
+                foreach ($ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
+        
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
                     }
-            
-                    if ($this->isNationalHoliday($currentDate, $nationalHolidays)) {
-                        $currentDate->addDay();
-                        continue;
+        
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'allowed',
+                        'description' => $request->description,
+                    ]);
+        
+                    $message = $request->message;
+        
+                    $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
+                    $statusable = $statusCommit2->statusable;
+        
+                    if ($statusable->presence->category == 'leave' && $statusCommit2->status === 'allowed') {
+                        $startDate = Carbon::parse($statusable->start_date);
+                        $endDate = Carbon::parse($statusable->end_date);
+                        $currentDate = clone $startDate;
+                        $nationalHolidays = $this->getHoliday($currentDate->year, $endDate->year);
+                    
+                        while ($currentDate->lte($endDate)) {
+                            if ($currentDate->isWeekend()) {
+                                $currentDate->addDay();
+                                continue;
+                            }
+                    
+                            if ($this->isNationalHoliday($currentDate, $nationalHolidays)) {
+                                $currentDate->addDay();
+                                continue;
+                            }
+                    
+                            Presence::updateOrCreate(
+                                [
+                                    'user_id' => $statusable->user_id,
+                                    'date' => $currentDate->toDateString(),
+                                    'category' => 'leave'
+                                ],
+                                [
+                                    'entry_time' => '08:30:00',
+                                    'exit_time' => '17:30:00'
+                                ]
+                            );
+                    
+                            $currentDate->addDay();
+                        }
                     }
-            
-                    Presence::updateOrCreate(
-                        [
-                            'user_id' => $statusable->user_id,
-                            'date' => $currentDate->toDateString(),
-                            'category' => 'leave'
-                        ],
-                        [
-                            'entry_time' => '08:30:00',
-                            'exit_time' => '17:30:00'
-                        ]
-                    );
-            
-                    $currentDate->addDay();
+        
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+        
+                    $leave = Leave::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Leave')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // Kirim mail ke user
+                    dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));
                 }
+            }elseif ($id !== null) {
+                $statusCommit = StatusCommit::find($id);
+        
+                if (!$statusCommit) {
+                    return back()->with('error', 'StatusCommit not found.');
+                }
+    
+                // Ubah nilai status menjadi "preliminary"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'allowed',
+                    'description' => $request->description,
+                ]);
+    
+                $message = $request->message;
+    
+                $statusCommit2 = StatusCommit::with('statusable')->findOrFail($id);
+                $statusable = $statusCommit2->statusable;
+    
+                if ($statusable->presence->category == 'leave' && $statusCommit2->status === 'allowed') {
+                    $startDate = Carbon::parse($statusable->start_date);
+                    $endDate = Carbon::parse($statusable->end_date);
+                    $currentDate = clone $startDate;
+                    $nationalHolidays = $this->getHoliday($currentDate->year, $endDate->year);
+                
+                    while ($currentDate->lte($endDate)) {
+                        if ($currentDate->isWeekend()) {
+                            $currentDate->addDay();
+                            continue;
+                        }
+                
+                        if ($this->isNationalHoliday($currentDate, $nationalHolidays)) {
+                            $currentDate->addDay();
+                            continue;
+                        }
+                
+                        Presence::updateOrCreate(
+                            [
+                                'user_id' => $statusable->user_id,
+                                'date' => $currentDate->toDateString(),
+                                'category' => 'leave'
+                            ],
+                            [
+                                'entry_time' => '08:30:00',
+                                'exit_time' => '17:30:00'
+                            ]
+                        );
+                
+                        $currentDate->addDay();
+                    }
+                }
+    
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+    
+                $leave = Leave::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\Leave')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+    
+                $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+    
+                $message = $request->message;
+    
+                // Kirim mail ke user
+                dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));
+            }else {
+                return back()->with('error', 'Invalid request.');
             }
-
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
-
-            $leave = Leave::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\Leave')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
-
-            $message = $request->message;
-
-            // Kirim mail ke user
-            dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));
             
             return redirect()->route('approvehr.leaveHr')->with(['success' => "$message approved successfully"]);
         } catch (\Exception $e) {
@@ -1403,38 +1479,76 @@ class ApproveController extends Controller
         }
     }
 
-    public function rejectLeaveHumanRes(Request $request, $id)
+    public function rejectLeaveHumanRes(Request $request, $id = null)
     {
         try {
             $loggedInUser = auth()->user();
-            $statusCommit = StatusCommit::find($id);
+            $ids = $request->ids;
+
+            if ($ids) {
+                # multiple data
+                foreach ($ids as $id) {
+                    $statusCommit = StatusCommit::find($id);
+            
+                    if (!$statusCommit) {
+                        return back()->with('error', 'StatusCommit not found.');
+                    }
+            
+                    // Ubah nilai status menjadi "preliminary"
+                    $statusCommit->update([
+                        'approver_id' => $loggedInUser->id,
+                        'status' => 'rejected',
+                        'description' => $request->description,
+                    ]);
+            
+                    $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
+        
+                    $leave = Leave::with('presence', 'statusCommit')
+                        ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                            $query->where('statusable_type', 'App\Models\Leave')
+                                ->where('statusable_id', $statusCommit->statusable_id);
+                        })
+                        ->first();
+        
+                    $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+        
+                    $message = $request->message;
+        
+                    // Kirim mail ke user
+                    dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));   
+                }
+            }elseif ($id !== null) {
+                $statusCommit = StatusCommit::find($id);
+            
+                if (!$statusCommit) {
+                    return back()->with('error', 'StatusCommit not found.');
+                }
+        
+                // Ubah nilai status menjadi "preliminary"
+                $statusCommit->update([
+                    'approver_id' => $loggedInUser->id,
+                    'status' => 'rejected',
+                    'description' => $request->description,
+                ]);
+        
+                $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
     
-            if (!$statusCommit) {
-                return back()->with('error', 'StatusCommit not found.');
+                $leave = Leave::with('presence', 'statusCommit')
+                    ->whereHas('statusCommit', function ($query) use ($statusCommit) {
+                        $query->where('statusable_type', 'App\Models\Leave')
+                            ->where('statusable_id', $statusCommit->statusable_id);
+                    })
+                    ->first();
+    
+                $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
+    
+                $message = $request->message;
+    
+                // Kirim mail ke user
+                dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));   
+            }else {
+                return back()->with('error', 'Invalid request.');
             }
-    
-            // Ubah nilai status menjadi "preliminary"
-            $statusCommit->update([
-                'approver_id' => $loggedInUser->id,
-                'status' => 'rejected',
-                'description' => $request->description,
-            ]);
-    
-            $user = User::with(['employee'])->where('id', $statusCommit->statusable->user_id)->first();
-
-            $leave = Leave::with('presence', 'statusCommit')
-                ->whereHas('statusCommit', function ($query) use ($statusCommit) {
-                    $query->where('statusable_type', 'App\Models\Leave')
-                        ->where('statusable_id', $statusCommit->statusable_id);
-                })
-                ->first();
-
-            $presence = Presence::with('leave')->where('id', $leave->presence_id)->first();
-
-            $message = $request->message;
-
-            // Kirim mail ke user
-            dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));
            
             return redirect()->route('approvehr.leaveHr')->with(['success' => "$message rejected successfully"]);
             
