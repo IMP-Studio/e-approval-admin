@@ -237,7 +237,8 @@
                                     </p>
                                     <p><br></p>
                                     @php
-                                      if($leave != null){
+                                    $categoryLeave = '';
+                                      if($presence->category == 'leave' && $leave != null){
                                         if ($leave->leavedetail->typeOfLeave->leave_name == 'yearly') {
                                             $categoryLeave = 'Tahunan';
                                         } elseif ($leave->leavedetail->typeOfLeave->leave_name == 'exclusive') {
