@@ -29,6 +29,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('users:mark-skipped')->dailyAt('11:00')->timezone('Asia/Jakarta');
         $schedule->command('users:auto-checkout')->dailyAt('23:59')->timezone('Asia/Jakarta');
+        $schedule->command('users:auto-reject-command')->dailyAt('11:00')->timezone('Asia/Jakarta');
 }
 
     /**
