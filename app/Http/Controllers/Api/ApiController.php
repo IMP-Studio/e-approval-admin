@@ -1797,7 +1797,7 @@ class ApiController extends Controller
                     foreach ($approvers as $approver) {
                         dispatch(new SendRequestPresenceEmailJob($presence, $user, $approver, $workTrip, null));
                     }   
-                }elseif($request->input('status') === 'allowed'){
+                }elseif($request->input('status') === 'allowed' || $request->input('status') === 'rejected'){
                     dispatch(new SendResultSubmissionEmailJob($presence, $user, $workTrip, null, null));
                 }
             }elseif($statusable->presence->category == 'telework'){
@@ -1819,7 +1819,7 @@ class ApiController extends Controller
                     foreach ($approvers as $approver) {
                         dispatch(new SendRequestPresenceEmailJob($presence, $user, $approver, null, $telework));
                     }
-                }elseif($request->input('status') === 'allowed'){
+                }elseif($request->input('status') === 'allowed' || $request->input('status') === 'rejected'){
                     dispatch(new SendResultSubmissionEmailJob($presence, $user,null, $telework, null));
                 }
                 
@@ -1842,7 +1842,7 @@ class ApiController extends Controller
                     foreach ($approvers as $approver) {
                         dispatch(new SendRequestLeaveEmailJob($presence, $user, $approver, $leave));
                     }
-                }elseif($request->input('status') === 'allowed'){
+                }elseif($request->input('status') === 'allowed' || $request->input('status') === 'rejected'){
                     dispatch(new SendResultSubmissionEmailJob($presence, $user,null,null, $leave));
                 }
             }
